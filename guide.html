@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>host-pocket — Operation Guide</title>
+    <title>房東私藏 — 操作指南</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -48,6 +48,10 @@
         .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+        /* 全站文字最小 12px（text-xs） */
+        body {
+            font-size: 12px;
         }
         .phone-mockup {
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -131,7 +135,8 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                        host-pocket
+                        <span data-global-lang="zh">房東私藏</span>
+                        <span data-global-lang="en" class="hidden">host-pocket</span>
                     </h1>
                     <p class="text-xs text-hp-muted">房東專用 · 自動式在地體驗與房源導回中控平台</p>
                 </div>
@@ -174,7 +179,7 @@
                         連接已出租房源與在地導覽指南
                     </h2>
                     <p class="text-sm text-hp-muted leading-relaxed">
-                        房東成功將房間出租後，房客常會詢問在地私房推薦。房東可以使用 host-pocket 配對，建立專屬的指南頁面。房客在使用該指南時，隨時可以一鍵<span class="text-hp-coral font-bold">「導回與連結原房源頁面」</span>。
+                        房東成功將房間出租後，房客常會詢問在地私房推薦。房東可以使用房東私藏配對，建立專屬的指南頁面。房客在使用該指南時，隨時可以一鍵<span class="text-hp-coral font-bold">「導回與連結原房源頁面」</span>。
                     </p>
                 </div>
             </div>
@@ -226,14 +231,17 @@
                                         </g>
                                     </svg>
                                 </div>
-                                <span class="partner-bar-label text-[10px] font-bold text-white truncate">host-pocket</span>
+                                <span class="partner-bar-label text-xs font-bold text-white truncate">
+                                    <span data-global-lang="zh">房東私藏</span>
+                                    <span data-global-lang="en" class="hidden">host-pocket</span>
+                                </span>
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/60">
                                 <div class="partner-icon-slot shadow-sm">
                                     <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
                                 </div>
-                                <span class="partner-bar-label partner-bar-label--partner text-[10px] font-bold text-white truncate max-w-[5.5rem]" data-global-lang="zh">Airbnb 合作廠商</span>
-                                <span class="partner-bar-label partner-bar-label--partner text-[10px] font-bold text-white truncate max-w-[5.5rem] hidden" data-global-lang="en">Airbnb Partner</span>
+                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white truncate max-w-[5.5rem]" data-global-lang="zh">Airbnb 合作廠商</span>
+                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white truncate max-w-[5.5rem] hidden" data-global-lang="en">Airbnb Partner</span>
                             </div>
                         </div>
 
@@ -243,7 +251,8 @@
                             <!-- Brand Text Area -->
                             <div class="space-y-2 text-center">
                                 <h2 class="text-3xl font-black tracking-tight text-white font-sans">
-                                    host-pocket
+                                    <span data-global-lang="zh">房東私藏</span>
+                                    <span data-global-lang="en" class="hidden">host-pocket</span>
                                 </h2>
                                 <div class="w-10 h-1 bg-hp-coral mx-auto rounded-full"></div>
                             </div>
@@ -254,20 +263,20 @@
                                     <!-- Header -->
                                     <div class="flex items-center gap-2 px-5 pt-5 pb-3">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        <span class="text-[10px] font-bold tracking-wider text-hp-coral" data-global-lang="zh">連結您的 Airbnb 房源</span>
-                                        <span class="text-[10px] uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Link Your Airbnb Listing</span>
+                                        <span class="text-xs font-bold tracking-wider text-hp-coral" data-global-lang="zh">連結您的 Airbnb 房源</span>
+                                        <span class="text-xs uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Link Your Airbnb Listing</span>
                                     </div>
 
                                     <!-- Input -->
                                     <div class="px-5 pb-3">
-                                        <label class="text-[10px] font-semibold text-hp-muted mb-1 block">
+                                        <label class="text-xs font-semibold text-hp-muted mb-1 block">
                                             <span data-global-lang="zh">Airbnb 房源編號</span>
                                             <span data-global-lang="en" class="hidden">Airbnb Listing ID</span>
                                         </label>
-                                        <p class="text-[8px] text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">打開 Airbnb 房源頁，複製網址中 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
-                                        <p class="text-[8px] text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Open your Airbnb listing page and copy the numbers after <span class="text-hp-coral font-semibold">rooms/</span> in the URL</p>
-                                        <p class="text-[8px] text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
-                                        <p class="text-[8px] text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
+                                        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">打開 Airbnb 房源頁，複製網址中 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
+                                        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Open your Airbnb listing page and copy the numbers after <span class="text-hp-coral font-semibold">rooms/</span> in the URL</p>
+                                        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
+                                        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
                                         <div class="bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
                                             <input type="text"
                                                    data-pairing-target="input"
@@ -281,20 +290,20 @@
                                     <div class="px-5 pb-5">
                                         <button data-action="click->pairing#performPairing"
                                                 class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-hp-coral/25 flex items-center justify-center gap-2 active:scale-[0.98]">
-                                            <i class="fa-solid fa-link text-[10px]"></i>
+                                            <i class="fa-solid fa-link text-xs"></i>
                                             <span data-global-lang="zh">連結房源並建立指南</span>
                                             <span data-global-lang="en" class="hidden">Link Listing & Build Guide</span>
-                                            <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
+                                            <i class="fa-solid fa-arrow-right text-xs opacity-70"></i>
                                         </button>
                                     </div>
 
                                     <!-- Tagline inside same card -->
                                     <div class="border-t border-[#3E3430] bg-gradient-to-b from-hp-coral/[0.04] to-transparent px-5 py-4 text-center">
-                                        <p class="text-[11px] font-medium leading-relaxed text-[#EFECE9]/85 italic">
+                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85 italic">
                                             "Automated local experience guide for Airbnb hosts."
                                         </p>
-                                        <p class="text-[10px] text-hp-muted mt-1.5" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
-                                        <p class="text-[10px] text-hp-muted mt-1.5 hidden" data-global-lang="en">Automated local guide built for Airbnb hosts</p>
+                                        <p class="text-xs text-hp-muted mt-1.5" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
+                                        <p class="text-xs text-hp-muted mt-1.5 hidden" data-global-lang="en">Automated local guide built for Airbnb hosts</p>
                                     </div>
                                 </div>
                             </div>
@@ -303,39 +312,39 @@
 
                         <!-- Active presets helper -->
                         <div class="space-y-3">
-                            <p class="text-[9px] font-bold text-hp-muted uppercase tracking-widest text-center">快速切換測試主題</p>
+                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center">快速切換測試主題</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <button data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">Taipei</div>
-                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">大安設計 Loft</div>
-                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Designer loft stay</div>
+                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">Taipei</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">大安設計 Loft</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Designer loft stay</div>
                                     </div>
-                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                                 <button data-action="click->pairing#quickPair" data-id="KYOTO-STATION" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">KYOTO</div>
-                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">町屋茶器體驗</div>
-                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Teahouse stay</div>
+                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">KYOTO</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">町屋茶器體驗</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Teahouse stay</div>
                                     </div>
-                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                                 <button data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">VILNIUS</div>
-                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">維爾紐斯舊城琥珀</div>
-                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Vilnius amber stay</div>
+                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">VILNIUS</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">維爾紐斯舊城琥珀</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Vilnius amber stay</div>
                                     </div>
-                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                                 <button data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">RIO</div>
-                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">科帕卡巴納海景</div>
-                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Copacabana beach</div>
+                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">RIO</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">科帕卡巴納海景</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Copacabana beach</div>
                                     </div>
-                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                             </div>
                         </div>
@@ -383,7 +392,7 @@
                                     <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                                     
-                                    <span class="absolute top-3 left-3 bg-hp-coral text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                    <span class="absolute top-3 left-3 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
                                         <i class="fa-solid fa-house-circle-check"></i> 
                                         <span data-global-lang="zh">已出租房源實景</span>
                                         <span data-global-lang="en" class="hidden">Rented Out Listing</span>
@@ -391,14 +400,14 @@
                                     
                                     <!-- Can Share Button -->
                                     <button data-action="click->dashboard#shareExperience" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
-                                        <i class="fa-solid fa-arrow-up-from-bracket text-[11px] text-hp-coral"></i>
+                                        <i class="fa-solid fa-arrow-up-from-bracket text-xs text-hp-coral"></i>
                                     </button>
 
                                     <!-- Bottom Info Text inside Room Photo -->
                                     <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end">
                                         <div>
                                             <p data-dashboard-target="roomTitle" class="text-xs font-bold text-white drop-shadow-md">西陣町家織屋 · 百年包棟古民家</p>
-                                            <p data-dashboard-target="hostLocation" class="text-[9px] text-[#FAF8F5]/80 drop-shadow-sm">京都, 日本 - 3 晚預訂</p>
+                                            <p data-dashboard-target="hostLocation" class="text-xs text-[#FAF8F5]/80 drop-shadow-sm">京都, 日本 - 3 晚預訂</p>
                                         </div>
                                     </div>
                                 </div>
@@ -407,7 +416,7 @@
                                 <div class="p-4 bg-white space-y-3">
                                     <div class="flex justify-between items-center">
                                         <div>
-                                            <span class="text-[8px] uppercase font-bold tracking-widest text-hp-muted">Active Host Experience Guide</span>
+                                            <span class="text-xs uppercase font-bold tracking-widest text-hp-muted">Active Host Experience Guide</span>
                                             <h3 data-dashboard-target="hostTitle" class="text-xs font-black tracking-tight text-hp-dark mt-0.5">
                                                 Sarah 的京都西陣織屋
                                             </h3>
@@ -419,13 +428,19 @@
                                     
                                     <div class="pt-2.5 border-t border-hp-border flex items-center justify-between gap-2">
                                         <!-- Connect back to room Button -->
-                                        <button data-action="click->dashboard#connectBackToRoom" class="bg-hp-dark hover:bg-hp-lightDark text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm">
-                                            <i class="fa-solid fa-arrow-rotate-left text-[8px] text-hp-coral animate-pulse"></i>
+                                        <button data-action="click->dashboard#connectBackToRoom" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm">
+                                            <i class="fa-solid fa-arrow-rotate-left text-xs text-hp-coral animate-pulse"></i>
                                             <span data-global-lang="zh">返回房源主頁</span>
                                             <span data-global-lang="en" class="hidden">Back to Room</span>
                                         </button>
-                                        <span data-dashboard-target="activeId" class="text-[10px] font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
+                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
                                     </div>
+                                    <button type="button" data-action="click->dashboard#addAnotherListing"
+                                            class="w-full border border-hp-coral/40 bg-hp-coral/5 hover:bg-hp-coral/10 text-hp-coral text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98]">
+                                        <i class="fa-solid fa-plus text-xs"></i>
+                                        <span data-global-lang="zh">新增其他房源</span>
+                                        <span data-global-lang="en" class="hidden">Add Another Listing</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -435,10 +450,10 @@
                             <div class="px-5 flex justify-between items-center mb-3">
                                 <div>
                                     <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
-                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
-                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">點選卡片開啟該行程的地圖導航</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card to open its map route</p>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片開啟該行程的地圖導航</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card to open its map route</p>
                                 </div>
                             </div>
 
@@ -450,7 +465,7 @@
                                         class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
                                             🌟 <span data-global-lang="zh">歷史茶器</span><span data-global-lang="en" class="hidden">Chado Art</span>
                                         </span>
                                     </div>
@@ -458,12 +473,12 @@
                                         <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
                                             西陣百年大德寺抹茶體驗
                                         </h5>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-[10px] text-hp-coral font-bold">1,800 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
-                                                <i class="fa-solid fa-map-location-dot text-[8px]"></i>
+                                            <p class="text-xs text-hp-coral font-bold">1,800 JPY / 起</p>
+                                            <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
+                                                <i class="fa-solid fa-map-location-dot text-xs"></i>
                                                 <span data-global-lang="zh">地圖</span>
                                                 <span data-global-lang="en" class="hidden">Map</span>
                                             </span>
@@ -476,7 +491,7 @@
                                         class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
                                             🏮 <span data-global-lang="zh">職人秘境</span><span data-global-lang="en" class="hidden">Hidden Spot</span>
                                         </span>
                                     </div>
@@ -484,12 +499,12 @@
                                         <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
                                             船岡溫泉與復古喫茶館
                                         </h5>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-[10px] text-hp-coral font-bold">450 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
-                                                <i class="fa-solid fa-map-location-dot text-[8px]"></i>
+                                            <p class="text-xs text-hp-coral font-bold">450 JPY / 起</p>
+                                            <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
+                                                <i class="fa-solid fa-map-location-dot text-xs"></i>
                                                 <span data-global-lang="zh">地圖</span>
                                                 <span data-global-lang="en" class="hidden">Map</span>
                                             </span>
@@ -503,19 +518,19 @@
                         <div class="px-5 mb-4">
                             <div class="grid grid-cols-3 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
                                 <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-[11px] font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
+                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
                                     <i class="fa-solid fa-house text-hp-coral text-xs"></i>
                                     <span data-global-lang="zh">房屋指南</span>
                                     <span data-global-lang="en" class="hidden">House Stay</span>
                                 </button>
                                 <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition">
+                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
                                     <i class="fa-solid fa-compass text-xs"></i>
                                     <span data-global-lang="zh">在地探索</span>
                                     <span data-global-lang="en" class="hidden">Explore</span>
                                 </button>
                                 <button data-action="click->dashboard#scrollToSection" data-section="hostTask" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition">
+                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
                                     <i class="fa-solid fa-bolt text-xs"></i>
                                     <span data-global-lang="zh">快速任務</span>
                                     <span data-global-lang="en" class="hidden">Actions</span>
@@ -527,7 +542,7 @@
                         <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Essential Stays</h4>
-                                <span class="text-[10px] text-hp-coral font-bold flex items-center gap-0.5"><i class="fa-solid fa-shield-check"></i> Verified</span>
+                                <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5"><i class="fa-solid fa-shield-check"></i> Verified</span>
                             </div>
                             
                             <!-- Wifi Card (Stimulus Clipboard Trigger) -->
@@ -539,11 +554,11 @@
                                     <div>
                                         <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">Wi-Fi 機密與連接</h5>
                                         <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Wi-Fi Settings</h5>
-                                        <p data-dashboard-target="wifiValue" class="text-[10px] text-hp-coral font-mono font-bold mt-0.5">KyotoNishijin_5G / 1029384756</p>
+                                        <p data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5">KyotoNishijin_5G / 1029384756</p>
                                     </div>
                                 </div>
                                 <button data-action="click->dashboard#copyWifi" class="w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition">
-                                    <i class="fa-solid fa-copy text-[11px] text-[#8C807A]"></i>
+                                    <i class="fa-solid fa-copy text-xs text-[#8C807A]"></i>
                                 </button>
                             </div>
 
@@ -557,10 +572,10 @@
                                     <div>
                                         <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">大門解鎖步驟</h5>
                                         <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Door Unlocking Step</h5>
-                                        <p data-dashboard-target="lockValue" class="text-[10px] text-hp-muted mt-0.5">點擊喚醒鍵盤，輸入 #771239# 鎖頭自動轉開</p>
+                                        <p data-dashboard-target="lockValue" class="text-xs text-hp-muted mt-0.5">點擊喚醒鍵盤，輸入 #771239# 鎖頭自動轉開</p>
                                     </div>
                                 </div>
-                                <i class="fa-solid fa-angle-right text-[11px] text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
+                                <i class="fa-solid fa-angle-right text-xs text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
                             </button>
                         </div>
 
@@ -568,29 +583,29 @@
                         <div id="hostTask" data-dashboard-target="hostTask" class="px-5 py-4 space-y-3 transition-all duration-300">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Quick Actions</h4>
-                                <span class="text-[10px] text-hp-coral font-bold">3 項可用</span>
+                                <span class="text-xs text-hp-coral font-bold">3 項可用</span>
                             </div>
                             <div class="grid grid-cols-2 gap-2.5">
                                 <button data-action="click->global#navigateToExplorer" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
                                     <i class="fa-solid fa-map-location-dot text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">開啟地圖導航</div>
-                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Open Map Guide</div>
-                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">前往 Phone 03 實境探索</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Go to Phone 03 explorer</p>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">開啟地圖導航</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Open Map Guide</div>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">前往 Phone 03 實境探索</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Go to Phone 03 explorer</p>
                                 </button>
                                 <button data-action="click->dashboard#copyWifi" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
                                     <i class="fa-solid fa-wifi text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">複製 Wi-Fi</div>
-                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Copy Wi-Fi</div>
-                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">一鍵複製連線資訊</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">One-tap credentials</p>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">複製 Wi-Fi</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Copy Wi-Fi</div>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">一鍵複製連線資訊</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">One-tap credentials</p>
                                 </button>
                                 <button data-action="click->dashboard#connectBackToRoom" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm col-span-2">
                                     <i class="fa-solid fa-house-circle-check text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">返回 Airbnb 房源主頁</div>
-                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Back to Airbnb Listing</div>
-                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">一鍵導回已出租房源頁面</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Connect back to your booked room</p>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">返回 Airbnb 房源主頁</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Back to Airbnb Listing</div>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">一鍵導回已出租房源頁面</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Connect back to your booked room</p>
                                 </button>
                             </div>
                         </div>
@@ -615,7 +630,7 @@
                             <div class="h-48 relative">
                                 <img data-dashboard-target="overlayHero" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent"></div>
-                                <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                                <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
                                     ★ Superhost
                                 </span>
                             </div>
@@ -624,9 +639,9 @@
                                 <div class="flex justify-between items-start gap-4">
                                     <div>
                                         <h2 data-dashboard-target="overlayTitle" class="text-md font-extrabold text-hp-dark leading-snug">西陣町家織屋 · 百年包棟古民家</h2>
-                                        <p data-dashboard-target="overlayLocation" class="text-[11px] text-[#8C807A] mt-1">京都, 日本 · ★ 4.95 (128條評價)</p>
+                                        <p data-dashboard-target="overlayLocation" class="text-xs text-[#8C807A] mt-1">京都, 日本 · ★ 4.95 (128條評價)</p>
                                     </div>
-                                    <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
+                                    <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                                         已出租 stay active
                                     </span>
@@ -641,14 +656,15 @@
                                         <h4 class="text-xs font-bold text-hp-dark flex items-center gap-1">
                                             <span data-dashboard-target="overlayHost">Sarah</span> 的房源主頁
                                         </h4>
-                                        <p class="text-[10px] text-[#8C807A]">入住期間：2026年6月24日 - 3晚預訂</p>
+                                        <p class="text-xs text-[#8C807A]">入住期間：2026年6月24日 - 3晚預訂</p>
                                     </div>
                                 </div>
 
                                 <!-- Host Pocket Story connection description -->
                                 <div class="bg-hp-coral/5 border border-hp-coral/10 rounded-2xl p-4 space-y-2">
-                                    <h4 class="text-xs font-bold text-hp-coral">host-pocket 導回機制技術驗證</h4>
-                                    <p class="text-[11px] text-[#332C2A] leading-relaxed">
+                                    <h4 class="text-xs font-bold text-hp-coral" data-global-lang="zh">房東私藏導回機制技術驗證</h4>
+                                    <h4 class="text-xs font-bold text-hp-coral hidden" data-global-lang="en">host-pocket connect-back verification</h4>
+                                    <p class="text-xs text-[#332C2A] leading-relaxed">
                                         這裡展示了房客從在地體驗指南一鍵「導回與連結原房源頁面」的完整流程。解決了房東出租後，房客流失到外部導覽工具，而無法再次與房東房源建立緊密連結的問題。
                                     </p>
                                 </div>
@@ -660,15 +676,15 @@
                                         <div class="bg-white p-3 rounded-xl border border-hp-border flex gap-2 items-center">
                                             <i class="fa-solid fa-clock text-hp-coral text-xs"></i>
                                             <div>
-                                                <p class="text-[10px] text-[#8C807A]">入住時間</p>
-                                                <p class="text-[11px] font-bold text-hp-dark">15:00 後</p>
+                                                <p class="text-xs text-[#8C807A]">入住時間</p>
+                                                <p class="text-xs font-bold text-hp-dark">15:00 後</p>
                                             </div>
                                         </div>
                                         <div class="bg-white p-3 rounded-xl border border-hp-border flex gap-2 items-center">
                                             <i class="fa-solid fa-ban-smoking text-hp-coral text-xs"></i>
                                             <div>
-                                                <p class="text-[10px] text-[#8C807A]">客房禁煙</p>
-                                                <p class="text-[11px] font-bold text-hp-dark">全館禁菸</p>
+                                                <p class="text-xs text-[#8C807A]">客房禁煙</p>
+                                                <p class="text-xs font-bold text-hp-dark">全館禁菸</p>
                                             </div>
                                         </div>
                                     </div>
@@ -679,7 +695,7 @@
                         <!-- Sticky Bottom Call to Action of Overlay -->
                         <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-hp-border p-4 flex justify-between items-center z-10 shadow-[0_-8px_24px_rgba(31,26,24,0.05)]">
                             <div>
-                                <p class="text-[9px] text-[#8C807A] uppercase font-bold tracking-wider">Airbnb Companion</p>
+                                <p class="text-xs text-[#8C807A] uppercase font-bold tracking-wider">Airbnb Companion</p>
                                 <p class="text-xs font-bold text-hp-dark">與此在地指南連結中</p>
                             </div>
                             <button data-action="click->dashboard#closeRoomOverlay" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition duration-200 shadow-md">
@@ -689,7 +705,7 @@
                     </div>
 
                     <!-- Bottom Nav representing updated clean structure of v2 layout -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
                                 class="flex flex-col items-center gap-1 text-hp-coral transition">
                             <i class="fa-solid fa-compass text-base"></i>
@@ -727,8 +743,8 @@
                                 <div class="w-12 h-12 rounded-full bg-hp-coral text-white font-black text-lg flex items-center justify-center shadow-inner">S</div>
                                 <div>
                                     <h4 data-dashboard-target="helpHostName" class="text-sm font-bold text-hp-dark">Sarah · Superhost</h4>
-                                    <p class="text-[10px] text-hp-muted" data-global-lang="zh">通常 10 分鐘內回覆</p>
-                                    <p class="text-[10px] text-hp-muted hidden" data-global-lang="en">Usually replies within 10 min</p>
+                                    <p class="text-xs text-hp-muted" data-global-lang="zh">通常 10 分鐘內回覆</p>
+                                    <p class="text-xs text-hp-muted hidden" data-global-lang="en">Usually replies within 10 min</p>
                                 </div>
                             </div>
                             <button data-action="click->dashboard#sendHostMessage" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
@@ -736,8 +752,8 @@
                                 <div>
                                     <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">傳送訊息給房東</div>
                                     <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Send Message to Host</div>
-                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">Wi-Fi、入住、在地推薦問題</p>
-                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Wi-Fi, check-in, local tips</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">Wi-Fi、入住、在地推薦問題</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Wi-Fi, check-in, local tips</p>
                                 </div>
                             </button>
                             <button data-action="click->dashboard#callHost" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
@@ -745,8 +761,8 @@
                                 <div>
                                     <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">緊急語音通話</div>
                                     <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Emergency Voice Call</div>
-                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">透過 host-pocket 加密 VoIP</p>
-                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Via encrypted host-pocket VoIP</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">透過房東私藏加密 VoIP</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Via encrypted host-pocket VoIP</p>
                                 </div>
                             </button>
                             <button data-action="click->dashboard#scrollToSectionFromHelp" data-section="stayGuides" class="w-full bg-hp-bgLight border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3">
@@ -754,8 +770,8 @@
                                 <div>
                                     <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">查看 Wi-Fi 與門禁</div>
                                     <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">View Wi-Fi & Access</div>
-                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">自助解決常見入住問題</p>
-                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Self-service for common issues</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">自助解決常見入住問題</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Self-service for common issues</p>
                                 </div>
                             </button>
                         </div>
@@ -779,38 +795,38 @@
                                 <div>
                                     <h4 class="text-sm font-bold text-hp-dark" data-global-lang="zh">電子鎖操作指南</h4>
                                     <h4 class="text-sm font-bold text-hp-dark hidden" data-global-lang="en">Electronic Lock Guide</h4>
-                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">跟著步驟即可自行進入</p>
-                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Follow steps to enter</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">跟著步驟即可自行進入</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Follow steps to enter</p>
                                 </div>
                             </div>
                             <ol class="space-y-3">
                                 <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
-                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">1</span>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">輕觸門鎖鍵盤，喚醒背光面板</p>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Tap the keypad to wake the backlight</p>
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-xs font-black flex items-center justify-center shrink-0">1</span>
+                                    <p class="text-xs text-hp-dark leading-relaxed" data-global-lang="zh">輕觸門鎖鍵盤，喚醒背光面板</p>
+                                    <p class="text-xs text-hp-dark leading-relaxed hidden" data-global-lang="en">Tap the keypad to wake the backlight</p>
                                 </li>
                                 <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
-                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">2</span>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">輸入下方解鎖密碼，結尾按 <strong>#</strong> 確認</p>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Enter the code below, then press <strong>#</strong></p>
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-xs font-black flex items-center justify-center shrink-0">2</span>
+                                    <p class="text-xs text-hp-dark leading-relaxed" data-global-lang="zh">輸入下方解鎖密碼，結尾按 <strong>#</strong> 確認</p>
+                                    <p class="text-xs text-hp-dark leading-relaxed hidden" data-global-lang="en">Enter the code below, then press <strong>#</strong></p>
                                 </li>
                                 <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
-                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">3</span>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">聽到「喀」一聲，鎖舌收回即可推門進入</p>
-                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Wait for the click, then push the door open</p>
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-xs font-black flex items-center justify-center shrink-0">3</span>
+                                    <p class="text-xs text-hp-dark leading-relaxed" data-global-lang="zh">聽到「喀」一聲，鎖舌收回即可推門進入</p>
+                                    <p class="text-xs text-hp-dark leading-relaxed hidden" data-global-lang="en">Wait for the click, then push the door open</p>
                                 </li>
                             </ol>
                             <div class="bg-hp-dark rounded-2xl p-4 text-center space-y-2">
-                                <p class="text-[9px] uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">解鎖密碼</p>
-                                <p class="text-[9px] uppercase font-bold tracking-widest text-hp-muted hidden" data-global-lang="en">Access Code</p>
+                                <p class="text-xs uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">解鎖密碼</p>
+                                <p class="text-xs uppercase font-bold tracking-widest text-hp-muted hidden" data-global-lang="en">Access Code</p>
                                 <p data-dashboard-target="lockCode" class="text-2xl font-mono font-black text-white tracking-widest">#771239#</p>
                                 <button data-action="click->dashboard#copyLockCode" class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 mt-2">
-                                    <i class="fa-solid fa-copy text-[10px]"></i>
+                                    <i class="fa-solid fa-copy text-xs"></i>
                                     <span data-global-lang="zh">複製密碼</span>
                                     <span data-global-lang="en" class="hidden">Copy Code</span>
                                 </button>
                             </div>
-                            <p data-dashboard-target="lockDetail" class="text-[10px] text-hp-muted leading-relaxed text-center px-2"></p>
+                            <p data-dashboard-target="lockDetail" class="text-xs text-hp-muted leading-relaxed text-center px-2"></p>
                         </div>
                     </div>
                 </div>
@@ -863,7 +879,7 @@
 
                             <!-- Start Pin -->
                             <div class="absolute top-12 left-20 flex flex-col items-center z-20">
-                                <div class="bg-hp-dark text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">My Room</div>
+                                <div class="bg-hp-dark text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">My Room</div>
                                 <div data-explorer-target="startPinDot" class="w-3.5 h-3.5 rounded-full bg-hp-dark border-2 border-white flex items-center justify-center shadow-md">
                                     <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
                                 </div>
@@ -871,11 +887,11 @@
 
                             <!-- Target Pin -->
                             <div class="absolute top-32 right-24 flex flex-col items-center z-20">
-                                <div class="bg-hp-coral text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">Secret Spot</div>
+                                <div class="bg-hp-coral text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">Secret Spot</div>
                                 <div class="relative flex items-center justify-center">
                                     <span data-explorer-target="endPinPing" class="absolute w-4 h-4 rounded-full bg-hp-coral opacity-40 animate-ping"></span>
                                     <div data-explorer-target="endPinDot" class="relative w-4 h-4 rounded-full bg-hp-coral border-2 border-white flex items-center justify-center shadow-lg">
-                                        <i class="fa-solid fa-location-dot text-[8px] text-white"></i>
+                                        <i class="fa-solid fa-location-dot text-xs text-white"></i>
                                     </div>
                                 </div>
                             </div>
@@ -896,23 +912,23 @@
                             
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">NAVIGATION ACTIVE</span>
+                                    <span class="text-xs uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">NAVIGATION ACTIVE</span>
                                     <h4 data-explorer-target="targetTitle" class="text-sm font-black text-hp-dark mt-1.5 leading-snug">
                                         船岡溫泉：傳承百年的大正木雕湯屋
                                     </h4>
-                                    <p class="text-[10px] text-[#8C807A] mt-0.5 flex items-center gap-1">
+                                    <p class="text-xs text-[#8C807A] mt-0.5 flex items-center gap-1">
                                         <i class="fa-solid fa-bicycle text-hp-coral"></i> <span>單車 4 分鐘 (1.2公里)</span>
                                     </p>
                                 </div>
-                                <span class="bg-hp-coral text-white text-[10px] font-black px-2.5 py-1 rounded-xl shrink-0">950m</span>
+                                <span class="bg-hp-coral text-white text-xs font-black px-2.5 py-1 rounded-xl shrink-0">950m</span>
                             </div>
 
                             <!-- Route details narrative -->
                             <div class="mt-4 bg-hp-bgLight border border-hp-border rounded-2xl p-3.5 space-y-2.5">
-                                <p data-explorer-target="targetDesc" class="text-[11px] text-[#332C2A] leading-relaxed">
+                                <p data-explorer-target="targetDesc" class="text-xs text-[#332C2A] leading-relaxed">
                                     「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」
                                 </p>
-                                <div class="flex justify-between items-center text-[10px] font-bold text-hp-muted pt-2 border-t border-hp-border">
+                                <div class="flex justify-between items-center text-xs font-bold text-hp-muted pt-2 border-t border-hp-border">
                                     <span data-global-lang="zh">預估花費: 450 JPY</span>
                                     <span data-global-lang="en" class="hidden">Est: 450 JPY</span>
                                     <span class="text-hp-coral" data-global-lang="zh">房東推薦 ★★★裝修裝潢</span>
@@ -922,18 +938,18 @@
 
                             <!-- Interactive Task buttons representing "Host instructions" -->
                             <div class="mt-4 space-y-2">
-                                <h5 class="text-[10px] uppercase font-bold tracking-wider text-[#8C807A]">房務自動化快捷動作</h5>
+                                <h5 class="text-xs uppercase font-bold tracking-wider text-[#8C807A]">房務自動化快捷動作</h5>
                                 
                                 <div class="grid grid-cols-2 gap-2">
                                     <button data-action="click->explorer#requestWifiReset" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
                                         <i class="fa-solid fa-wifi text-hp-coral text-xs mb-1"></i>
-                                        <div class="text-[11px] font-bold text-hp-dark">Wi-Fi 斷線重置</div>
-                                        <p class="text-[8px] text-[#8C807A] mt-0.5">一鍵發送重啟請求</p>
+                                        <div class="text-xs font-bold text-hp-dark">Wi-Fi 斷線重置</div>
+                                        <p class="text-xs text-[#8C807A] mt-0.5">一鍵發送重啟請求</p>
                                     </button>
                                     <button data-action="click->explorer#requestTrashPolicy" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
                                         <i class="fa-solid fa-trash-can text-hp-coral text-xs mb-1"></i>
-                                        <div class="text-[11px] font-bold text-hp-dark">清潔/垃圾處理說明</div>
-                                        <p class="text-[8px] text-[#8C807A] mt-0.5">了解分類回收規章</p>
+                                        <div class="text-xs font-bold text-hp-dark">清潔/垃圾處理說明</div>
+                                        <p class="text-xs text-[#8C807A] mt-0.5">了解分類回收規章</p>
                                     </button>
                                 </div>
                             </div>
@@ -942,7 +958,7 @@
                     </div>
 
                     <!-- Bottom Nav mapping -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->global#navigateToDashboard" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
@@ -1121,6 +1137,7 @@
 
             connect() {
                 this.updateActiveLangUI();
+                document.title = this.langValue === 'zh' ? '房東私藏 — 操作指南' : 'host-pocket — Operation Guide';
             }
 
             getCurrentExperienceId() {
@@ -1155,6 +1172,7 @@
                 }
 
                 this.updateActiveLangUI();
+                document.title = chosenLang === 'zh' ? '房東私藏 — 操作指南' : 'host-pocket — Operation Guide';
                 this.syncControllers(this.getCurrentExperienceId());
 
                 this.dispatchNotification(
@@ -1216,6 +1234,21 @@
 
                 // Dispatch global events for Stimulus listeners
                 window.dispatchEvent(new CustomEvent("experience:updated", { detail: { id: targetId, data: guidesDb[targetId] } }));
+            }
+
+            navigateToPairing(intent = 'switch') {
+                const isZh = this.langValue === 'zh';
+                const copy = intent === 'add'
+                    ? { title: isZh ? '新增其他房源' : 'Add Listing', msg: isZh ? '請輸入新房源編號，建立另一份入住指南' : 'Enter a new listing ID to create another stay guide.' }
+                    : { title: isZh ? '返回連結面板' : 'Link Panel', msg: isZh ? '可輸入 Airbnb 房源編號' : 'Enter a new Airbnb listing ID.' };
+
+                const phone1 = document.querySelector('[data-controller="pairing"]');
+                if (phone1) {
+                    phone1.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    phone1.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
+                    setTimeout(() => phone1.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
+                }
+                this.dispatchNotification(copy.title, copy.msg, 'info');
             }
 
             navigateToExplorer(recDetail) {
@@ -1398,6 +1431,18 @@
                 this.setActiveBottomNav(event.currentTarget);
                 const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 if (global) global.navigateToExplorer();
+            }
+
+            addAnotherListing() {
+                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
+                if (global) {
+                    global.setPairingInput('');
+                    global.navigateToPairing('add');
+                    setTimeout(() => {
+                        const input = document.querySelector('[data-pairing-target="input"]');
+                        if (input) input.focus();
+                    }, 350);
+                }
             }
 
             openRecOnMap(event) {
@@ -1611,8 +1656,8 @@
 
             setActiveTab(activeBtn) {
                 if (!this.hasTabBtnTarget) return;
-                const activeClass = 'py-2.5 rounded-xl bg-white text-hp-dark text-[11px] font-extrabold shadow-sm flex flex-col items-center gap-1 transition';
-                const inactiveClass = 'py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition';
+                const activeClass = 'py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition';
+                const inactiveClass = 'py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition';
 
                 this.tabBtnTargets.forEach(btn => {
                     btn.className = btn === activeBtn ? activeClass : inactiveClass;
@@ -1780,7 +1825,7 @@
                 </div>
                 <div>
                     <h5 class="font-bold text-xs">${title}</h5>
-                    <p class="text-[10px] text-hp-muted mt-0.5 leading-relaxed">${message}</p>
+                    <p class="text-xs text-hp-muted mt-0.5 leading-relaxed">${message}</p>
                 </div>
             `;
 
