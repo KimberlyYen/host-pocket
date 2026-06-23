@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>host-pocket</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>host-pocket — Operation Guide</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -51,27 +49,11 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            overscroll-behavior: none;
+        .phone-mockup {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .app-screen {
-            z-index: 1;
-            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
-        }
-        .app-screen.is-active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
-            pointer-events: auto;
-            z-index: 10;
-        }
-        .app-screen:not(.is-active) {
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(12px);
-            pointer-events: none;
+        .phone-mockup:hover {
+            transform: translateY(-4px);
         }
         .partner-bar {
             background: linear-gradient(90deg, #FF5B3E 0%, #FF5A5F 100%);
@@ -129,32 +111,107 @@
         }
     </style>
 </head>
-<body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
+<body class="bg-[#151110] text-[#EFECE9] min-h-screen font-sans flex flex-col antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
       data-global-lang-value="zh">
 
-    <!-- 語言切換（浮動） -->
-    <div class="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
-        <button data-global-target="zhBtn"
-                data-action="click->global#switchLanguage"
-                data-lang="zh"
-                class="px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm">
-            繁中
-        </button>
-        <button data-global-target="enBtn"
-                data-action="click->global#switchLanguage"
-                data-lang="en"
-                class="px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white">
-            EN
-        </button>
-    </div>
+    <!-- Brand Demonstration Header -->
+    <header class="bg-[#1C1715] border-b border-[#2C2422] py-4 px-6 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="partner-icon-slot partner-icon-slot--md shadow-lg shadow-hp-coral/20 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
+                            <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
+                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                        host-pocket
+                    </h1>
+                    <p class="text-xs text-hp-muted">房東專用 · 自動式在地體驗與房源導回中控平台</p>
+                </div>
+            </div>
+            
+            <!-- Hotwire Controller - Language & Demo Actions -->
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430]">
+                    <button data-global-target="zhBtn" 
+                            data-action="click->global#switchLanguage" 
+                            data-lang="zh" 
+                            class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm">
+                        繁體中文
+                    </button>
+                    <button data-global-target="enBtn" 
+                            data-action="click->global#switchLanguage" 
+                            data-lang="en" 
+                            class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white">
+                        English
+                    </button>
+                </div>
+                <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430] text-xs">
+                    <span class="px-2 py-1 font-semibold text-hp-muted">快速測試:</span>
+                    <button data-action="click->global#injectDemoID" data-id="TAIPEI-CITY" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">Taipei</button>
+                    <button data-action="click->global#injectDemoID" data-id="KYOTO-STATION" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">KYOTO</button>
+                    <button data-action="click->global#injectDemoID" data-id="VILNIUS-OLDTOWN" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">VILNIUS</button>
+                    <button data-action="click->global#injectDemoID" data-id="RIO-COPACABANA" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg transition font-mono font-bold">RIO</button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- App Shell：三支畫面切換，全螢幕可操作 -->
-    <div id="app-root" data-controller="app" class="h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
+    <!-- Design Concept Banner -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8">
+        
+        <div class="bg-gradient-to-br from-[#1F1A18] to-[#171312] border border-[#2F2724] rounded-3xl p-6 mb-8 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="max-w-3xl">
+                    <h2 class="text-xl font-bold text-white mb-1">
+                        連接已出租房源與在地導覽指南
+                    </h2>
+                    <p class="text-sm text-hp-muted leading-relaxed">
+                        房東成功將房間出租後，房客常會詢問在地私房推薦。房東可以使用 host-pocket 配對，建立專屬的指南頁面。房客在使用該指南時，隨時可以一鍵<span class="text-hp-coral font-bold">「導回與連結原房源頁面」</span>。
+                    </p>
+                </div>
+            </div>
+        </div>
 
-            <!-- 畫面 1：房源連結 -->
-            <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
-                    <div class="flex-grow flex flex-col justify-between p-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(3rem,env(safe-area-inset-top))]">
+        <!-- THREE PHONES INTERACTIVE CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 justify-center items-start">
+
+            <!-- ================= PHONE 1: PAIRING GATEWAY (Stimulus Module) ================= -->
+            <div class="flex flex-col items-center" data-controller="pairing">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 01</span>
+                    <h3 class="text-md font-bold text-white mt-2">房源連結面板</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]" data-global-lang="zh">貼上 Airbnb 房源網址中的編號，即可連結房源並建立指南。</p>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px] hidden" data-global-lang="en">Paste the listing ID from your Airbnb URL to link your listing and build your guide.</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-full max-w-[375px] h-[812px] bg-hp-dark text-[#EFECE9] rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-hp-muted select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal"></i>
+                            <i class="fa-solid fa-wifi"></i>
+                            <i class="fa-solid fa-battery-three-quarters"></i>
+                        </div>
+                    </div>
+
+                    <!-- Inner App Content -->
+                    <div class="flex-grow flex flex-col justify-between p-6 pb-12 pt-10">
                         
                         <!-- Partner Bar: host-pocket → Airbnb -->
                         <div class="partner-bar rounded-xl flex items-center justify-between gap-2 px-3 py-2.5 shadow-lg shadow-black/25 ring-1 ring-white/25 min-w-0">
@@ -215,7 +272,7 @@
                                             <input type="text"
                                                    data-pairing-target="input"
                                                    placeholder="12345678"
-                                                   value=""
+                                                   value="TAIPEI-CITY"
                                                    class="bg-transparent text-base font-mono font-bold text-white focus:outline-none w-full uppercase tracking-widest placeholder:text-hp-muted/40">
                                         </div>
                                     </div>
@@ -282,12 +339,41 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- iPhone Home Indicator -->
+                        <div class="w-32 h-1 bg-hp-muted/30 rounded-full mx-auto mt-2"></div>
                     </div>
+                </div>
             </div>
 
-            <!-- 畫面 2：指南主頁 -->
-            <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 pt-[max(2.5rem,env(safe-area-inset-top))]">
+            <!-- ================= PHONE 2: EXPERIENCE DASHBOARD (Stimulus Module with simulated Room detail transition) ================= -->
+            <div class="flex flex-col items-center" data-controller="dashboard">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 02</span>
+                    <h3 class="text-md font-bold text-white mt-2">智慧指南中控台</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]">配對後主面板。房東精選房源照片卡片結合在地秘境探索，支援一鍵分享與導回。</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-full max-w-[375px] h-[812px] bg-hp-bgLight text-hp-dark rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal text-hp-dark"></i>
+                            <i class="fa-solid fa-wifi text-hp-dark"></i>
+                            <i class="fa-solid fa-battery-three-quarters text-hp-dark"></i>
+                        </div>
+                    </div>
+
+                    <!-- Inner Scrollable Container -->
+                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 pt-2">
                         
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
@@ -340,10 +426,6 @@
                                         </button>
                                         <span data-dashboard-target="activeId" class="text-[10px] font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
                                     </div>
-                                    <button type="button" data-action="click->global#navigateToPairing" class="text-[9px] font-bold text-hp-muted hover:text-hp-coral transition w-full text-left pt-1">
-                                        <span data-global-lang="zh">↩ 切換其他房源</span>
-                                        <span data-global-lang="en" class="hidden">↩ Switch listing</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -488,8 +570,8 @@
                                     <i class="fa-solid fa-map-location-dot text-hp-coral text-sm mb-2"></i>
                                     <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">開啟地圖導航</div>
                                     <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Open Map Guide</div>
-                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">開啟實境地圖導航</p>
-                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Open map navigation</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">前往 Phone 03 實境探索</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Go to Phone 03 explorer</p>
                                 </button>
                                 <button data-action="click->dashboard#copyWifi" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
                                     <i class="fa-solid fa-wifi text-hp-coral text-sm mb-2"></i>
@@ -560,13 +642,9 @@
 
                                 <!-- Host Pocket Story connection description -->
                                 <div class="bg-hp-coral/5 border border-hp-coral/10 rounded-2xl p-4 space-y-2">
-                                    <h4 class="text-xs font-bold text-hp-coral" data-global-lang="zh">您的 Airbnb 房源</h4>
-                                    <h4 class="text-xs font-bold text-hp-coral hidden" data-global-lang="en">Your Airbnb Listing</h4>
-                                    <p class="text-[11px] text-[#332C2A] leading-relaxed" data-global-lang="zh">
-                                        您正在從 host-pocket 指南瀏覽已連結的房源。可隨時返回指南，繼續查看 Wi‑Fi、解鎖步驟與在地推薦。
-                                    </p>
-                                    <p class="text-[11px] text-[#332C2A] leading-relaxed hidden" data-global-lang="en">
-                                        You're viewing your linked listing from the host-pocket guide. Return anytime for Wi‑Fi, access codes, and local picks.
+                                    <h4 class="text-xs font-bold text-hp-coral">host-pocket 導回機制技術驗證</h4>
+                                    <p class="text-[11px] text-[#332C2A] leading-relaxed">
+                                        這裡展示了房客從在地體驗指南一鍵「導回與連結原房源頁面」的完整流程。解決了房東出租後，房客流失到外部導覽工具，而無法再次與房東房源建立緊密連結的問題。
                                     </p>
                                 </div>
 
@@ -605,8 +683,8 @@
                         </div>
                     </div>
 
-                    <!-- Bottom Nav -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                    <!-- Bottom Nav representing updated clean structure of v2 layout -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
                                 class="flex flex-col items-center gap-1 text-hp-coral transition">
                             <i class="fa-solid fa-compass text-base"></i>
@@ -625,6 +703,8 @@
                             <span data-global-lang="zh">求助房東</span>
                             <span data-global-lang="en" class="hidden">Help</span>
                         </button>
+                        <!-- iPhone Home Indicator -->
+                        <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-hp-border rounded-full pointer-events-none"></div>
                     </div>
 
                     <!-- Help / Contact Host Overlay -->
@@ -728,11 +808,37 @@
                             <p data-dashboard-target="lockDetail" class="text-[10px] text-hp-muted leading-relaxed text-center px-2"></p>
                         </div>
                     </div>
+                </div>
             </div>
 
-            <!-- 畫面 3：實境探索 -->
-            <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <div class="flex-grow flex flex-col overflow-hidden pt-[max(0.5rem,env(safe-area-inset-top))]">
+            <!-- ================= PHONE 3: TASK & MAP RUNNER (Stimulus Module) ================= -->
+            <div class="flex flex-col items-center" data-controller="explorer">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 03</span>
+                    <h3 class="text-md font-bold text-white mt-2">實境秘境探索儀表板</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]">地圖導覽與房客快捷自助服務。透過 Stimulus 元件驅動狀態更新。</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-full max-w-[375px] h-[812px] bg-hp-bgLight text-hp-dark rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal text-hp-dark"></i>
+                            <i class="fa-solid fa-wifi text-hp-dark"></i>
+                            <i class="fa-solid fa-battery-three-quarters text-hp-dark"></i>
+                        </div>
+                    </div>
+
+                    <!-- App Content Area with built-in mini map simulator -->
+                    <div class="flex-grow flex flex-col overflow-hidden">
                         
                         <!-- Map View Simulator (SVG Based layout with target pins) -->
                         <div data-explorer-target="mapContainer" class="h-64 bg-[#EADCC9] relative border-b border-hp-border overflow-hidden shrink-0">
@@ -831,7 +937,7 @@
                     </div>
 
                     <!-- Bottom Nav mapping -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->global#navigateToDashboard" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
@@ -847,10 +953,16 @@
                             <span data-global-lang="zh">緊急聯絡</span>
                             <span data-global-lang="en" class="hidden">Help</span>
                         </button>
+                        <!-- iPhone Home Indicator -->
+                        <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-hp-border rounded-full"></div>
                     </div>
+
+                </div>
             </div>
 
-    </div>
+        </div>
+
+    </main>
 
     <!-- Simulated Backend Database within Hotwire Client -->
     <script>
@@ -956,40 +1068,6 @@
         const { Application, Controller } = Stimulus;
         const stimulusApp = Application.start();
 
-        // --- APP SHELL：三支畫面切換 ---
-        stimulusApp.register("app", class extends Controller {
-            static targets = ["screen"]
-            static values = { current: { type: String, default: "pairing" } }
-
-            connect() {
-                window.appNavigate = (name) => this.show(name);
-                this.show(this.currentValue);
-            }
-
-            show(name) {
-                this.screenTargets.forEach(el => {
-                    el.classList.toggle("is-active", el.dataset.screen === name);
-                });
-                this.currentValue = name;
-
-                if (name === "explorer") {
-                    const explorerEl = this.screenTargets.find(el => el.dataset.screen === "explorer");
-                    const explorerCtrl = explorerEl && this.application.getControllerForElementAndIdentifier(explorerEl, "explorer");
-                    if (explorerCtrl?.updateRouteLine) {
-                        requestAnimationFrame(() => explorerCtrl.updateRouteLine());
-                    }
-                }
-
-                if (name === "dashboard") {
-                    const dashEl = this.screenTargets.find(el => el.dataset.screen === "dashboard");
-                    const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, "dashboard");
-                    if (dashCtrl?.hasScrollContainerTarget) {
-                        dashCtrl.scrollContainerTarget.scrollTo({ top: 0, behavior: "instant" });
-                    }
-                }
-            }
-        });
-
         // 1. GLOBAL STATE CONTROLLER (Manages dynamic theme languages and triggers update notifications)
         stimulusApp.register("global", class extends Controller {
             static values = { lang: String }
@@ -1090,28 +1168,7 @@
                 window.dispatchEvent(new CustomEvent("experience:updated", { detail: { id: targetId, data: guidesDb[targetId] } }));
             }
 
-            navigateToPairing() {
-                if (window.appNavigate) {
-                    window.appNavigate("pairing");
-                    this.dispatchNotification(
-                        this.langValue === "zh" ? "返回連結面板" : "Link Panel",
-                        this.langValue === "zh" ? "可輸入新的 Airbnb 房源編號" : "Enter a new Airbnb listing ID.",
-                        "info"
-                    );
-                }
-            }
-
             navigateToExplorer() {
-                if (window.appNavigate) {
-                    window.appNavigate("explorer");
-                    this.dispatchNotification(
-                        this.langValue === "zh" ? "載入實境地圖" : "Map Loaded",
-                        this.langValue === "zh" ? "已進入實境探索" : "Opened map explorer.",
-                        "info"
-                    );
-                    return;
-                }
-
                 const phone3 = document.querySelector('[data-controller="explorer"]');
                 if (phone3) {
                     phone3.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1127,16 +1184,6 @@
             }
 
             navigateToDashboard() {
-                if (window.appNavigate) {
-                    window.appNavigate("dashboard");
-                    this.dispatchNotification(
-                        this.langValue === "zh" ? "返回主面板" : "Dashboard Hub",
-                        this.langValue === "zh" ? "已回到指南主頁" : "Back to stay guide home.",
-                        "info"
-                    );
-                    return;
-                }
-
                 const phone2 = document.querySelector('[data-controller="dashboard"]');
                 if (phone2) {
                     phone2.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1182,9 +1229,7 @@
                     'success'
                 );
 
-                if (window.appNavigate) {
-                    window.appNavigate("dashboard");
-                } else if (window.matchMedia('(max-width: 1023px)').matches) {
+                if (window.matchMedia('(max-width: 1023px)').matches) {
                     const phone2 = document.querySelector('[data-controller="dashboard"]');
                     if (phone2) {
                         phone2.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1609,7 +1654,7 @@
             if (!container) {
                 container = document.createElement('div');
                 container.id = 'toast-box';
-                container.className = "fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm mx-auto w-full pointer-events-none";
+                container.className = "fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none";
                 document.body.appendChild(container);
             }
 

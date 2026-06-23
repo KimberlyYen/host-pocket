@@ -37,7 +37,7 @@ cd host-pocket
 python3 -m http.server 8080
 ```
 
-瀏覽器開啟 [http://localhost:8080](http://localhost:8080)，或直接雙擊 `index.html`（部分互動在 `file://` 下可能受限，建議使用本地伺服器）。
+瀏覽器開啟 [http://localhost:8080](http://localhost:8080)（**全螢幕可操作 App**），或 [http://localhost:8080/guide.html](http://localhost:8080/guide.html)（操作指南，三支 Phone 並排展示）。部分互動在 `file://` 下可能受限，建議使用本地伺服器。
 
 ### 原型操作提示
 
@@ -74,14 +74,15 @@ python3 -m http.server 8080
 | hp-dark | `#1F1A18` | 深色背景 |
 
 - **字標**：`host-pocket`（全小寫）
-- **Icon**：丹寧口袋 SVG 內嵌於 `index.html`；App Icon 比例（圖示約 68%、四邊留白 16%）
+- **Icon**：丹寧口袋 SVG 內嵌於 `guide.html`；App Icon 比例（圖示約 68%、四邊留白 16%）
 
 ### 專案檔案
 
 ```
 host-pocket/
 ├── README.md        # 本文件
-├── index.html       # 完整互動原型（單檔，含 Stimulus 與示範資料）
+├── index.html       # 全螢幕可操作 App 原型（預設入口）
+├── guide.html       # 操作指南（三支 Phone 並排展示，含 Stimulus 與示範資料）
 └── pocket-icon.png  # 品牌口袋 icon（點陣參考素材）
 ```
 
@@ -131,7 +132,7 @@ cd host-pocket
 python3 -m http.server 8080
 ```
 
-Open [http://localhost:8080](http://localhost:8080) in your browser. You can also open `index.html` directly, but some behavior works best over a local server.
+Open [http://localhost:8080](http://localhost:8080) for the full-screen interactive app (default entry), or [http://localhost:8080/guide.html](http://localhost:8080/guide.html) for the operation guide (three-phone showcase). A local server is recommended; some behavior is limited under `file://`.
 
 ### Prototype tips
 
@@ -168,14 +169,15 @@ Open [http://localhost:8080](http://localhost:8080) in your browser. You can als
 | hp-dark | `#1F1A18` | Dark surfaces |
 
 - **Wordmark**: `host-pocket` (all lowercase)
-- **Icon**: Denim pocket SVG embedded in `index.html`; app-icon spacing (~68% glyph, 16% inset)
+- **Icon**: Denim pocket SVG embedded in `guide.html`; app-icon spacing (~68% glyph, 16% inset)
 
 ### Project files
 
 ```
 host-pocket/
 ├── README.md        # This file
-├── index.html       # Full interactive prototype (single file)
+├── index.html       # Full-screen interactive app (default entry)
+├── guide.html       # Operation guide (three-phone showcase)
 └── pocket-icon.png  # Brand pocket icon (raster reference)
 ```
 
