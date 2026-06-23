@@ -115,7 +115,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                        host-pocket <span class="text-xs bg-hp-coral/20 text-hp-coral px-2.5 py-0.5 rounded-full font-bold border border-hp-coral/30">HOTWIRE + TAILWIND</span>
+                        host-pocket
                     </h1>
                     <p class="text-xs text-hp-muted">房東專用 · 自動式在地體驗與房源導回中控平台</p>
                 </div>
@@ -139,8 +139,8 @@
                 </div>
                 <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430] text-xs">
                     <span class="px-2 py-1 font-semibold text-hp-muted">快速測試:</span>
+                    <button data-action="click->global#injectDemoID" data-id="TAIPEI-CITY" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">Taipei</button>
                     <button data-action="click->global#injectDemoID" data-id="KYOTO-STATION" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">KYOTO</button>
-                    <button data-action="click->global#injectDemoID" data-id="HUALIEN-GLAMP" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">HUALIEN</button>
                     <button data-action="click->global#injectDemoID" data-id="VILNIUS-OLDTOWN" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">VILNIUS</button>
                     <button data-action="click->global#injectDemoID" data-id="RIO-COPACABANA" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg transition font-mono font-bold">RIO</button>
                 </div>
@@ -154,19 +154,12 @@
         <div class="bg-gradient-to-br from-[#1F1A18] to-[#171312] border border-[#2F2724] rounded-3xl p-6 mb-8 shadow-xl">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="max-w-3xl">
-                    <span class="text-xs font-bold uppercase tracking-widest text-hp-coral bg-hp-coral/10 px-2.5 py-1 rounded-md">TA Focus: Airbnb Host User Story</span>
-                    <h2 class="text-xl font-bold text-white mt-2 mb-1">
-                        連接已出租房源與在地導覽指南 (Connect back to Room)
+                    <h2 class="text-xl font-bold text-white mb-1">
+                        連接已出租房源與在地導覽指南
                     </h2>
                     <p class="text-sm text-hp-muted leading-relaxed">
                         房東成功將房間出租後，房客常會詢問在地私房推薦。房東可以使用 host-pocket 配對，建立專屬的指南頁面。房客在使用該指南時，隨時可以一鍵<span class="text-hp-coral font-bold">「導回與連結原房源頁面」</span>。
                     </p>
-                </div>
-                <div class="shrink-0">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-hp-accentTeal/10 text-emerald-400 border border-hp-accentTeal/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        已為您加入房源照片與返回連結
-                    </span>
                 </div>
             </div>
         </div>
@@ -178,9 +171,9 @@
             <div class="flex flex-col items-center" data-controller="pairing">
                 <div class="mb-4 text-center">
                     <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 01</span>
-                    <h3 class="text-md font-bold text-white mt-2">配對啟動面板</h3>
-                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]" data-global-lang="zh">輸入房東給的房源代碼，就能載入這次入住的專屬指南。</p>
-                    <p class="text-xs text-hp-muted mt-1 max-w-[320px] hidden" data-global-lang="en">Enter the listing code from your host to load your stay guide.</p>
+                    <h3 class="text-md font-bold text-white mt-2">房源連結面板</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]" data-global-lang="zh">貼上 Airbnb 房源網址中的編號，即可連結房源並建立指南。</p>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px] hidden" data-global-lang="en">Paste the listing ID from your Airbnb URL to link your listing and build your guide.</p>
                 </div>
 
                 <!-- PHONE CONTAINER -->
@@ -245,23 +238,25 @@
                                     <!-- Header -->
                                     <div class="flex items-center gap-2 px-5 pt-5 pb-3">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        <span class="text-[10px] font-bold tracking-wider text-hp-coral" data-global-lang="zh">已連結的房源指南</span>
-                                        <span class="text-[10px] uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Active Listing Guide</span>
+                                        <span class="text-[10px] font-bold tracking-wider text-hp-coral" data-global-lang="zh">連結您的 Airbnb 房源</span>
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Link Your Airbnb Listing</span>
                                     </div>
 
                                     <!-- Input -->
                                     <div class="px-5 pb-3">
                                         <label class="text-[10px] font-semibold text-hp-muted mb-1 block">
-                                            <span data-global-lang="zh">房源代碼</span>
-                                            <span data-global-lang="en" class="hidden">Listing code</span>
+                                            <span data-global-lang="zh">Airbnb 房源編號</span>
+                                            <span data-global-lang="en" class="hidden">Airbnb Listing ID</span>
                                         </label>
-                                        <p class="text-[8px] text-hp-muted/80 mb-2 leading-relaxed" data-global-lang="zh">就是房東傳給你的那組編號，例如 KYOTO-STATION</p>
-                                        <p class="text-[8px] text-hp-muted/80 mb-2 leading-relaxed hidden" data-global-lang="en">The code your host shared, e.g. KYOTO-STATION</p>
+                                        <p class="text-[8px] text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">打開 Airbnb 房源頁，複製網址中 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
+                                        <p class="text-[8px] text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Open your Airbnb listing page and copy the numbers after <span class="text-hp-coral font-semibold">rooms/</span> in the URL</p>
+                                        <p class="text-[8px] text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
+                                        <p class="text-[8px] text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
                                         <div class="bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
                                             <input type="text"
                                                    data-pairing-target="input"
-                                                   placeholder="KYOTO-STATION"
-                                                   value="KYOTO-STATION"
+                                                   placeholder="12345678"
+                                                   value="TAIPEI-CITY"
                                                    class="bg-transparent text-base font-mono font-bold text-white focus:outline-none w-full uppercase tracking-widest placeholder:text-hp-muted/40">
                                         </div>
                                     </div>
@@ -271,8 +266,8 @@
                                         <button data-action="click->pairing#performPairing"
                                                 class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-hp-coral/25 flex items-center justify-center gap-2 active:scale-[0.98]">
                                             <i class="fa-solid fa-link text-[10px]"></i>
-                                            <span data-global-lang="zh">配對並載入指南</span>
-                                            <span data-global-lang="en" class="hidden">Pair & Load Guide</span>
+                                            <span data-global-lang="zh">連結房源並建立指南</span>
+                                            <span data-global-lang="en" class="hidden">Link Listing & Build Guide</span>
                                             <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
                                         </button>
                                     </div>
@@ -280,10 +275,10 @@
                                     <!-- Tagline inside same card -->
                                     <div class="border-t border-[#3E3430] bg-gradient-to-b from-hp-coral/[0.04] to-transparent px-5 py-4 text-center">
                                         <p class="text-[11px] font-medium leading-relaxed text-[#EFECE9]/85 italic">
-                                            "Automated local experience guide for Airbnb hosts & guests."
+                                            "Automated local experience guide for Airbnb hosts."
                                         </p>
-                                        <p class="text-[10px] text-hp-muted mt-1.5" data-global-lang="zh">房東與房客專屬的自動化在地導覽系統</p>
-                                        <p class="text-[10px] text-hp-muted mt-1.5 hidden" data-global-lang="en">Tailor-made automation helper for curated stays</p>
+                                        <p class="text-[10px] text-hp-muted mt-1.5" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
+                                        <p class="text-[10px] text-hp-muted mt-1.5 hidden" data-global-lang="en">Automated local guide built for Airbnb hosts</p>
                                     </div>
                                 </div>
                             </div>
@@ -294,19 +289,19 @@
                         <div class="space-y-3">
                             <p class="text-[9px] font-bold text-hp-muted uppercase tracking-widest text-center">快速切換測試主題</p>
                             <div class="grid grid-cols-2 gap-2">
+                                <button data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">Taipei</div>
+                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">大安設計 Loft</div>
+                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Designer loft stay</div>
+                                    </div>
+                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                </button>
                                 <button data-action="click->pairing#quickPair" data-id="KYOTO-STATION" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
                                         <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">KYOTO</div>
                                         <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">町屋茶器體驗</div>
                                         <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Teahouse stay</div>
-                                    </div>
-                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
-                                </button>
-                                <button data-action="click->pairing#quickPair" data-id="HUALIEN-GLAMP" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">HUALIEN</div>
-                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">太魯閣野奢露營</div>
-                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Luxury glamping</div>
                                     </div>
                                     <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
@@ -413,7 +408,71 @@
                                             <span data-global-lang="zh">返回房源主頁</span>
                                             <span data-global-lang="en" class="hidden">Back to Room</span>
                                         </button>
-                                        <span data-dashboard-target="activeId" class="text-[10px] font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">KYOTO-STATION</span>
+                                        <span data-dashboard-target="activeId" class="text-[10px] font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Local Recommendations Cards -->
+                        <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
+                            <div class="px-5 flex justify-between items-center mb-3">
+                                <div>
+                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
+                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
+                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
+                                </div>
+                                <button data-action="click->global#navigateToExplorer" class="w-7 h-7 rounded-full bg-white border border-hp-border flex items-center justify-center hover:bg-hp-bgLight shadow-sm">
+                                    <i class="fa-solid fa-arrow-right text-[10px] text-hp-dark"></i>
+                                </button>
+                            </div>
+
+                            <!-- Carousel -->
+                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
+                                
+                                <!-- Card 1 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🌟 <span data-global-lang="zh">歷史茶器</span><span data-global-lang="en" class="hidden">Chado Art</span>
+                                        </span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
+                                            西陣百年大德寺抹茶體驗
+                                        </h5>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p class="text-[10px] text-hp-coral font-bold">1,800 JPY / 起</p>
+                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
+                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 4.9
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🏮 <span data-global-lang="zh">職人秘境</span><span data-global-lang="en" class="hidden">Hidden Spot</span>
+                                        </span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
+                                            船岡溫泉與復古喫茶館
+                                        </h5>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p class="text-[10px] text-hp-coral font-bold">450 JPY / 起</p>
+                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
+                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 5.0
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -482,70 +541,6 @@
                                 </div>
                                 <i class="fa-solid fa-angle-right text-[11px] text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
                             </button>
-                        </div>
-
-                        <!-- Local Recommendations Cards -->
-                        <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
-                            <div class="px-5 flex justify-between items-center mb-3">
-                                <div>
-                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
-                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
-                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
-                                </div>
-                                <button data-action="click->global#navigateToExplorer" class="w-7 h-7 rounded-full bg-white border border-hp-border flex items-center justify-center hover:bg-hp-bgLight shadow-sm">
-                                    <i class="fa-solid fa-arrow-right text-[10px] text-hp-dark"></i>
-                                </button>
-                            </div>
-
-                            <!-- Carousel -->
-                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
-                                
-                                <!-- Card 1 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🌟 <span data-global-lang="zh">歷史茶器</span><span data-global-lang="en" class="hidden">Chado Art</span>
-                                        </span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
-                                            西陣百年大德寺抹茶體驗
-                                        </h5>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-[10px] text-hp-coral font-bold">1,800 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
-                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 4.9
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card 2 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🏮 <span data-global-lang="zh">職人秘境</span><span data-global-lang="en" class="hidden">Hidden Spot</span>
-                                        </span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
-                                            船岡溫泉與復古喫茶館
-                                        </h5>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
-                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-[10px] text-hp-coral font-bold">450 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
-                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 5.0
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Quick Tasks Section -->
@@ -988,26 +983,26 @@
                 descZh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
                 descEn: "Funaoka Onsen is a masterpiece of Taisho-era styling. Its changing rooms feature rare woodwork. Visit around 7 PM to dodge the dinner rush. Free guest cycle racks available outside."
             },
-            'HUALIEN-GLAMP': {
-                roomImg: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
-                roomTitleZh: "太魯閣溪畔野奢星空帳篷",
-                roomTitleEn: "Taroko River-side Starry Glamping",
-                hostNameZh: "Ken 的太魯閣深山野奢星空帳",
-                hostNameEn: "Ken's Taroko Starry Luxury Canopy",
-                locationZh: "花蓮, 台灣 - 2 晚預訂",
-                locationEn: "Hualien, Taiwan - 2 Nights Stay",
-                wifi: "TarokoWild_Guest / pass: wildcamp99",
-                lock: "拉下拉鍊，右下角感應磁扣嗶一聲即解鎖",
-                recImg1: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=300&q=80",
-                recTitle1Zh: "太魯閣溪谷晨曦獵人射箭",
-                recTitle1En: "Taroko Hunter Archery at Dawn",
-                recImg2: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=300&q=80",
-                recTitle2Zh: "清水斷崖清水溪祕境獨木舟",
-                recTitle2En: "Qingshui Cliff Secret Cove Kayak",
-                targetTitleZh: "清水斷崖清水溪祕境獨木舟",
-                targetTitleEn: "Qingshui Cliff Sea Caves Kayaking",
-                descZh: "「Ken 在地力薦：清晨 4:30 隨原住民教練出發，在太平洋海面上等待第一道旭光灑落在清水斷崖上，那是人生必看的絕美震撼景色。」",
-                descEn: "Ken's Insider Tip: Set off at 4:30 AM with local hunters. Gaze at the first sunrise hitting Qingshui Cliff straight from the Pacific Ocean—a breathtaking spectacle."
+            'TAIPEI-CITY': {
+                roomImg: "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "大安區設計感 Loft 公寓",
+                roomTitleEn: "Da'an District Designer Loft",
+                hostNameZh: "Mia 的大安設計感 Loft",
+                hostNameEn: "Mia's Da'an Designer Loft",
+                locationZh: "台北, 台灣 - 3 晚預訂",
+                locationEn: "Taipei, Taiwan - 3 Nights Stay",
+                wifi: "TaipeiDaan_5G / pass: nightmarket88",
+                lock: "電子門鎖輸入 #2024#，聽到滴聲後推門進入",
+                recImg1: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "撫順街傳統早餐與豆漿",
+                recTitle1En: "Fushun Street Classic Breakfast",
+                recImg2: "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "象山步道夕陽看台北 101",
+                recTitle2En: "Xiangshan Trail Sunset & Taipei 101",
+                targetTitleZh: "象山步道夕陽看台北 101",
+                targetTitleEn: "Xiangshan Trail Sunset & Taipei 101",
+                descZh: "「Mia 在地力薦：傍晚 5 點從象山步道登山口出發，約 20 分鐘可抵觀景台，夕陽灑在台北 101 上的景色是台北最經典的免費秘境。」",
+                descEn: "Mia's Insider Tip: Start at Xiangshan Trail around 5 PM—a 20-minute hike rewards you with Taipei 101 glowing at sunset, the city's classic free hidden gem."
             },
             'VILNIUS-OLDTOWN': {
                 roomImg: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
@@ -1068,7 +1063,7 @@
 
             getCurrentExperienceId() {
                 const pairingInput = document.querySelector('[data-pairing-target="input"]');
-                return (pairingInput?.value || 'KYOTO-STATION').trim().toUpperCase();
+                return (pairingInput?.value || 'TAIPEI-CITY').trim().toUpperCase();
             }
 
             setPairingInput(id) {
@@ -1119,14 +1114,14 @@
                 this.syncControllers(id);
                 this.dispatchNotification(
                     window.currentLanguage === 'zh' ? '快速測試載入' : 'Quick Demo Fill',
-                    window.currentLanguage === 'zh' ? `已載入 ${id} 的房源指南` : `Loaded stay guide for ${id}`,
+                    window.currentLanguage === 'zh' ? `已切換至 ${id} 示範房源` : `Switched to demo listing ${id}`,
                     'success'
                 );
             }
 
             // Controller state synchronization method (Like server-side Turbo Stream updates)
             syncControllers(id) {
-                const targetId = id.trim().toUpperCase() || 'KYOTO-STATION';
+                const targetId = id.trim().toUpperCase() || 'TAIPEI-CITY';
                 
                 // Verify DB presence, or generate fallback on the fly
                 if (!guidesDb[targetId]) {
@@ -1202,8 +1197,8 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (!val) {
                     this.triggerToast(
-                        isZh ? '請輸入房源代碼' : 'Enter listing code',
-                        isZh ? '請先填寫房東提供的房源編號' : 'Please enter the listing code from your host',
+                        isZh ? '請輸入 Airbnb 房源編號' : 'Enter Airbnb listing ID',
+                        isZh ? '請貼上房源網址 rooms/ 後面的數字' : 'Paste the numbers after rooms/ from your listing URL',
                         'error'
                     );
                     return;
@@ -1213,10 +1208,19 @@
                 globalController.syncControllers(val);
 
                 this.triggerToast(
-                    isZh ? '配對成功' : 'Pairing Successful',
-                    isZh ? `已載入 ${val} 的房源指南` : `Loaded stay guide for ${val}`,
+                    isZh ? '連結成功' : 'Listing Linked',
+                    isZh ? `已連結 ${val}，指南建立完成` : `Linked ${val}. Your stay guide is ready.`,
                     'success'
                 );
+
+                if (window.matchMedia('(max-width: 1023px)').matches) {
+                    const phone2 = document.querySelector('[data-controller="dashboard"]');
+                    if (phone2) {
+                        phone2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        phone2.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
+                        setTimeout(() => phone2.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
+                    }
+                }
             }
 
             quickPair(event) {
@@ -1248,7 +1252,7 @@
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
                 
                 // Initialize default view
-                this.renderDashboard(guidesDb['KYOTO-STATION']);
+                this.renderDashboard(guidesDb['TAIPEI-CITY']);
             }
 
             disconnect() {
@@ -1540,7 +1544,7 @@
                 this.updateRouteLine = this.updateRouteLine.bind(this);
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
                 window.addEventListener("resize", this.updateRouteLine);
-                this.updateDetails(guidesDb['KYOTO-STATION']);
+                this.updateDetails(guidesDb['TAIPEI-CITY']);
                 requestAnimationFrame(() => this.updateRouteLine());
             }
 

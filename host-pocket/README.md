@@ -42,7 +42,7 @@ python3 -m http.server 8080
 ### 原型操作提示
 
 - **語言切換**：頁首「繁體中文 / English」按鈕
-- **快速測試**：KYOTO、HUALIEN、VILNIUS、RIO — 一鍵注入示範房源代碼
+- **快速測試**：Taipei、KYOTO、VILNIUS、RIO — 一鍵注入示範房源代碼
 - **配對流程**：Phone 01 輸入代碼 →「配對並載入指南」→ Phone 02 / 03 同步更新
 - **自訂代碼**：輸入任意代碼也會動態產生 fallback 指南資料
 
@@ -50,8 +50,8 @@ python3 -m http.server 8080
 
 | 代碼 | 地點 |
 |------|------|
+| `TAIPEI-CITY` | 台北 |
 | `KYOTO-STATION` | 京都 |
-| `HUALIEN-GLAMP` | 花蓮 |
 | `VILNIUS-OLDTOWN` | 維爾紐斯舊城 |
 | `RIO-COPACABANA` | 里約 Copacabana |
 
@@ -136,7 +136,7 @@ Open [http://localhost:8080](http://localhost:8080) in your browser. You can als
 ### Prototype tips
 
 - **Language**: Toggle 繁體中文 / English in the header
-- **Quick demo**: KYOTO, HUALIEN, VILNIUS, RIO inject sample listing codes
+- **Quick demo**: Taipei, KYOTO, VILNIUS, RIO inject sample listing codes
 - **Pairing flow**: Enter code on Phone 01 → “Pair & load guide” → Phone 02 / 03 update together
 - **Custom codes**: Any listing code generates fallback guide data on the fly
 
@@ -144,8 +144,8 @@ Open [http://localhost:8080](http://localhost:8080) in your browser. You can als
 
 | Code | Location |
 |------|----------|
+| `TAIPEI-CITY` | Taipei |
 | `KYOTO-STATION` | Kyoto |
-| `HUALIEN-GLAMP` | Hualien |
 | `VILNIUS-OLDTOWN` | Vilnius Old Town |
 | `RIO-COPACABANA` | Rio de Janeiro (Copacabana) |
 
