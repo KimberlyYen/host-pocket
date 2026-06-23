@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>host-pocket - Hotwire & Tailwind Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Hotwire Stimulus CDN -->
+    <script src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.umd.js"></script>
+
+    <script>
+        // 自訂 Tailwind 設定（Sunset Terracotta 落日陶土暖橘色系）
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hp: {
+                            coral: '#FF5B3E',      /* 品牌落日暖橘 - 溫溫且非 Airbnb 的獨特調色 */
+                            coralDark: '#E0482D',  /* 深色強調橘 */
+                            dark: '#1F1A18',       /* 炭黑可可色 */
+                            lightDark: '#332C2A',  /* 次要可可深色 */
+                            bgLight: '#FAF8F5',    /* 燕麥暖沙色 background */
+                            cardLight: '#FFFFFF',
+                            border: '#EBE5DF',     /* 溫潤有機邊框 */
+                            muted: '#8C807A',      /* 烤焙灰褐色文字 */
+                            accentTeal: '#2E7D6F'  /* 森林青松綠 - 任務完成與活躍標籤 */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .phone-mockup {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .phone-mockup:hover {
+            transform: translateY(-4px);
+        }
+        .partner-bar {
+            background: linear-gradient(90deg, #FF5B3E 0%, #FF5A5F 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+        .partner-bar-label {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+        }
+        /* App-icon 比例：圖示約佔白底 68%，四邊留白各 16%（對齊 Airbnb app icon） */
+        .partner-icon-slot {
+            --slot-size: 2rem;
+            --slot-inset: 16%;
+            width: var(--slot-size);
+            height: var(--slot-size);
+            position: relative;
+            border-radius: 25%;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .partner-icon-slot img,
+        .partner-icon-slot svg {
+            position: absolute;
+            top: var(--slot-inset);
+            left: var(--slot-inset);
+            right: var(--slot-inset);
+            bottom: var(--slot-inset);
+        }
+        .partner-icon-slot--md {
+            --slot-size: 2.5rem;
+        }
+        .partner-icon-slot .fa-airbnb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--slot-size) * 0.68);
+            line-height: 1;
+            color: #FF5A5F;
+        }
+    </style>
+</head>
+<body class="bg-[#151110] text-[#EFECE9] min-h-screen font-sans flex flex-col antialiased selection:bg-hp-coral selection:text-white"
+      data-controller="global"
+      data-global-lang-value="zh">
+
+    <!-- Brand Demonstration Header -->
+    <header class="bg-[#1C1715] border-b border-[#2C2422] py-4 px-6 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="partner-icon-slot partner-icon-slot--md shadow-lg shadow-hp-coral/20 shrink-0 overflow-hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
+                            <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
+                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                        host-pocket <span class="text-xs bg-hp-coral/20 text-hp-coral px-2.5 py-0.5 rounded-full font-bold border border-hp-coral/30">HOTWIRE + TAILWIND</span>
+                    </h1>
+                    <p class="text-xs text-hp-muted">房東專用 · 自動式在地體驗與房源導回中控平台</p>
+                </div>
+            </div>
+            
+            <!-- Hotwire Controller - Language & Demo Actions -->
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430]">
+                    <button data-global-target="zhBtn" 
+                            data-action="click->global#switchLanguage" 
+                            data-lang="zh" 
+                            class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm">
+                        繁體中文
+                    </button>
+                    <button data-global-target="enBtn" 
+                            data-action="click->global#switchLanguage" 
+                            data-lang="en" 
+                            class="px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white">
+                        English
+                    </button>
+                </div>
+                <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430] text-xs">
+                    <span class="px-2 py-1 font-semibold text-hp-muted">快速測試:</span>
+                    <button data-action="click->global#injectDemoID" data-id="KYOTO-STATION" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">KYOTO</button>
+                    <button data-action="click->global#injectDemoID" data-id="HUALIEN-GLAMP" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">HUALIEN</button>
+                    <button data-action="click->global#injectDemoID" data-id="VILNIUS-OLDTOWN" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">VILNIUS</button>
+                    <button data-action="click->global#injectDemoID" data-id="RIO-COPACABANA" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg transition font-mono font-bold">RIO</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Design Concept Banner -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8">
+        
+        <div class="bg-gradient-to-br from-[#1F1A18] to-[#171312] border border-[#2F2724] rounded-3xl p-6 mb-8 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="max-w-3xl">
+                    <span class="text-xs font-bold uppercase tracking-widest text-hp-coral bg-hp-coral/10 px-2.5 py-1 rounded-md">TA Focus: Airbnb Host User Story</span>
+                    <h2 class="text-xl font-bold text-white mt-2 mb-1">
+                        連接已出租房源與在地導覽指南 (Connect back to Room)
+                    </h2>
+                    <p class="text-sm text-hp-muted leading-relaxed">
+                        房東成功將房間出租後，房客常會詢問在地私房推薦。房東可以使用 host-pocket 配對，建立專屬的指南頁面。房客在使用該指南時，隨時可以一鍵<span class="text-hp-coral font-bold">「導回與連結原房源頁面」</span>。
+                    </p>
+                </div>
+                <div class="shrink-0">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-hp-accentTeal/10 text-emerald-400 border border-hp-accentTeal/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        已為您加入房源照片與返回連結
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- THREE PHONES INTERACTIVE CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 justify-center items-start">
+
+            <!-- ================= PHONE 1: PAIRING GATEWAY (Stimulus Module) ================= -->
+            <div class="flex flex-col items-center" data-controller="pairing">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 01</span>
+                    <h3 class="text-md font-bold text-white mt-2">配對啟動面板</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]" data-global-lang="zh">輸入房東給的房源代碼，就能載入這次入住的專屬指南。</p>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px] hidden" data-global-lang="en">Enter the listing code from your host to load your stay guide.</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-[375px] h-[812px] bg-hp-dark text-[#EFECE9] rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-hp-muted select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal"></i>
+                            <i class="fa-solid fa-wifi"></i>
+                            <i class="fa-solid fa-battery-three-quarters"></i>
+                        </div>
+                    </div>
+
+                    <!-- Inner App Content -->
+                    <div class="flex-grow flex flex-col justify-between p-6 pb-12 pt-10">
+                        
+                        <!-- Partner Bar: host-pocket → Airbnb -->
+                        <div class="partner-bar rounded-xl flex items-center justify-between px-3.5 py-2.5 shadow-lg shadow-black/25 ring-1 ring-white/25">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="partner-icon-slot shadow-sm overflow-hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
+                                            <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
+                                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                                <span class="partner-bar-label text-[10px] font-bold text-white truncate">host-pocket</span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0 pl-3 ml-2 border-l border-white/60">
+                                <div class="partner-icon-slot shadow-sm overflow-hidden">
+                                    <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
+                                </div>
+                                <span class="partner-bar-label text-[10px] font-bold text-white whitespace-nowrap" data-global-lang="zh">Airbnb 合作廠商</span>
+                                <span class="partner-bar-label text-[10px] font-bold text-white whitespace-nowrap hidden" data-global-lang="en">Airbnb Partner</span>
+                            </div>
+                        </div>
+
+                        <!-- Central Pairing Core -->
+                        <div class="my-auto space-y-8">
+                            
+                            <!-- Brand Text Area -->
+                            <div class="space-y-2 text-center">
+                                <h2 class="text-3xl font-black tracking-tight text-white font-sans">
+                                    host-pocket
+                                </h2>
+                                <div class="w-10 h-1 bg-hp-coral mx-auto rounded-full"></div>
+                            </div>
+
+                            <!-- 一體式配對卡片 -->
+                            <div class="space-y-4">
+                                <div class="bg-[#292220] border border-[#3E3430] rounded-3xl overflow-hidden shadow-2xl">
+                                    <!-- Header -->
+                                    <div class="flex items-center gap-2 px-5 pt-5 pb-3">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        <span class="text-[10px] font-bold tracking-wider text-hp-coral" data-global-lang="zh">已連結的房源指南</span>
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Active Listing Guide</span>
+                                    </div>
+
+                                    <!-- Input -->
+                                    <div class="px-5 pb-3">
+                                        <label class="text-[10px] font-semibold text-hp-muted mb-1 block">
+                                            <span data-global-lang="zh">房源代碼</span>
+                                            <span data-global-lang="en" class="hidden">Listing code</span>
+                                        </label>
+                                        <p class="text-[8px] text-hp-muted/80 mb-2 leading-relaxed" data-global-lang="zh">就是房東傳給你的那組編號，例如 KYOTO-STATION</p>
+                                        <p class="text-[8px] text-hp-muted/80 mb-2 leading-relaxed hidden" data-global-lang="en">The code your host shared, e.g. KYOTO-STATION</p>
+                                        <div class="bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
+                                            <input type="text"
+                                                   data-pairing-target="input"
+                                                   placeholder="KYOTO-STATION"
+                                                   value="KYOTO-STATION"
+                                                   class="bg-transparent text-base font-mono font-bold text-white focus:outline-none w-full uppercase tracking-widest placeholder:text-hp-muted/40">
+                                        </div>
+                                    </div>
+
+                                    <!-- Full-width CTA -->
+                                    <div class="px-5 pb-5">
+                                        <button data-action="click->pairing#performPairing"
+                                                class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-hp-coral/25 flex items-center justify-center gap-2 active:scale-[0.98]">
+                                            <i class="fa-solid fa-link text-[10px]"></i>
+                                            <span data-global-lang="zh">配對並載入指南</span>
+                                            <span data-global-lang="en" class="hidden">Pair & Load Guide</span>
+                                            <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Tagline inside same card -->
+                                    <div class="border-t border-[#3E3430] bg-gradient-to-b from-hp-coral/[0.04] to-transparent px-5 py-4 text-center">
+                                        <p class="text-[11px] font-medium leading-relaxed text-[#EFECE9]/85 italic">
+                                            "Automated local experience guide for Airbnb hosts & guests."
+                                        </p>
+                                        <p class="text-[10px] text-hp-muted mt-1.5" data-global-lang="zh">房東與房客專屬的自動化在地導覽系統</p>
+                                        <p class="text-[10px] text-hp-muted mt-1.5 hidden" data-global-lang="en">Tailor-made automation helper for curated stays</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Active presets helper -->
+                        <div class="space-y-3">
+                            <p class="text-[9px] font-bold text-hp-muted uppercase tracking-widest text-center">快速切換測試主題</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button data-action="click->pairing#quickPair" data-id="KYOTO-STATION" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">KYOTO</div>
+                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">町屋茶器體驗</div>
+                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Teahouse stay</div>
+                                    </div>
+                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                </button>
+                                <button data-action="click->pairing#quickPair" data-id="HUALIEN-GLAMP" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">HUALIEN</div>
+                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">太魯閣野奢露營</div>
+                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Luxury glamping</div>
+                                    </div>
+                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                </button>
+                                <button data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">VILNIUS</div>
+                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">維爾紐斯舊城琥珀</div>
+                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Vilnius amber stay</div>
+                                    </div>
+                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                </button>
+                                <button data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-hp-coral font-bold font-mono group-hover:text-white">RIO</div>
+                                        <div class="text-[9px] text-hp-muted truncate" data-global-lang="zh">科帕卡巴納海景</div>
+                                        <div class="text-[9px] text-hp-muted truncate hidden" data-global-lang="en">Copacabana beach</div>
+                                    </div>
+                                    <i class="fa-solid fa-angle-right text-[10px] text-hp-muted group-hover:text-hp-coral transition"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- iPhone Home Indicator -->
+                        <div class="w-32 h-1 bg-hp-muted/30 rounded-full mx-auto mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PHONE 2: EXPERIENCE DASHBOARD (Stimulus Module with simulated Room detail transition) ================= -->
+            <div class="flex flex-col items-center" data-controller="dashboard">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 02</span>
+                    <h3 class="text-md font-bold text-white mt-2">智慧指南中控台</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]">配對後主面板。房東精選房源照片卡片結合在地秘境探索，支援一鍵分享與導回。</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-[375px] h-[812px] bg-hp-bgLight text-hp-dark rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal text-hp-dark"></i>
+                            <i class="fa-solid fa-wifi text-hp-dark"></i>
+                            <i class="fa-solid fa-battery-three-quarters text-hp-dark"></i>
+                        </div>
+                    </div>
+
+                    <!-- Inner Scrollable Container -->
+                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 pt-2">
+                        
+                        <!-- Room Hero & Connection Card -->
+                        <div class="px-5 py-4">
+                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
+                                <!-- Room Image Cover -->
+                                <div class="h-36 relative overflow-hidden">
+                                    <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                                    
+                                    <span class="absolute top-3 left-3 bg-hp-coral text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                        <i class="fa-solid fa-house-circle-check"></i> 
+                                        <span data-global-lang="zh">已出租房源實景</span>
+                                        <span data-global-lang="en" class="hidden">Rented Out Listing</span>
+                                    </span>
+                                    
+                                    <!-- Can Share Button -->
+                                    <button data-action="click->dashboard#shareExperience" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
+                                        <i class="fa-solid fa-arrow-up-from-bracket text-[11px] text-hp-coral"></i>
+                                    </button>
+
+                                    <!-- Bottom Info Text inside Room Photo -->
+                                    <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+                                        <div>
+                                            <p data-dashboard-target="roomTitle" class="text-xs font-bold text-white drop-shadow-md">西陣町家織屋 · 百年包棟古民家</p>
+                                            <p data-dashboard-target="hostLocation" class="text-[9px] text-[#FAF8F5]/80 drop-shadow-sm">京都, 日本 - 3 晚預訂</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Connection Area -->
+                                <div class="p-4 bg-white space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <span class="text-[8px] uppercase font-bold tracking-widest text-hp-muted">Active Host Experience Guide</span>
+                                            <h3 data-dashboard-target="hostTitle" class="text-xs font-black tracking-tight text-hp-dark mt-0.5">
+                                                Sarah 的京都西陣織屋
+                                            </h3>
+                                        </div>
+                                        <div class="w-8 h-8 rounded-xl bg-hp-coral/10 text-hp-coral flex items-center justify-center border border-hp-coral/20 shrink-0">
+                                            <i class="fa-solid fa-link text-xs"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="pt-2.5 border-t border-hp-border flex items-center justify-between gap-2">
+                                        <!-- Connect back to room Button -->
+                                        <button data-action="click->dashboard#connectBackToRoom" class="bg-hp-dark hover:bg-hp-lightDark text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm">
+                                            <i class="fa-solid fa-arrow-rotate-left text-[8px] text-hp-coral animate-pulse"></i>
+                                            <span data-global-lang="zh">返回房源主頁</span>
+                                            <span data-global-lang="en" class="hidden">Back to Room</span>
+                                        </button>
+                                        <span data-dashboard-target="activeId" class="text-[10px] font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">KYOTO-STATION</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Tabs (Replicated and adapted from Mockup 1) -->
+                        <div class="px-5 mb-4">
+                            <div class="grid grid-cols-3 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
+                                <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
+                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-[11px] font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
+                                    <i class="fa-solid fa-house text-hp-coral text-xs"></i>
+                                    <span data-global-lang="zh">房屋指南</span>
+                                    <span data-global-lang="en" class="hidden">House Stay</span>
+                                </button>
+                                <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
+                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition">
+                                    <i class="fa-solid fa-compass text-xs"></i>
+                                    <span data-global-lang="zh">在地探索</span>
+                                    <span data-global-lang="en" class="hidden">Explore</span>
+                                </button>
+                                <button data-action="click->dashboard#scrollToSection" data-section="hostTask" data-dashboard-target="tabBtn"
+                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition">
+                                    <i class="fa-solid fa-bolt text-xs"></i>
+                                    <span data-global-lang="zh">快速任務</span>
+                                    <span data-global-lang="en" class="hidden">Actions</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stay Guides Section (Wi-Fi, Keys) -->
+                        <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Essential Stays</h4>
+                                <span class="text-[10px] text-hp-coral font-bold flex items-center gap-0.5"><i class="fa-solid fa-shield-check"></i> Verified</span>
+                            </div>
+                            
+                            <!-- Wifi Card (Stimulus Clipboard Trigger) -->
+                            <div class="bg-white rounded-2xl p-4 border border-hp-border shadow-sm flex items-center justify-between group cursor-pointer hover:border-hp-coral transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-hp-bgLight text-hp-dark group-hover:bg-hp-coral group-hover:text-white transition flex items-center justify-center">
+                                        <i class="fa-solid fa-wifi text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">Wi-Fi 機密與連接</h5>
+                                        <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Wi-Fi Settings</h5>
+                                        <p data-dashboard-target="wifiValue" class="text-[10px] text-hp-coral font-mono font-bold mt-0.5">KyotoNishijin_5G / 1029384756</p>
+                                    </div>
+                                </div>
+                                <button data-action="click->dashboard#copyWifi" class="w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition">
+                                    <i class="fa-solid fa-copy text-[11px] text-[#8C807A]"></i>
+                                </button>
+                            </div>
+
+                            <!-- Lock/Access Card -->
+                            <button type="button" data-action="click->dashboard#showLockGuide"
+                                    class="w-full bg-white rounded-2xl p-4 border border-hp-border shadow-sm flex items-center justify-between group cursor-pointer hover:border-hp-coral transition text-left active:scale-[0.99]">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-hp-bgLight text-hp-dark group-hover:bg-hp-coral group-hover:text-white transition flex items-center justify-center">
+                                        <i class="fa-solid fa-door-open text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">大門解鎖步驟</h5>
+                                        <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Door Unlocking Step</h5>
+                                        <p data-dashboard-target="lockValue" class="text-[10px] text-hp-muted mt-0.5">點擊喚醒鍵盤，輸入 #771239# 鎖頭自動轉開</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-angle-right text-[11px] text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
+                            </button>
+                        </div>
+
+                        <!-- Local Recommendations Cards -->
+                        <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
+                            <div class="px-5 flex justify-between items-center mb-3">
+                                <div>
+                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
+                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
+                                    <p class="text-[11px] text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
+                                </div>
+                                <button data-action="click->global#navigateToExplorer" class="w-7 h-7 rounded-full bg-white border border-hp-border flex items-center justify-center hover:bg-hp-bgLight shadow-sm">
+                                    <i class="fa-solid fa-arrow-right text-[10px] text-hp-dark"></i>
+                                </button>
+                            </div>
+
+                            <!-- Carousel -->
+                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
+                                
+                                <!-- Card 1 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🌟 <span data-global-lang="zh">歷史茶器</span><span data-global-lang="en" class="hidden">Chado Art</span>
+                                        </span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
+                                            西陣百年大德寺抹茶體驗
+                                        </h5>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p class="text-[10px] text-hp-coral font-bold">1,800 JPY / 起</p>
+                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
+                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 4.9
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🏮 <span data-global-lang="zh">職人秘境</span><span data-global-lang="en" class="hidden">Hidden Spot</span>
+                                        </span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
+                                            船岡溫泉與復古喫茶館
+                                        </h5>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
+                                        <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p class="text-[10px] text-hp-coral font-bold">450 JPY / 起</p>
+                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
+                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 5.0
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Tasks Section -->
+                        <div id="hostTask" data-dashboard-target="hostTask" class="px-5 py-4 space-y-3 transition-all duration-300">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Quick Actions</h4>
+                                <span class="text-[10px] text-hp-coral font-bold">3 項可用</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <button data-action="click->global#navigateToExplorer" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
+                                    <i class="fa-solid fa-map-location-dot text-hp-coral text-sm mb-2"></i>
+                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">開啟地圖導航</div>
+                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Open Map Guide</div>
+                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">前往 Phone 03 實境探索</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Go to Phone 03 explorer</p>
+                                </button>
+                                <button data-action="click->dashboard#copyWifi" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
+                                    <i class="fa-solid fa-wifi text-hp-coral text-sm mb-2"></i>
+                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">複製 Wi-Fi</div>
+                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Copy Wi-Fi</div>
+                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">一鍵複製連線資訊</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">One-tap credentials</p>
+                                </button>
+                                <button data-action="click->dashboard#connectBackToRoom" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm col-span-2">
+                                    <i class="fa-solid fa-house-circle-check text-hp-coral text-sm mb-2"></i>
+                                    <div class="text-[11px] font-bold text-hp-dark" data-global-lang="zh">返回 Airbnb 房源主頁</div>
+                                    <div class="text-[11px] font-bold text-hp-dark hidden" data-global-lang="en">Back to Airbnb Listing</div>
+                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">一鍵導回已出租房源頁面</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Connect back to your booked room</p>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ================= SIMULATED AIRBNB ROOM OVERLAY (Connects Back to Room Detail Screen) ================= -->
+                    <div data-dashboard-target="roomOverlay" class="absolute inset-0 bg-[#FAF8F5] z-40 transform translate-y-full transition-transform duration-500 flex flex-col">
+                        <!-- Top header of simulated Airbnb -->
+                        <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
+                            <button data-action="click->dashboard#closeRoomOverlay" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase flex items-center gap-1">
+                                <i class="fa-brands fa-airbnb text-hp-coral text-base"></i> airbnb
+                            </span>
+                            <div class="w-8"></div>
+                        </div>
+
+                        <!-- Scrollable Detail Contents of Room -->
+                        <div class="flex-grow overflow-y-auto hide-scrollbar pb-24">
+                            <div class="h-48 relative">
+                                <img data-dashboard-target="overlayHero" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent"></div>
+                                <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                                    ★ Superhost
+                                </span>
+                            </div>
+
+                            <div class="p-5 space-y-5">
+                                <div class="flex justify-between items-start gap-4">
+                                    <div>
+                                        <h2 data-dashboard-target="overlayTitle" class="text-md font-extrabold text-hp-dark leading-snug">西陣町家織屋 · 百年包棟古民家</h2>
+                                        <p data-dashboard-target="overlayLocation" class="text-[11px] text-[#8C807A] mt-1">京都, 日本 · ★ 4.95 (128條評價)</p>
+                                    </div>
+                                    <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                        已出租 stay active
+                                    </span>
+                                </div>
+
+                                <!-- Host Card profile -->
+                                <div class="flex items-center gap-3.5 py-4 border-t border-b border-hp-border">
+                                    <div class="w-10 h-10 rounded-full bg-hp-coral text-white font-black text-sm flex items-center justify-center shadow-inner">
+                                        HP
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-hp-dark flex items-center gap-1">
+                                            <span data-dashboard-target="overlayHost">Sarah</span> 的房源主頁
+                                        </h4>
+                                        <p class="text-[10px] text-[#8C807A]">入住期間：2026年6月24日 - 3晚預訂</p>
+                                    </div>
+                                </div>
+
+                                <!-- Host Pocket Story connection description -->
+                                <div class="bg-hp-coral/5 border border-hp-coral/10 rounded-2xl p-4 space-y-2">
+                                    <h4 class="text-xs font-bold text-hp-coral">host-pocket 導回機制技術驗證</h4>
+                                    <p class="text-[11px] text-[#332C2A] leading-relaxed">
+                                        這裡展示了房客從在地體驗指南一鍵「導回與連結原房源頁面」的完整流程。解決了房東出租後，房客流失到外部導覽工具，而無法再次與房東房源建立緊密連結的問題。
+                                    </p>
+                                </div>
+
+                                <!-- House Rules / Details -->
+                                <div class="space-y-3">
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-[#8C807A]">入住規定與退房提示</h4>
+                                    <div class="grid grid-cols-2 gap-2.5">
+                                        <div class="bg-white p-3 rounded-xl border border-hp-border flex gap-2 items-center">
+                                            <i class="fa-solid fa-clock text-hp-coral text-xs"></i>
+                                            <div>
+                                                <p class="text-[10px] text-[#8C807A]">入住時間</p>
+                                                <p class="text-[11px] font-bold text-hp-dark">15:00 後</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-xl border border-hp-border flex gap-2 items-center">
+                                            <i class="fa-solid fa-ban-smoking text-hp-coral text-xs"></i>
+                                            <div>
+                                                <p class="text-[10px] text-[#8C807A]">客房禁煙</p>
+                                                <p class="text-[11px] font-bold text-hp-dark">全館禁菸</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sticky Bottom Call to Action of Overlay -->
+                        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-hp-border p-4 flex justify-between items-center z-10 shadow-[0_-8px_24px_rgba(31,26,24,0.05)]">
+                            <div>
+                                <p class="text-[9px] text-[#8C807A] uppercase font-bold tracking-wider">Airbnb Companion</p>
+                                <p class="text-xs font-bold text-hp-dark">與此在地指南連結中</p>
+                            </div>
+                            <button data-action="click->dashboard#closeRoomOverlay" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition duration-200 shadow-md">
+                                返回體驗指南
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav representing updated clean structure of v2 layout -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                        <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
+                                class="flex flex-col items-center gap-1 text-hp-coral transition">
+                            <i class="fa-solid fa-compass text-base"></i>
+                            <span data-global-lang="zh">指南主頁</span>
+                            <span data-global-lang="en" class="hidden">Home</span>
+                        </button>
+                        <button data-action="click->dashboard#goExplorer" data-dashboard-target="bottomNavBtn"
+                                class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
+                            <i class="fa-solid fa-map-location-dot text-base"></i>
+                            <span data-global-lang="zh">實境探索</span>
+                            <span data-global-lang="en" class="hidden">Map Guide</span>
+                        </button>
+                        <button data-action="click->dashboard#contactHost" data-dashboard-target="bottomNavBtn"
+                                class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
+                            <i class="fa-solid fa-circle-question text-base"></i>
+                            <span data-global-lang="zh">求助房東</span>
+                            <span data-global-lang="en" class="hidden">Help</span>
+                        </button>
+                        <!-- iPhone Home Indicator -->
+                        <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-hp-border rounded-full pointer-events-none"></div>
+                    </div>
+
+                    <!-- Help / Contact Host Overlay -->
+                    <div data-dashboard-target="helpOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
+                        <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
+                            <button data-action="click->dashboard#closeHelpOverlay" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">求助房東</span>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Contact Host</span>
+                            <div class="w-8"></div>
+                        </div>
+                        <div class="flex-grow overflow-y-auto hide-scrollbar p-5 space-y-4">
+                            <div class="flex items-center gap-3.5 pb-4 border-b border-hp-border">
+                                <div class="w-12 h-12 rounded-full bg-hp-coral text-white font-black text-lg flex items-center justify-center shadow-inner">S</div>
+                                <div>
+                                    <h4 data-dashboard-target="helpHostName" class="text-sm font-bold text-hp-dark">Sarah · Superhost</h4>
+                                    <p class="text-[10px] text-hp-muted" data-global-lang="zh">通常 10 分鐘內回覆</p>
+                                    <p class="text-[10px] text-hp-muted hidden" data-global-lang="en">Usually replies within 10 min</p>
+                                </div>
+                            </div>
+                            <button data-action="click->dashboard#sendHostMessage" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
+                                <div class="w-10 h-10 rounded-xl bg-hp-coral/10 text-hp-coral flex items-center justify-center"><i class="fa-solid fa-comment-dots"></i></div>
+                                <div>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">傳送訊息給房東</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Send Message to Host</div>
+                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">Wi-Fi、入住、在地推薦問題</p>
+                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Wi-Fi, check-in, local tips</p>
+                                </div>
+                            </button>
+                            <button data-action="click->dashboard#callHost" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">緊急語音通話</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Emergency Voice Call</div>
+                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">透過 host-pocket 加密 VoIP</p>
+                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Via encrypted host-pocket VoIP</p>
+                                </div>
+                            </button>
+                            <button data-action="click->dashboard#scrollToSectionFromHelp" data-section="stayGuides" class="w-full bg-hp-bgLight border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hp-dark flex items-center justify-center border border-hp-border"><i class="fa-solid fa-wifi"></i></div>
+                                <div>
+                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">查看 Wi-Fi 與門禁</div>
+                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">View Wi-Fi & Access</div>
+                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">自助解決常見入住問題</p>
+                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Self-service for common issues</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lock Guide Overlay -->
+                    <div data-dashboard-target="lockOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
+                        <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
+                            <button data-action="click->dashboard#closeLockGuide" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">大門解鎖步驟</span>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Door Access</span>
+                            <div class="w-8"></div>
+                        </div>
+                        <div class="flex-grow overflow-y-auto hide-scrollbar p-5 space-y-4">
+                            <div class="flex items-center gap-3 pb-4 border-b border-hp-border">
+                                <div class="w-12 h-12 rounded-2xl bg-hp-coral/10 text-hp-coral flex items-center justify-center">
+                                    <i class="fa-solid fa-door-open text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-hp-dark" data-global-lang="zh">電子鎖操作指南</h4>
+                                    <h4 class="text-sm font-bold text-hp-dark hidden" data-global-lang="en">Electronic Lock Guide</h4>
+                                    <p class="text-[10px] text-hp-muted mt-0.5" data-global-lang="zh">跟著步驟即可自行進入</p>
+                                    <p class="text-[10px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Follow steps to enter</p>
+                                </div>
+                            </div>
+                            <ol class="space-y-3">
+                                <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">輕觸門鎖鍵盤，喚醒背光面板</p>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Tap the keypad to wake the backlight</p>
+                                </li>
+                                <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">輸入下方解鎖密碼，結尾按 <strong>#</strong> 確認</p>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Enter the code below, then press <strong>#</strong></p>
+                                </li>
+                                <li class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3.5">
+                                    <span class="w-6 h-6 rounded-full bg-hp-coral text-white text-[10px] font-black flex items-center justify-center shrink-0">3</span>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed" data-global-lang="zh">聽到「喀」一聲，鎖舌收回即可推門進入</p>
+                                    <p class="text-[11px] text-hp-dark leading-relaxed hidden" data-global-lang="en">Wait for the click, then push the door open</p>
+                                </li>
+                            </ol>
+                            <div class="bg-hp-dark rounded-2xl p-4 text-center space-y-2">
+                                <p class="text-[9px] uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">解鎖密碼</p>
+                                <p class="text-[9px] uppercase font-bold tracking-widest text-hp-muted hidden" data-global-lang="en">Access Code</p>
+                                <p data-dashboard-target="lockCode" class="text-2xl font-mono font-black text-white tracking-widest">#771239#</p>
+                                <button data-action="click->dashboard#copyLockCode" class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 mt-2">
+                                    <i class="fa-solid fa-copy text-[10px]"></i>
+                                    <span data-global-lang="zh">複製密碼</span>
+                                    <span data-global-lang="en" class="hidden">Copy Code</span>
+                                </button>
+                            </div>
+                            <p data-dashboard-target="lockDetail" class="text-[10px] text-hp-muted leading-relaxed text-center px-2"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PHONE 3: TASK & MAP RUNNER (Stimulus Module) ================= -->
+            <div class="flex flex-col items-center" data-controller="explorer">
+                <div class="mb-4 text-center">
+                    <span class="bg-hp-lightDark text-hp-coral text-xs font-extrabold px-3 py-1 rounded-full border border-hp-coral/30">PHONE 03</span>
+                    <h3 class="text-md font-bold text-white mt-2">實境秘境探索儀表板</h3>
+                    <p class="text-xs text-hp-muted mt-1 max-w-[320px]">地圖導覽與房客快捷自助服務。透過 Stimulus 元件驅動狀態更新。</p>
+                </div>
+
+                <!-- PHONE CONTAINER -->
+                <div class="phone-mockup relative w-[375px] h-[812px] bg-hp-bgLight text-hp-dark rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border-[10px] border-[#2C2422] overflow-hidden flex flex-col">
+                    
+                    <!-- Phone Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-[#2C2422] rounded-b-2xl z-30 flex items-center justify-center">
+                        <div class="w-12 h-1 bg-black rounded-full mb-1"></div>
+                    </div>
+                    
+                    <!-- Status Bar -->
+                    <div class="pt-3.5 px-6 flex justify-between items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                        <span>20:38</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-signal text-hp-dark"></i>
+                            <i class="fa-solid fa-wifi text-hp-dark"></i>
+                            <i class="fa-solid fa-battery-three-quarters text-hp-dark"></i>
+                        </div>
+                    </div>
+
+                    <!-- App Content Area with built-in mini map simulator -->
+                    <div class="flex-grow flex flex-col overflow-hidden">
+                        
+                        <!-- Map View Simulator (SVG Based layout with target pins) -->
+                        <div data-explorer-target="mapContainer" class="h-64 bg-[#EADCC9] relative border-b border-hp-border overflow-hidden shrink-0">
+                            
+                            <!-- Simulated street lines -->
+                            <svg class="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
+                                <line x1="0" y1="50" x2="375" y2="120" stroke="#8C807A" stroke-width="6"/>
+                                <line x1="80" y1="0" x2="110" y2="256" stroke="#8C807A" stroke-width="4"/>
+                                <line x1="280" y1="0" x2="250" y2="256" stroke="#8C807A" stroke-width="5"/>
+                                <line x1="0" y1="180" x2="375" y2="180" stroke="#8C807A" stroke-width="5"/>
+                            </svg>
+
+                            <!-- Route Line (endpoints synced to pin dots via JS) -->
+                            <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg">
+                                <path data-explorer-target="routePath" fill="none" stroke="#FF5B3E" stroke-width="3" stroke-dasharray="5 3" stroke-linecap="round"/>
+                            </svg>
+
+                            <!-- Start Pin -->
+                            <div class="absolute top-12 left-20 flex flex-col items-center z-20">
+                                <div class="bg-hp-dark text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">My Room</div>
+                                <div data-explorer-target="startPinDot" class="w-3.5 h-3.5 rounded-full bg-hp-dark border-2 border-white flex items-center justify-center shadow-md">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                </div>
+                            </div>
+
+                            <!-- Target Pin -->
+                            <div class="absolute top-32 right-24 flex flex-col items-center z-20">
+                                <div class="bg-hp-coral text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">Secret Spot</div>
+                                <div class="relative flex items-center justify-center">
+                                    <span data-explorer-target="endPinPing" class="absolute w-4 h-4 rounded-full bg-hp-coral opacity-40 animate-ping"></span>
+                                    <div data-explorer-target="endPinDot" class="relative w-4 h-4 rounded-full bg-hp-coral border-2 border-white flex items-center justify-center shadow-lg">
+                                        <i class="fa-solid fa-location-dot text-[8px] text-white"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Map Controls -->
+                            <div class="absolute bottom-3 right-3 flex flex-col gap-1.5">
+                                <button data-action="click->explorer#zoomMap" class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                                <button data-action="click->explorer#recenterMap" class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight">
+                                    <i class="fa-solid fa-location-crosshairs text-xs text-hp-coral"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Details card sliding up -->
+                        <div class="flex-grow bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] border-t border-hp-border p-5 overflow-y-auto hide-scrollbar pb-24">
+                            
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">NAVIGATION ACTIVE</span>
+                                    <h4 data-explorer-target="targetTitle" class="text-sm font-black text-hp-dark mt-1.5 leading-snug">
+                                        船岡溫泉：傳承百年的大正木雕湯屋
+                                    </h4>
+                                    <p class="text-[10px] text-[#8C807A] mt-0.5 flex items-center gap-1">
+                                        <i class="fa-solid fa-bicycle text-hp-coral"></i> <span>單車 4 分鐘 (1.2公里)</span>
+                                    </p>
+                                </div>
+                                <span class="bg-hp-coral text-white text-[10px] font-black px-2.5 py-1 rounded-xl shrink-0">950m</span>
+                            </div>
+
+                            <!-- Route details narrative -->
+                            <div class="mt-4 bg-hp-bgLight border border-hp-border rounded-2xl p-3.5 space-y-2.5">
+                                <p data-explorer-target="targetDesc" class="text-[11px] text-[#332C2A] leading-relaxed">
+                                    「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」
+                                </p>
+                                <div class="flex justify-between items-center text-[10px] font-bold text-hp-muted pt-2 border-t border-hp-border">
+                                    <span data-global-lang="zh">預估花費: 450 JPY</span>
+                                    <span data-global-lang="en" class="hidden">Est: 450 JPY</span>
+                                    <span class="text-hp-coral" data-global-lang="zh">房東推薦 ★★★裝修裝潢</span>
+                                    <span class="text-hp-coral hidden" data-global-lang="en">Host Favorite ★★★★★</span>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Task buttons representing "Host instructions" -->
+                            <div class="mt-4 space-y-2">
+                                <h5 class="text-[10px] uppercase font-bold tracking-wider text-[#8C807A]">房務自動化快捷動作</h5>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button data-action="click->explorer#requestWifiReset" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
+                                        <i class="fa-solid fa-wifi text-hp-coral text-xs mb-1"></i>
+                                        <div class="text-[11px] font-bold text-hp-dark">Wi-Fi 斷線重置</div>
+                                        <p class="text-[8px] text-[#8C807A] mt-0.5">一鍵發送重啟請求</p>
+                                    </button>
+                                    <button data-action="click->explorer#requestTrashPolicy" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
+                                        <i class="fa-solid fa-trash-can text-hp-coral text-xs mb-1"></i>
+                                        <div class="text-[11px] font-bold text-hp-dark">清潔/垃圾處理說明</div>
+                                        <p class="text-[8px] text-[#8C807A] mt-0.5">了解分類回收規章</p>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav mapping -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 flex justify-around items-center text-[9px] font-bold text-[#8C807A] select-none z-20">
+                        <button data-action="click->global#navigateToDashboard" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
+                            <i class="fa-solid fa-compass text-base"></i>
+                            <span data-global-lang="zh">指南主頁</span>
+                            <span data-global-lang="en" class="hidden">Home</span>
+                        </button>
+                        <button class="flex flex-col items-center gap-1 text-hp-coral">
+                            <i class="fa-solid fa-map-location-dot text-base"></i>
+                            <span data-global-lang="zh">實境探索</span>
+                            <span data-global-lang="en" class="hidden">Map Guide</span>
+                        </button>
+                        <button data-action="click->explorer#triggerEmergency" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
+                            <i class="fa-solid fa-circle-question text-base"></i>
+                            <span data-global-lang="zh">緊急聯絡</span>
+                            <span data-global-lang="en" class="hidden">Help</span>
+                        </button>
+                        <!-- iPhone Home Indicator -->
+                        <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-hp-border rounded-full"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Simulated Backend Database within Hotwire Client -->
+    <script>
+        const IMAGE_FALLBACKS = {
+            room: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+            rec: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80"
+        };
+
+        function setImgWithFallback(img, src, fallback) {
+            if (!img) return;
+            img.onerror = () => { img.onerror = null; img.src = fallback; };
+            img.src = src;
+        }
+
+        const guidesDb = {
+            'KYOTO-STATION': {
+                roomImg: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "西陣町家織屋 · 百年包棟古民家",
+                roomTitleEn: "Kyoto Machiya · Century-old Townhouse",
+                hostNameZh: "Sarah 的京都西陣織屋",
+                hostNameEn: "Sarah's Kyoto Nishijin Machiya",
+                locationZh: "京都, 日本 - 3 晚預訂",
+                locationEn: "Kyoto, Japan - 3 Nights Reservation",
+                wifi: "KyotoNishijin_5G / pass: 1029384756",
+                lock: "點擊喚醒鍵盤，輸入 #771239# 鎖頭自動轉開",
+                recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "西陣百年大德寺抹茶體驗",
+                recTitle1En: "Daitoku-ji Matcha Ceremony",
+                recImg2: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "船岡溫泉：傳承百年的大正木雕湯屋",
+                recTitle2En: "Funaoka Onsen & Antique Sento",
+                targetTitleZh: "船岡溫泉：傳承百年的大正木雕湯屋",
+                targetTitleEn: "Funaoka Sento: Taisho Heritage Bathhouse",
+                descZh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
+                descEn: "Funaoka Onsen is a masterpiece of Taisho-era styling. Its changing rooms feature rare woodwork. Visit around 7 PM to dodge the dinner rush. Free guest cycle racks available outside."
+            },
+            'HUALIEN-GLAMP': {
+                roomImg: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "太魯閣溪畔野奢星空帳篷",
+                roomTitleEn: "Taroko River-side Starry Glamping",
+                hostNameZh: "Ken 的太魯閣深山野奢星空帳",
+                hostNameEn: "Ken's Taroko Starry Luxury Canopy",
+                locationZh: "花蓮, 台灣 - 2 晚預訂",
+                locationEn: "Hualien, Taiwan - 2 Nights Stay",
+                wifi: "TarokoWild_Guest / pass: wildcamp99",
+                lock: "拉下拉鍊，右下角感應磁扣嗶一聲即解鎖",
+                recImg1: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "太魯閣溪谷晨曦獵人射箭",
+                recTitle1En: "Taroko Hunter Archery at Dawn",
+                recImg2: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "清水斷崖清水溪祕境獨木舟",
+                recTitle2En: "Qingshui Cliff Secret Cove Kayak",
+                targetTitleZh: "清水斷崖清水溪祕境獨木舟",
+                targetTitleEn: "Qingshui Cliff Sea Caves Kayaking",
+                descZh: "「Ken 在地力薦：清晨 4:30 隨原住民教練出發，在太平洋海面上等待第一道旭光灑落在清水斷崖上，那是人生必看的絕美震撼景色。」",
+                descEn: "Ken's Insider Tip: Set off at 4:30 AM with local hunters. Gaze at the first sunrise hitting Qingshui Cliff straight from the Pacific Ocean—a breathtaking spectacle."
+            },
+            'VILNIUS-OLDTOWN': {
+                roomImg: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "維爾紐斯舊城 · 巴洛克閣樓公寓",
+                roomTitleEn: "Vilnius Old Town · Baroque Loft",
+                hostNameZh: "Mindaugas 的維爾紐斯舊城閣樓",
+                hostNameEn: "Mindaugas's Vilnius Old Town Loft",
+                locationZh: "維爾紐斯, 立陶宛 - 4 晚預訂",
+                locationEn: "Vilnius, Lithuania - 4 Nights Stay",
+                wifi: "VilniusOldTown_Guest / pass: amber2024",
+                lock: "感應鑰匙卡輕觸門把，綠燈亮起後推門進入",
+                recImg1: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "特拉凱城堡湖上獨木舟",
+                recTitle1En: "Trakai Castle Lake Kayak",
+                recImg2: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "舊城琥珀工藝工作坊",
+                recTitle2En: "Old Town Amber Workshop",
+                targetTitleZh: "格迪米納斯塔日落漫步",
+                targetTitleEn: "Gediminas Tower Sunset Walk",
+                descZh: "「Mindaugas 推薦傍晚 6 點從城堡山步道出發，維爾紐斯紅屋頂在夕陽下像琥珀般閃耀，是舊城最經典的免費秘境。」",
+                descEn: "Mindaugas recommends the castle hill path at 6 PM—the red rooftops glow like amber at sunset, Vilnius's classic free hidden gem."
+            },
+            'RIO-COPACABANA': {
+                roomImg: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "科帕卡巴納 · 海景陽台工作室",
+                roomTitleEn: "Copacabana · Ocean-view Studio",
+                hostNameZh: "Carlos 的科帕卡巴納海景房",
+                hostNameEn: "Carlos's Copacabana Beach Studio",
+                locationZh: "里約熱內盧, 巴西 - 5 晚預訂",
+                locationEn: "Rio de Janeiro, Brazil - 5 Nights Stay",
+                wifi: "CopaBeach_5G / pass: samba1234",
+                lock: "電子鎖輸入 #8420# 後轉動把手開門",
+                recImg1: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "拉帕區森巴之夜體驗",
+                recTitle1En: "Lapa Samba Night Experience",
+                recImg2: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "糖麵包山日出健行",
+                recTitle2En: "Sugarloaf Sunrise Hike",
+                targetTitleZh: "基督像清晨免擁擠導覽",
+                targetTitleEn: "Christ the Redeemer Early Access Tour",
+                descZh: "「Carlos 力薦清晨 7 點前抵達基督像，避開旅行團人潮，從科帕卡巴納搭 Uber 約 25 分鐘，記得帶輕便外套。」",
+                descEn: "Carlos's tip: arrive at Christ the Redeemer before 7 AM to beat the crowds. Uber from Copacabana takes ~25 min—bring a light jacket."
+            }
+        };
+
+        // --- STIMULUS CONTROLLER REGISTRATIONS ---
+        const { Application, Controller } = Stimulus;
+        const stimulusApp = Application.start();
+
+        // 1. GLOBAL STATE CONTROLLER (Manages dynamic theme languages and triggers update notifications)
+        stimulusApp.register("global", class extends Controller {
+            static values = { lang: String }
+            static targets = ["zhBtn", "enBtn"]
+
+            connect() {
+                this.updateActiveLangUI();
+            }
+
+            getCurrentExperienceId() {
+                const pairingInput = document.querySelector('[data-pairing-target="input"]');
+                return (pairingInput?.value || 'KYOTO-STATION').trim().toUpperCase();
+            }
+
+            setPairingInput(id) {
+                const pairingInput = document.querySelector('[data-pairing-target="input"]');
+                if (pairingInput) pairingInput.value = id;
+            }
+
+            // Handles the dynamic language toggle in true declarative Hotwire spirit
+            switchLanguage(event) {
+                const chosenLang = event.currentTarget.dataset.lang;
+                this.langValue = chosenLang;
+
+                // Update standard CSS variables and elements
+                const zhElements = document.querySelectorAll('[data-global-lang="zh"]');
+                const enElements = document.querySelectorAll('[data-global-lang="en"]');
+
+                if (chosenLang === 'zh') {
+                    zhElements.forEach(el => el.classList.remove('hidden'));
+                    enElements.forEach(el => el.classList.add('hidden'));
+                    this.zhBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    this.enBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                } else {
+                    zhElements.forEach(el => el.classList.add('hidden'));
+                    enElements.forEach(el => el.classList.remove('hidden'));
+                    this.zhBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    this.enBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                }
+
+                this.updateActiveLangUI();
+                this.syncControllers(this.getCurrentExperienceId());
+
+                this.dispatchNotification(
+                    chosenLang === 'zh' ? '語言切換成功' : 'Language Switched',
+                    chosenLang === 'zh' ? '系統已全面語意翻譯為繁體中文' : 'Interface localized into English',
+                    'success'
+                );
+            }
+
+            updateActiveLangUI() {
+                // Broadcast language change to other parts
+                window.currentLanguage = this.langValue;
+            }
+
+            // Quick Demo Injector
+            injectDemoID(event) {
+                const id = event.currentTarget.dataset.id;
+                this.setPairingInput(id);
+                this.syncControllers(id);
+                this.dispatchNotification(
+                    window.currentLanguage === 'zh' ? '快速測試載入' : 'Quick Demo Fill',
+                    window.currentLanguage === 'zh' ? `已載入 ${id} 的房源指南` : `Loaded stay guide for ${id}`,
+                    'success'
+                );
+            }
+
+            // Controller state synchronization method (Like server-side Turbo Stream updates)
+            syncControllers(id) {
+                const targetId = id.trim().toUpperCase() || 'KYOTO-STATION';
+                
+                // Verify DB presence, or generate fallback on the fly
+                if (!guidesDb[targetId]) {
+                    guidesDb[targetId] = {
+                        roomImg: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80",
+                        roomTitleZh: `房東的特色民宿 (${targetId})`,
+                        roomTitleEn: `Host's Custom Property (${targetId})`,
+                        hostNameZh: `房東的自訂宿屋 (${targetId})`,
+                        hostNameEn: `Host's Custom Property (${targetId})`,
+                        locationZh: "台灣, 本地 - 歡迎入住",
+                        locationEn: "Local Stay - Warm Welcome",
+                        wifi: `MyWifi_${targetId} / pass: welcome123456`,
+                        lock: "點選下方電子鎖按鈕並取得臨時動態密碼 8820",
+                        recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
+                        recTitle1Zh: "在地老街特色美食品嚐行程",
+                        recTitle1En: "Authentic Old Street Gourmet Tour",
+                        recImg2: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80",
+                        recTitle2Zh: "祕密私人夜景俯瞰露台",
+                        recTitle2En: "Panoramic Rooftop Night View Spot",
+                        targetTitleZh: "祕密私人夜景俯瞰露台",
+                        targetTitleEn: "Panoramic Rooftop Night View Spot",
+                        descZh: `「這是一個針對體驗代碼 ${targetId} 動態生成的在地導覽說明。晚上可在這欣賞城市的無死角霓虹夜景，氛圍極佳。」`,
+                        descEn: `A custom generated local helper for your code ${targetId}. Enjoy a beautiful panorama of the city and stellar night vibe.`
+                    };
+                }
+
+                // Dispatch global events for Stimulus listeners
+                window.dispatchEvent(new CustomEvent("experience:updated", { detail: { id: targetId, data: guidesDb[targetId] } }));
+            }
+
+            navigateToExplorer() {
+                const phone3 = document.querySelector('[data-controller="explorer"]');
+                if (phone3) {
+                    phone3.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    phone3.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
+                    setTimeout(() => phone3.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
+                }
+
+                this.dispatchNotification(
+                    this.langValue === 'zh' ? '載入實境地圖' : 'Map Loaded',
+                    this.langValue === 'zh' ? '已捲動至 Phone 03 實境探索！' : 'Scrolled to Phone 03 map explorer.',
+                    'info'
+                );
+            }
+
+            navigateToDashboard() {
+                const phone2 = document.querySelector('[data-controller="dashboard"]');
+                if (phone2) {
+                    phone2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    phone2.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
+                    setTimeout(() => phone2.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
+                }
+                this.dispatchNotification(
+                    this.langValue === 'zh' ? '返回主面板' : 'Dashboard Hub',
+                    this.langValue === 'zh' ? '已捲動至 Phone 02 指南主頁！' : 'Scrolled to Phone 02 dashboard.',
+                    'info'
+                );
+            }
+
+            // Universal toast dispatching logic (Non-Alert rule compliant)
+            dispatchNotification(title, message, type) {
+                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message, type } }));
+            }
+        });
+
+
+        // 2. PHONE 1 PAIRING CONTROLLER
+        stimulusApp.register("pairing", class extends Controller {
+            static targets = ["input"]
+
+            performPairing() {
+                let val = this.inputTarget.value.trim().toUpperCase();
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                if (!val) {
+                    this.triggerToast(
+                        isZh ? '請輸入房源代碼' : 'Enter listing code',
+                        isZh ? '請先填寫房東提供的房源編號' : 'Please enter the listing code from your host',
+                        'error'
+                    );
+                    return;
+                }
+
+                const globalController = this.application.getControllerForElementAndIdentifier(document.body, "global");
+                globalController.syncControllers(val);
+
+                this.triggerToast(
+                    isZh ? '配對成功' : 'Pairing Successful',
+                    isZh ? `已載入 ${val} 的房源指南` : `Loaded stay guide for ${val}`,
+                    'success'
+                );
+            }
+
+            quickPair(event) {
+                this.inputTarget.value = event.currentTarget.dataset.id;
+                this.performPairing();
+            }
+
+            triggerToast(title, msg, type) {
+                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
+            }
+        });
+
+
+        // 3. PHONE 2 EXPERIENCE DASHBOARD CONTROLLER (With real functional Airbnb overlay integration)
+        stimulusApp.register("dashboard", class extends Controller {
+            static targets = [
+                "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", 
+                "wifiValue", "lockValue", "recImg1", "recTitle1", 
+                "recImg2", "recTitle2", "stayGuides", "localRecs", "hostTask",
+                "scrollContainer", "tabBtn", "bottomNavBtn",
+                "roomOverlay", "helpOverlay", "lockOverlay", "helpHostName",
+                "lockCode", "lockDetail",
+                "overlayHero", "overlayTitle", "overlayLocation", "overlayHost"
+            ]
+
+            connect() {
+                // Listen to global model updates (Like Hotwire Frame events)
+                this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
+                window.addEventListener("experience:updated", this.onExperienceUpdated);
+                
+                // Initialize default view
+                this.renderDashboard(guidesDb['KYOTO-STATION']);
+            }
+
+            disconnect() {
+                window.removeEventListener("experience:updated", this.onExperienceUpdated);
+            }
+
+            onExperienceUpdated(event) {
+                const { id, data } = event.detail;
+                this.activeIdTarget.innerText = id;
+                this.renderDashboard(data);
+            }
+
+            renderDashboard(data) {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                
+                // Update Room photo and Room title targets dynamically (Fulfills User Story details)
+                setImgWithFallback(this.roomHeroImgTarget, data.roomImg, IMAGE_FALLBACKS.room);
+                this.roomTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
+
+                this.hostTitleTarget.innerText = isZh ? data.hostNameZh : data.hostNameEn;
+                this.hostLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
+                this.wifiValueTarget.innerText = data.wifi;
+                this.lockValueTarget.innerText = data.lock;
+                if (this.hasLockCodeTarget) {
+                    const codeMatch = data.lock.match(/#[\d]+#/);
+                    this.lockCodeTarget.innerText = codeMatch ? codeMatch[0] : (data.lockCode || data.lock);
+                }
+                if (this.hasLockDetailTarget) {
+                    this.lockDetailTarget.innerText = data.lock;
+                }
+
+                setImgWithFallback(this.recImg1Target, data.recImg1, IMAGE_FALLBACKS.rec);
+                this.recTitle1Target.innerText = isZh ? data.recTitle1Zh : data.recTitle1En;
+                setImgWithFallback(this.recImg2Target, data.recImg2, IMAGE_FALLBACKS.rec);
+                this.recTitle2Target.innerText = isZh ? data.recTitle2Zh : data.recTitle2En;
+
+                // Also sync targets of the hidden/connectable Airbnb room details overlay!
+                setImgWithFallback(this.overlayHeroTarget, data.roomImg, IMAGE_FALLBACKS.room);
+                this.overlayTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
+                this.overlayLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
+                this.overlayHostTarget.innerText = isZh ? (data.hostNameZh.split(' ')[0]) : (data.hostNameEn.split("'")[0]);
+                if (this.hasHelpHostNameTarget) {
+                    const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
+                    this.helpHostNameTarget.innerText = `${hostFirst} · Superhost`;
+                }
+            }
+
+            // --- Bottom Nav Actions ---
+            goHome(event) {
+                if (this.hasScrollContainerTarget) {
+                    this.scrollContainerTarget.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                this.setActiveBottomNav(event.currentTarget);
+                if (this.hasTabBtnTarget) this.setActiveTab(this.tabBtnTargets[0]);
+                this.triggerToast(
+                    (window.currentLanguage || 'zh') === 'zh' ? '返回指南主頁' : 'Back to Home',
+                    (window.currentLanguage || 'zh') === 'zh' ? '已捲動至頂部' : 'Scrolled to top',
+                    'info'
+                );
+            }
+
+            goExplorer(event) {
+                this.setActiveBottomNav(event.currentTarget);
+                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
+                if (global) global.navigateToExplorer();
+            }
+
+            contactHost(event) {
+                this.setActiveBottomNav(event.currentTarget);
+                if (this.hasHelpOverlayTarget) {
+                    this.helpOverlayTarget.classList.remove('translate-y-full');
+                }
+                this.triggerToast(
+                    (window.currentLanguage || 'zh') === 'zh' ? '求助房東' : 'Contact Host',
+                    (window.currentLanguage || 'zh') === 'zh' ? '已開啟房東聯絡面板' : 'Host help panel opened',
+                    'info'
+                );
+            }
+
+            closeHelpOverlay() {
+                if (this.hasHelpOverlayTarget) {
+                    this.helpOverlayTarget.classList.add('translate-y-full');
+                }
+                if (this.hasBottomNavBtnTarget) {
+                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                }
+            }
+
+            scrollToSectionFromHelp(event) {
+                this.closeHelpOverlay();
+                setTimeout(() => this.scrollToSection(event), 350);
+            }
+
+            sendHostMessage() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                this.triggerToast(
+                    isZh ? '訊息已送出' : 'Message Sent',
+                    isZh ? 'Sarah 已收到您的訊息，將盡快回覆！' : 'Sarah received your message and will reply soon!',
+                    'success'
+                );
+            }
+
+            callHost() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                this.triggerToast(
+                    isZh ? '正在撥號...' : 'Calling...',
+                    isZh ? '正使用加密 VoIP 連線 Sarah...' : 'Connecting to Sarah via encrypted VoIP...',
+                    'info'
+                );
+            }
+
+            setActiveBottomNav(activeBtn) {
+                if (!this.hasBottomNavBtnTarget) return;
+                this.bottomNavBtnTargets.forEach(btn => {
+                    btn.classList.toggle('text-hp-coral', btn === activeBtn);
+                    btn.classList.toggle('text-[#8C807A]', btn !== activeBtn);
+                });
+            }
+
+            // Airbnb user story - "Can connect back to room" Action
+            // THIS NOW SLIDES UP A FULL BEAUTIFUL AIRBNB LISTING OVERLAY SCREEN DYNAMICALLY!
+            connectBackToRoom() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const currentId = this.activeIdTarget.innerText;
+                
+                // Remove translate-y-full class to trigger a smooth bottom-to-top slide up transition
+                this.roomOverlayTarget.classList.remove('translate-y-full');
+
+                this.triggerToast(
+                    isZh ? "返回原始房源主頁" : "Connected back to Room detail",
+                    isZh ? `已為您模擬一鍵導航回 Airbnb 房源編號: ${currentId}` : `Successfully pulled up native Airbnb Room listing screen for ID: ${currentId}.`,
+                    'success'
+                );
+            }
+
+            // Closes the Airbnb Room Listing slide-up card and goes back to Guide
+            closeRoomOverlay() {
+                this.roomOverlayTarget.classList.add('translate-y-full');
+            }
+
+            // Airbnb user story - "Can share" Action
+            shareExperience() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const currentId = this.activeIdTarget.innerText;
+
+                // Simulate Copy share link (Clipboard copy with fallback)
+                const shareText = `https://host-pocket.example.com/share/${currentId}`;
+                const temp = document.createElement('textarea');
+                temp.value = shareText;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+
+                this.triggerToast(
+                    isZh ? "分享連結已複製" : "Share Link Copied",
+                    isZh ? `房東您好！房客體驗指南連結 (${shareText}) 已複製，可直接分享至訊息中！` : `Guide link copied. Ready to send to your checked-in guests!`,
+                    'info'
+                );
+            }
+
+            // Clipboard Action Helper for Wifi
+            copyWifi() {
+                const text = this.wifiValueTarget.innerText;
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+
+                this.triggerToast(
+                    window.currentLanguage === 'en' ? 'Copied to Clipboard' : '密碼已複製', 
+                    window.currentLanguage === 'en' ? 'Wi-Fi credentials saved.' : '已將客房 Wi-Fi 機密複製至剪貼簿！', 
+                    'success'
+                );
+            }
+
+            showLockGuide() {
+                if (this.hasLockOverlayTarget) {
+                    this.lockOverlayTarget.classList.remove('translate-y-full');
+                }
+                this.triggerToast(
+                    (window.currentLanguage || 'zh') === 'zh' ? '大門解鎖指南' : 'Door Access Guide',
+                    (window.currentLanguage || 'zh') === 'zh' ? '已開啟解鎖步驟說明' : 'Lock guide opened',
+                    'info'
+                );
+            }
+
+            closeLockGuide() {
+                if (this.hasLockOverlayTarget) {
+                    this.lockOverlayTarget.classList.add('translate-y-full');
+                }
+            }
+
+            copyLockCode() {
+                const text = this.hasLockCodeTarget ? this.lockCodeTarget.innerText : this.lockValueTarget.innerText;
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+
+                this.triggerToast(
+                    (window.currentLanguage || 'zh') === 'zh' ? '密碼已複製' : 'Code Copied',
+                    (window.currentLanguage || 'zh') === 'zh' ? `已複製 ${text} 至剪貼簿` : `${text} copied to clipboard`,
+                    'success'
+                );
+            }
+
+            // Scroll within phone container + update tab highlight
+            scrollToSection(event) {
+                const sectionName = event.currentTarget.dataset.section;
+                const section = this.element.querySelector(`#${sectionName}`);
+                const container = this.hasScrollContainerTarget ? this.scrollContainerTarget : null;
+
+                if (!section) {
+                    this.triggerToast('找不到區塊', `section "${sectionName}" 不存在`, 'error');
+                    return;
+                }
+
+                if (container) {
+                    const offset = section.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 12;
+                    container.scrollTo({ top: offset, behavior: 'smooth' });
+                } else {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+                this.highlightSection(section);
+
+                const sectionToTab = { stayGuides: 0, localRecs: 1, hostTask: 2 };
+                const tabIdx = sectionToTab[sectionName];
+                if (tabIdx !== undefined && this.hasTabBtnTarget) {
+                    this.setActiveTab(this.tabBtnTargets[tabIdx]);
+                }
+                if (this.hasBottomNavBtnTarget) {
+                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                }
+
+                const labels = {
+                    stayGuides: { zh: '已捲動至房屋指南', en: 'Scrolled to House Stay' },
+                    localRecs: { zh: '已捲動至在地探索', en: 'Scrolled to Local Explore' },
+                    hostTask: { zh: '已捲動至快速任務', en: 'Scrolled to Quick Actions' }
+                };
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const label = labels[sectionName];
+                if (label) {
+                    this.triggerToast(isZh ? label.zh : label.en, isZh ? '區塊已定位' : 'Section focused', 'info');
+                }
+            }
+
+            setActiveTab(activeBtn) {
+                if (!this.hasTabBtnTarget) return;
+                const activeClass = 'py-2.5 rounded-xl bg-white text-hp-dark text-[11px] font-extrabold shadow-sm flex flex-col items-center gap-1 transition';
+                const inactiveClass = 'py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-[11px] font-bold flex flex-col items-center gap-1 transition';
+
+                this.tabBtnTargets.forEach(btn => {
+                    btn.className = btn === activeBtn ? activeClass : inactiveClass;
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('text-hp-coral', btn === activeBtn);
+                    }
+                });
+            }
+
+            highlightSection(section) {
+                [this.hasStayGuidesTarget && this.stayGuidesTarget,
+                 this.hasLocalRecsTarget && this.localRecsTarget,
+                 this.hasHostTaskTarget && this.hostTaskTarget].filter(Boolean).forEach(el => {
+                    el.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl');
+                });
+                section.classList.add('ring-2', 'ring-hp-coral/40', 'rounded-2xl');
+                setTimeout(() => section.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl'), 1200);
+            }
+
+            triggerToast(title, msg, type) {
+                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
+            }
+        });
+
+
+        // 4. PHONE 3 EXPLORER & TASK RUNNER CONTROLLER
+        stimulusApp.register("explorer", class extends Controller {
+            static targets = ["targetTitle", "targetDesc", "mapContainer", "startPinDot", "endPinDot", "endPinPing", "routePath"]
+
+            connect() {
+                this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
+                this.updateRouteLine = this.updateRouteLine.bind(this);
+                window.addEventListener("experience:updated", this.onExperienceUpdated);
+                window.addEventListener("resize", this.updateRouteLine);
+                this.updateDetails(guidesDb['KYOTO-STATION']);
+                requestAnimationFrame(() => this.updateRouteLine());
+            }
+
+            disconnect() {
+                window.removeEventListener("experience:updated", this.onExperienceUpdated);
+                window.removeEventListener("resize", this.updateRouteLine);
+            }
+
+            updateRouteLine() {
+                if (!this.hasMapContainerTarget || !this.hasStartPinDotTarget || !this.hasEndPinDotTarget || !this.hasRoutePathTarget) return;
+
+                const mapRect = this.mapContainerTarget.getBoundingClientRect();
+                const startRect = this.startPinDotTarget.getBoundingClientRect();
+                const endRect = this.endPinDotTarget.getBoundingClientRect();
+
+                const x1 = startRect.left + startRect.width / 2 - mapRect.left;
+                const y1 = startRect.top + startRect.height / 2 - mapRect.top;
+                const x2 = endRect.left + endRect.width / 2 - mapRect.left;
+                const y2 = endRect.top + endRect.height / 2 - mapRect.top;
+
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const cx = x1 + dx * 0.5 - dy * 0.12;
+                const cy = y1 + dy * 0.5 + dx * 0.08;
+
+                this.routePathTarget.setAttribute("d", `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+
+                if (this.hasEndPinPingTarget) {
+                    const size = endRect.width;
+                    this.endPinPingTarget.style.width = `${size}px`;
+                    this.endPinPingTarget.style.height = `${size}px`;
+                }
+            }
+
+            onExperienceUpdated(event) {
+                this.updateDetails(event.detail.data);
+            }
+
+            updateDetails(data) {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                this.targetTitleTarget.innerText = isZh ? data.targetTitleZh : data.targetTitleEn;
+                this.targetDescTarget.innerText = isZh ? data.descZh : data.descEn;
+            }
+
+            // Interactive Micro actions (simulating background job triggers)
+            requestWifiReset() {
+                this.triggerToast(
+                    window.currentLanguage === 'en' ? 'Signal Dispatched' : '已傳送重置信號',
+                    window.currentLanguage === 'en' ? 'Router command dispatched. Please wait 45 seconds.' : '已向客房路由器發送重啟請求，約需等待 45 秒。',
+                    'success'
+                );
+            }
+
+            requestTrashPolicy() {
+                this.triggerToast(
+                    window.currentLanguage === 'en' ? 'Policy Loaded' : '環保政策下載',
+                    window.currentLanguage === 'en' ? 'Local sorting policy PDF saved to system downloads.' : '本區廚餘與瓶罐細分回收指南已儲存至您的檔案目錄中！',
+                    'info'
+                );
+            }
+
+            triggerEmergency() {
+                this.triggerToast(
+                    window.currentLanguage === 'en' ? 'Calling Host...' : '正與房東通話',
+                    window.currentLanguage === 'en' ? 'Dialing Sarah through encrypted companion VoIP...' : '正使用加密網路語音系統撥號給 Sarah...',
+                    'error'
+                );
+            }
+
+            zoomMap() {
+                this.triggerToast('Map Zoom', 'Simulated SVG Map container scaled up (+15%)', 'info');
+                requestAnimationFrame(() => this.updateRouteLine());
+            }
+
+            recenterMap() {
+                this.triggerToast('GPS Sync', 'Re-synchronized simulated guest location to Room Center.', 'success');
+                requestAnimationFrame(() => this.updateRouteLine());
+            }
+
+            triggerToast(title, msg, type) {
+                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
+            }
+        });
+
+
+        // 5. TOAST NOTIFICATION GENERATOR (Listens and paints notices elegantly)
+        window.addEventListener("toast:trigger", function(event) {
+            const { title, message, type } = event.detail;
+
+            let container = document.getElementById('toast-box');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-box';
+                container.className = "fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none";
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = "bg-[#1C1715] text-[#EFECE9] border border-[#2C2422] rounded-2xl p-4 shadow-2xl flex gap-3 items-center transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-auto";
+            
+            let iconColor = 'bg-hp-coral';
+            let iconHtml = '<i class="fa-solid fa-bell"></i>';
+            if (type === 'success') {
+                iconColor = 'bg-hp-accentTeal';
+                iconHtml = '<i class="fa-solid fa-circle-check"></i>';
+            } else if (type === 'error') {
+                iconColor = 'bg-rose-500';
+                iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else if (type === 'info') {
+                iconColor = 'bg-amber-500';
+                iconHtml = '<i class="fa-solid fa-circle-info"></i>';
+            }
+
+            toast.innerHTML = `
+                <div class="w-9 h-9 rounded-xl ${iconColor} text-white flex items-center justify-center shrink-0">
+                    ${iconHtml}
+                </div>
+                <div>
+                    <h5 class="font-bold text-xs">${title}</h5>
+                    <p class="text-[10px] text-hp-muted mt-0.5 leading-relaxed">${message}</p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 50);
+
+            // Animate Out & Clean up
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        });
+    </script>
+</body>
+</html>
