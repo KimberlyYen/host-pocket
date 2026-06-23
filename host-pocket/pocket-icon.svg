@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="host-pocket">
-  <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
-    <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
-    <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
-    <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
