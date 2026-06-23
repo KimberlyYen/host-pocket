@@ -355,17 +355,17 @@
                                     <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
                                     <p class="text-[11px] text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
                                     <p class="text-[11px] text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5" data-global-lang="zh">點選卡片開啟該行程的地圖導航</p>
+                                    <p class="text-[9px] text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card to open its map route</p>
                                 </div>
-                                <button data-action="click->global#navigateToExplorer" class="w-7 h-7 rounded-full bg-white border border-hp-border flex items-center justify-center hover:bg-hp-bgLight shadow-sm">
-                                    <i class="fa-solid fa-arrow-right text-[10px] text-hp-dark"></i>
-                                </button>
                             </div>
 
                             <!-- Carousel -->
                             <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
                                 
                                 <!-- Card 1 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="1"
+                                        class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                         <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
@@ -380,15 +380,18 @@
                                         <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
                                             <p class="text-[10px] text-hp-coral font-bold">1,800 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
-                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 4.9
+                                            <span class="text-[9px] text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
+                                                <i class="fa-solid fa-map-location-dot text-[8px]"></i>
+                                                <span data-global-lang="zh">地圖</span>
+                                                <span data-global-lang="en" class="hidden">Map</span>
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
 
                                 <!-- Card 2 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group">
+                                <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="2"
+                                        class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                         <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-[8px] font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
@@ -403,12 +406,14 @@
                                         <p class="text-[10px] text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
                                             <p class="text-[10px] text-hp-coral font-bold">450 JPY / 起</p>
-                                            <span class="text-[9px] text-hp-dark font-semibold flex items-center gap-0.5">
-                                                <i class="fa-solid fa-star text-amber-500 text-[8px]"></i> 5.0
+                                            <span class="text-[9px] text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
+                                                <i class="fa-solid fa-map-location-dot text-[8px]"></i>
+                                                <span data-global-lang="zh">地圖</span>
+                                                <span data-global-lang="en" class="hidden">Map</span>
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             </div>
                         </div>
 
@@ -865,6 +870,31 @@
             img.src = src;
         }
 
+        function getRecExplorerDetail(data, recIndex) {
+            if (recIndex === 1) {
+                return {
+                    titleZh: data.recTitle1Zh,
+                    titleEn: data.recTitle1En,
+                    descZh: data.desc1Zh || data.recTitle1Zh,
+                    descEn: data.desc1En || data.recTitle1En
+                };
+            }
+            if (recIndex === 2) {
+                return {
+                    titleZh: data.recTitle2Zh,
+                    titleEn: data.recTitle2En,
+                    descZh: data.desc2Zh || data.descZh,
+                    descEn: data.desc2En || data.descEn
+                };
+            }
+            return {
+                titleZh: data.targetTitleZh,
+                titleEn: data.targetTitleEn,
+                descZh: data.descZh,
+                descEn: data.descEn
+            };
+        }
+
         const guidesDb = {
             'KYOTO-STATION': {
                 roomImg: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
@@ -879,9 +909,13 @@
                 recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "西陣百年大德寺抹茶體驗",
                 recTitle1En: "Daitoku-ji Matcha Ceremony",
+                desc1Zh: "「Sarah 推薦步行 7 分鐘到大德寺旁茶室，體驗西陣傳統抹茶與和菓子，適合下午兩點前到達避開人潮。」",
+                desc1En: "Sarah suggests a 7-minute walk to a teahouse near Daitoku-ji for matcha and wagashi—arrive before 2 PM to skip the crowds.",
                 recImg2: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80",
                 recTitle2Zh: "船岡溫泉：傳承百年的大正木雕湯屋",
                 recTitle2En: "Funaoka Onsen & Antique Sento",
+                desc2Zh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
+                desc2En: "Funaoka Onsen is a masterpiece of Taisho-era styling. Visit around 7 PM to dodge the dinner rush. Free guest cycle racks outside.",
                 targetTitleZh: "船岡溫泉：傳承百年的大正木雕湯屋",
                 targetTitleEn: "Funaoka Sento: Taisho Heritage Bathhouse",
                 descZh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
@@ -900,9 +934,13 @@
                 recImg1: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "撫順街傳統早餐與豆漿",
                 recTitle1En: "Fushun Street Classic Breakfast",
+                desc1Zh: "「Mia 推薦週末早上 8 點前往撫順街，品嚐現炸油條與濃豆漿，是本地人排隊的經典早餐路線。」",
+                desc1En: "Mia recommends Fushun Street around 8 AM on weekends for fresh youtiao and soy milk—a classic local breakfast queue.",
                 recImg2: "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=300&q=80",
                 recTitle2Zh: "象山步道夕陽看台北 101",
                 recTitle2En: "Xiangshan Trail Sunset & Taipei 101",
+                desc2Zh: "「Mia 在地力薦：傍晚 5 點從象山步道登山口出發，約 20 分鐘可抵觀景台，夕陽灑在台北 101 上的景色是台北最經典的免費秘境。」",
+                desc2En: "Mia's tip: start at Xiangshan Trail around 5 PM—a 20-minute hike rewards you with Taipei 101 glowing at sunset.",
                 targetTitleZh: "象山步道夕陽看台北 101",
                 targetTitleEn: "Xiangshan Trail Sunset & Taipei 101",
                 descZh: "「Mia 在地力薦：傍晚 5 點從象山步道登山口出發，約 20 分鐘可抵觀景台，夕陽灑在台北 101 上的景色是台北最經典的免費秘境。」",
@@ -921,9 +959,13 @@
                 recImg1: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "特拉凱城堡湖上獨木舟",
                 recTitle1En: "Trakai Castle Lake Kayak",
+                desc1Zh: "「Mindaugas 推薦搭車 30 分鐘到特拉凱，在城堡前的湖上划獨木舟，夏季下午 4 點前光線最佳。」",
+                desc1En: "Mindaugas suggests a 30-minute ride to Trakai for kayaking before the castle—best light before 4 PM in summer.",
                 recImg2: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=300&q=80",
                 recTitle2Zh: "舊城琥珀工藝工作坊",
                 recTitle2En: "Old Town Amber Workshop",
+                desc2Zh: "「步行 10 分鐘到舊城巷弄內的工作坊，可親手打磨琥珀小飾品，需提前一天預約。」",
+                desc2En: "A 10-minute walk to an Old Town workshop for hands-on amber polishing—book one day ahead.",
                 targetTitleZh: "格迪米納斯塔日落漫步",
                 targetTitleEn: "Gediminas Tower Sunset Walk",
                 descZh: "「Mindaugas 推薦傍晚 6 點從城堡山步道出發，維爾紐斯紅屋頂在夕陽下像琥珀般閃耀，是舊城最經典的免費秘境。」",
@@ -942,9 +984,13 @@
                 recImg1: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "拉帕區森巴之夜體驗",
                 recTitle1En: "Lapa Samba Night Experience",
+                desc1Zh: "「Carlos 推薦週五晚間到拉帕區，感受街頭森巴與現場音樂，建議 9 點後前往氣氛最熱烈。」",
+                desc1En: "Carlos recommends Lapa on Friday nights for street samba and live music—after 9 PM is liveliest.",
                 recImg2: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=300&q=80",
                 recTitle2Zh: "糖麵包山日出健行",
                 recTitle2En: "Sugarloaf Sunrise Hike",
+                desc2Zh: "「清晨 6 點從科帕卡巴納出發搭纜車上糖麵包山，可俯瞰日出與瓜納巴拉灣全景。」",
+                desc2En: "Leave Copacabana at 6 AM for the cable car up Sugarloaf—sunrise views over Guanabara Bay.",
                 targetTitleZh: "基督像清晨免擁擠導覽",
                 targetTitleEn: "Christ the Redeemer Early Access Tour",
                 descZh: "「Carlos 力薦清晨 7 點前抵達基督像，避開旅行團人潮，從科帕卡巴納搭 Uber 約 25 分鐘，記得帶輕便外套。」",
@@ -1076,9 +1122,13 @@
                         recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
                         recTitle1Zh: "在地老街特色美食品嚐行程",
                         recTitle1En: "Authentic Old Street Gourmet Tour",
+                        desc1Zh: `「${targetId} 周邊的老街美食路線，適合步行探索。」`,
+                        desc1En: `A walkable old-street food route near ${targetId}.`,
                         recImg2: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80",
                         recTitle2Zh: "祕密私人夜景俯瞰露台",
                         recTitle2En: "Panoramic Rooftop Night View Spot",
+                        desc2Zh: `「針對 ${targetId} 動態生成的夜景秘境，傍晚前往氛圍最佳。」`,
+                        desc2En: `A generated night-view spot for ${targetId}—best visited at dusk.`,
                         targetTitleZh: "祕密私人夜景俯瞰露台",
                         targetTitleEn: "Panoramic Rooftop Night View Spot",
                         descZh: `「這是一個針對體驗代碼 ${targetId} 動態生成的在地導覽說明。晚上可在這欣賞城市的無死角霓虹夜景，氛圍極佳。」`,
@@ -1101,12 +1151,26 @@
                 }
             }
 
-            navigateToExplorer() {
+            navigateToExplorer(recDetail) {
+                if (!recDetail) {
+                    const id = this.getCurrentExperienceId();
+                    const data = guidesDb[id.trim().toUpperCase()];
+                    if (data) recDetail = getRecExplorerDetail(data, 0);
+                }
+                if (recDetail) {
+                    window.dispatchEvent(new CustomEvent("explorer:selectRec", { detail: recDetail }));
+                }
+
+                const isZh = this.langValue === "zh";
+                const toastMsg = recDetail
+                    ? (isZh ? `正在導航至：${recDetail.titleZh}` : `Navigating to: ${recDetail.titleEn}`)
+                    : (isZh ? "已進入實境探索" : "Opened map explorer.");
+
                 if (window.appNavigate) {
                     window.appNavigate("explorer");
                     this.dispatchNotification(
-                        this.langValue === "zh" ? "載入實境地圖" : "Map Loaded",
-                        this.langValue === "zh" ? "已進入實境探索" : "Opened map explorer.",
+                        isZh ? "載入實境地圖" : "Map Loaded",
+                        toastMsg,
                         "info"
                     );
                     return;
@@ -1289,6 +1353,30 @@
                 this.setActiveBottomNav(event.currentTarget);
                 const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 if (global) global.navigateToExplorer();
+            }
+
+            openRecOnMap(event) {
+                const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
+                const id = this.activeIdTarget.innerText.trim().toUpperCase();
+                const data = guidesDb[id];
+                if (!data) return;
+
+                const detail = getRecExplorerDetail(data, recIndex);
+
+                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
+                if (global) {
+                    global.navigateToExplorer(detail);
+                    return;
+                }
+
+                window.dispatchEvent(new CustomEvent("explorer:selectRec", { detail }));
+
+                const isZh = (window.currentLanguage || "zh") === "zh";
+                this.triggerToast(
+                    isZh ? "已開啟地圖導航" : "Map Route Opened",
+                    isZh ? `正在導航至：${detail.titleZh}` : `Navigating to: ${detail.titleEn}`,
+                    "success"
+                );
             }
 
             contactHost(event) {
@@ -1512,8 +1600,10 @@
 
             connect() {
                 this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
+                this.onSelectRec = this.onSelectRec.bind(this);
                 this.updateRouteLine = this.updateRouteLine.bind(this);
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
+                window.addEventListener("explorer:selectRec", this.onSelectRec);
                 window.addEventListener("resize", this.updateRouteLine);
                 this.updateDetails(guidesDb['TAIPEI-CITY']);
                 requestAnimationFrame(() => this.updateRouteLine());
@@ -1521,6 +1611,7 @@
 
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
+                window.removeEventListener("explorer:selectRec", this.onSelectRec);
                 window.removeEventListener("resize", this.updateRouteLine);
             }
 
@@ -1554,10 +1645,19 @@
                 this.updateDetails(event.detail.data);
             }
 
+            onSelectRec(event) {
+                this.updateDetailsFromRec(event.detail);
+                requestAnimationFrame(() => this.updateRouteLine());
+            }
+
             updateDetails(data) {
+                this.updateDetailsFromRec(getRecExplorerDetail(data, 0));
+            }
+
+            updateDetailsFromRec(detail) {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                this.targetTitleTarget.innerText = isZh ? data.targetTitleZh : data.targetTitleEn;
-                this.targetDescTarget.innerText = isZh ? data.descZh : data.descEn;
+                this.targetTitleTarget.innerText = isZh ? detail.titleZh : detail.titleEn;
+                this.targetDescTarget.innerText = isZh ? detail.descZh : detail.descEn;
             }
 
             // Interactive Micro actions (simulating background job triggers)
