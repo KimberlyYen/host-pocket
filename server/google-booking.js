@@ -1,5 +1,5 @@
 const { Resend } = require('resend');
-const { sendBookingEmailViaSmtp, isSmtpConfigured, buildBookingEmailContent, resolveSmtpConfig } = require('./smtp-mail');
+const { sendBookingEmailViaSmtp, isSmtpConfigured, buildBookingEmailContent } = require('./smtp-mail');
 
 function parseDurationMinutes(raw) {
     const n = Number(raw);
@@ -7,21 +7,23 @@ function parseDurationMinutes(raw) {
     return 90;
 }
 
-function hasClientSmtp(input) {
-    return Boolean(resolveSmtpConfig({
-        user: input.smtpUser,
-        pass: input.smtpAppPassword,
-        host: input.smtpHost,
-        port: input.smtpPort
-    }));
-}
-
-function isEmailConfigured(input) {
+function isEmailConfigured() {
     return Boolean(
         (process.env.RESEND_API_KEY && process.env.FROM_EMAIL)
         || isSmtpConfigured()
-        || hasClientSmtp(input || {})
     );
+}
+
+function guestEmailUnavailable(locale) {
+    return locale === 'en'
+        ? 'Confirmation email is temporarily unavailable. Please try again later or contact your host.'
+        : '確認信暫時無法寄出，請稍後再試或聯絡房東';
+}
+
+function guestEmailSendFailed(locale) {
+    return locale === 'en'
+        ? 'We could not send the confirmation email. Please try again later or contact your host.'
+        : '確認信寄送失敗，請稍後再試或聯絡房東';
 }
 
 async function sendBookingEmailViaResend(booking) {
@@ -67,32 +69,26 @@ async function createBooking(bookingInput) {
         throw new Error('Invalid time format (expected HH:MM)');
     }
 
-    if (!isEmailConfigured(bookingInput)) {
-        throw new Error('請在網頁「寄件設定」填寫 Gmail 帳號與應用程式密碼，或在 .env 設定 SMTP_USER + SMTP_APP_PASSWORD');
+    if (!isEmailConfigured()) {
+        throw new Error(guestEmailUnavailable(booking.locale));
     }
-
-    const smtpOverride = hasClientSmtp(bookingInput) ? {
-        user: bookingInput.smtpUser,
-        pass: bookingInput.smtpAppPassword,
-        host: bookingInput.smtpHost,
-        port: bookingInput.smtpPort
-    } : null;
 
     const resendResult = await sendBookingEmailViaResend(booking);
     let smtpResult = { sent: false };
     try {
         smtpResult = resendResult.sent
             ? { sent: false }
-            : await sendBookingEmailViaSmtp(booking, smtpOverride);
+            : await sendBookingEmailViaSmtp(booking);
     } catch (error) {
+        console.error('[booking] email send failed', error);
         if (error?.code === 'EAUTH' || /badcredentials|username and password not accepted/i.test(error?.message || '')) {
-            throw new Error('Gmail 應用程式密碼錯誤，請確認已開啟兩步驟驗證並重新產生應用程式密碼');
+            throw new Error(guestEmailSendFailed(booking.locale));
         }
-        throw error;
+        throw new Error(guestEmailSendFailed(booking.locale));
     }
 
     if (!resendResult.sent && !smtpResult.sent) {
-        throw new Error('確認信寄送失敗，請檢查 Gmail 應用程式密碼是否正確');
+        throw new Error(guestEmailSendFailed(booking.locale));
     }
 
     return {

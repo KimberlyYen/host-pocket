@@ -366,20 +366,11 @@
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                             </div>
-                            <a href="email-test.html"
-                               class="flex items-center justify-between gap-2 w-full bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] p-2.5 rounded-2xl transition group">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <i class="fa-regular fa-envelope text-xs text-hp-coral group-hover:text-white transition shrink-0"></i>
-                                    <span class="text-xs text-hp-coral font-bold group-hover:text-white transition" data-global-lang="zh">設定信件</span>
-                                    <span class="text-xs text-hp-coral font-bold group-hover:text-white transition hidden" data-global-lang="en">Email Settings</span>
-                                </div>
-                                <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition shrink-0"></i>
-                            </a>
                         </div>
                         </div>
                         </div>
 
-                        <!-- Partner Bar: host-pocket → Airbnb -->
+                    <!-- Partner Bar: host-pocket → Airbnb -->
                         <footer class="partner-bar partner-bar--footer grid grid-cols-3 items-center py-2.5 min-w-0">
                             <a href="https://github.com/KimberlyYen/host-pocket"
                                target="_blank"
@@ -1205,8 +1196,6 @@
     </main>
 
     <!-- Simulated Backend Database within Hotwire Client -->
-    <script src="js/password-toggle.js"></script>
-    <script src="js/email-settings.js"></script>
     <script src="js/toast.js"></script>
     <script src="js/booking-api.js"></script>
     <script src="js/experience-details.js"></script>
@@ -2315,11 +2304,14 @@
                 try {
                     const health = await BookingAPI.checkHealth();
                     if (!health.smtpConfigured && !health.bookingConfigured) {
+                        const msg = isZh
+                            ? '確認信暫時無法寄出，請稍後再試或聯絡房東'
+                            : 'Confirmation email is temporarily unavailable. Please try again later or contact your host.';
+                        this.setBookingConfirmFeedback('error', msg);
                         this.triggerToast(
-                            isZh ? '寄件尚未設定' : 'Email not configured',
-                            isZh ? '請先設定 Gmail SMTP，才能寄送預定確認信' : 'Set up Gmail SMTP before sending booking confirmations.',
-                            'info',
-                            this.emailSetupToastOptions(isZh)
+                            isZh ? '無法完成預定' : 'Booking unavailable',
+                            msg,
+                            'info'
                         );
                         return;
                     }
@@ -2361,13 +2353,12 @@
                     this.closeExpBookingCalendar();
                 } catch (error) {
                     console.error('[Host Pocket] booking failed', error);
-                    const errMsg = error.message || (isZh ? '請先設定 Gmail SMTP' : 'Configure Gmail SMTP first.');
+                    const errMsg = error.message || (isZh ? '確認信寄送失敗，請稍後再試或聯絡房東' : 'We could not send the confirmation email. Please try again later or contact your host.');
                     this.setBookingConfirmFeedback('error', errMsg);
                     this.triggerToast(
                         isZh ? '預定失敗' : 'Booking failed',
                         errMsg,
-                        'error',
-                        this.isEmailConfigError(errMsg) ? this.emailSetupToastOptions(isZh) : undefined
+                        'error'
                     );
                 } finally {
                     this.setBookingSubmitLoading(false, isZh);
@@ -2674,19 +2665,6 @@
 
             triggerToast(title, msg, type, options) {
                 window.hpTriggerToast?.(title, msg, type, options);
-            }
-
-            emailSetupToastOptions(isZh) {
-                return {
-                    link: {
-                        href: 'email-test.html',
-                        label: isZh ? '前往設定信件' : 'Configure email'
-                    }
-                };
-            }
-
-            isEmailConfigError(message) {
-                return /email-test|Gmail|SMTP|寄件|smtp/i.test(String(message || ''));
             }
         });
 
