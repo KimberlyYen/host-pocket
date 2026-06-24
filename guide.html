@@ -827,6 +827,74 @@
                             </div>
                             <div data-dashboard-target="expBookingCalendar" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar p-5 pb-8"></div>
                         </div>
+                        <!-- Booking Confirm Popup -->
+                        <div data-dashboard-target="expBookingConfirmOverlay" class="absolute inset-0 z-[70] bg-black/45 opacity-0 pointer-events-none flex items-center justify-center p-5 transition-opacity duration-300">
+                            <div class="bg-white rounded-2xl w-full max-w-[340px] shadow-2xl p-5 transform scale-95 transition-transform duration-300" data-dashboard-target="expBookingConfirmDialog">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 rounded-full bg-hp-coral/10 text-hp-coral flex items-center justify-center mx-auto mb-3">
+                                        <i class="fa-regular fa-calendar-check text-xl"></i>
+                                    </div>
+                                    <h3 class="text-sm font-black text-hp-dark" data-global-lang="zh">確認預定</h3>
+                                    <h3 class="text-sm font-black text-hp-dark hidden" data-global-lang="en">Confirm booking</h3>
+                                    <p data-dashboard-target="expBookingConfirmTitle" class="text-xs font-bold text-hp-dark mt-2 leading-snug"></p>
+                                    <div class="mt-3 space-y-1.5 text-left bg-hp-bgLight border border-hp-border rounded-xl p-3">
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-solid fa-user text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmHost"></span>
+                                        </p>
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-regular fa-clock text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmDuration"></span>
+                                        </p>
+                                        <p class="text-xs text-hp-muted flex items-start gap-2">
+                                            <i class="fa-solid fa-map-location-dot text-hp-coral w-4 text-center shrink-0 mt-0.5"></i>
+                                            <span data-dashboard-target="expBookingConfirmLocation" class="leading-relaxed"></span>
+                                        </p>
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-solid fa-globe text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmTimezone"></span>
+                                        </p>
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-regular fa-calendar text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmDate"></span>
+                                        </p>
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-regular fa-clock text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmSlot"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-left">
+                                    <label for="expBookingConfirmEmailGuide" class="block text-[10px] font-bold text-hp-muted uppercase tracking-wider mb-1.5">
+                                        <span data-global-lang="zh">電子郵件</span>
+                                        <span data-global-lang="en" class="hidden">Email</span>
+                                    </label>
+                                    <div class="relative">
+                                        <i class="fa-regular fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-hp-coral text-xs pointer-events-none"></i>
+                                        <input type="email" id="expBookingConfirmEmailGuide" data-dashboard-target="expBookingConfirmEmail"
+                                               inputmode="email" autocomplete="email"
+                                               placeholder="you@example.com"
+                                               class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
+                                    </div>
+                                    <p class="mt-1.5 text-[10px] text-hp-muted leading-relaxed">
+                                        <span data-global-lang="zh">確認後將寄送 Google Meet 連結至此信箱</span>
+                                        <span data-global-lang="en" class="hidden">We'll email you a Google Meet link after confirmation</span>
+                                    </p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-5">
+                                    <button type="button" data-action="click->dashboard#cancelExpBookingConfirm"
+                                            class="py-2.5 rounded-xl border border-hp-border text-xs font-bold text-hp-dark hover:bg-hp-bgLight transition active:scale-[0.98]">
+                                        <span data-global-lang="zh">取消</span>
+                                        <span data-global-lang="en" class="hidden">Cancel</span>
+                                    </button>
+                                    <button type="button" data-action="click->dashboard#finalizeExpBooking" data-dashboard-target="expBookingConfirmSubmit"
+                                            class="py-2.5 rounded-xl bg-hp-coral hover:bg-hp-coral/90 text-white text-xs font-bold transition active:scale-[0.98] shadow-md disabled:opacity-60 disabled:pointer-events-none">
+                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="zh">確認預定</span>
+                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="en" class="hidden">Confirm</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Back to Top（下滑後顯示） -->
@@ -1136,6 +1204,7 @@
     </main>
 
     <!-- Simulated Backend Database within Hotwire Client -->
+    <script src="js/booking-api.js"></script>
     <script src="js/experience-details.js"></script>
     <script>
         const IMAGE_FALLBACKS = {
@@ -1670,7 +1739,7 @@
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -1684,6 +1753,10 @@
                 this.bindOverlayHeroSwipe();
                 this.bindScrollContainer();
                 this.currentListingId = 'TAIPEI-CITY';
+                this.bookingViewDate = new Date(2026, 5, 1);
+                this.selectedBookingDate = null;
+                this.bookingTimeFormat = '24';
+                this.bookingTimezone = 'Asia/Taipei';
                 
                 // Initialize default view
                 this.renderDashboard(guidesDb['TAIPEI-CITY'], 'TAIPEI-CITY');
@@ -1948,6 +2021,7 @@
 
             closeExperienceDetail() {
                 this.closeExpBookingCalendar();
+                this.closeExpBookingConfirm(false);
                 this.closeExpShareSheet(false);
                 if (this.hasExpDetailBodyTarget) {
                     ExperienceDetailsAPI.pauseMediaPlayer?.(this.expDetailBodyTarget);
@@ -2034,10 +2108,218 @@
             }
 
             closeExpBookingCalendar() {
+                this.closeExpBookingConfirm(false);
                 if (this.hasExpBookingOverlayTarget) {
                     this.expBookingOverlayTarget.classList.add('translate-y-full');
                 }
                 this.selectedBookingDate = null;
+                this.pendingBookingSlot = null;
+            }
+
+            formatBookingDateLabel(dateKey, isZh) {
+                if (!dateKey) return isZh ? '未選日期' : 'No date selected';
+                const parts = dateKey.split('-').map(Number);
+                if (parts.length !== 3 || parts.some(Number.isNaN)) return dateKey;
+                const [y, m, d] = parts;
+                if (isZh) return `${y}年${m}月${d}日`;
+                return new Date(y, m - 1, d).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            formatBookingSlotLabel(slot, isZh) {
+                if (!slot) return isZh ? '未選時段' : 'No time slot';
+                const m = slot.match(/^(\d{1,2}):(\d{2})$/);
+                if (!m) return slot;
+                const h = parseInt(m[1], 10);
+                const min = parseInt(m[2], 10);
+                if (this.bookingTimeFormat === '12') {
+                    if (isZh) {
+                        const period = h >= 12 ? '下午' : '上午';
+                        const h12 = h % 12 || 12;
+                        return `${period} ${h12}:${String(min).padStart(2, '0')}`;
+                    }
+                    const ap = h >= 12 ? 'pm' : 'am';
+                    const h12 = h % 12 || 12;
+                    return `${h12}:${String(min).padStart(2, '0')} ${ap}`;
+                }
+                return slot;
+            }
+
+            showExpBookingConfirm(slot) {
+                if (!this.hasExpBookingConfirmOverlayTarget || !this.currentExpPayload) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const meta = ExperienceDetailsAPI.getBookingMeta(this.currentExpPayload, {
+                    isZh,
+                    timezone: this.bookingTimezone
+                });
+                if (this.hasExpBookingConfirmTitleTarget) {
+                    this.expBookingConfirmTitleTarget.textContent = meta.title;
+                }
+                if (this.hasExpBookingConfirmHostTarget) {
+                    this.expBookingConfirmHostTarget.textContent = meta.hostName;
+                }
+                if (this.hasExpBookingConfirmDurationTarget) {
+                    this.expBookingConfirmDurationTarget.textContent = meta.duration;
+                }
+                if (this.hasExpBookingConfirmLocationTarget) {
+                    this.expBookingConfirmLocationTarget.textContent = meta.location;
+                }
+                if (this.hasExpBookingConfirmTimezoneTarget) {
+                    this.expBookingConfirmTimezoneTarget.textContent = meta.timezone;
+                }
+                if (this.hasExpBookingConfirmDateTarget) {
+                    this.expBookingConfirmDateTarget.textContent = this.formatBookingDateLabel(this.selectedBookingDate, isZh);
+                }
+                if (this.hasExpBookingConfirmSlotTarget) {
+                    this.expBookingConfirmSlotTarget.textContent = this.formatBookingSlotLabel(slot, isZh);
+                }
+                if (this.hasExpBookingConfirmEmailTarget) {
+                    this.expBookingConfirmEmailTarget.value = '';
+                }
+                this.pendingBookingSlot = slot;
+                this.expBookingConfirmOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
+                if (this.hasExpBookingConfirmDialogTarget) {
+                    this.expBookingConfirmDialogTarget.classList.remove('scale-95');
+                    this.expBookingConfirmDialogTarget.classList.add('scale-100');
+                }
+                requestAnimationFrame(() => {
+                    if (this.hasExpBookingConfirmEmailTarget) {
+                        this.expBookingConfirmEmailTarget.focus();
+                    }
+                });
+            }
+
+            buildGoogleMeetLink() {
+                const alpha = 'abcdefghijklmnopqrstuvwxyz';
+                const seg = (len) => Array.from({ length: len }, () => alpha[Math.floor(Math.random() * alpha.length)]).join('');
+                return `https://meet.google.com/${seg(3)}-${seg(4)}-${seg(3)}`;
+            }
+
+            setBookingSubmitLoading(loading, isZh) {
+                if (this.hasExpBookingConfirmSubmitTarget) {
+                    this.expBookingConfirmSubmitTarget.disabled = loading;
+                }
+                if (this.hasExpBookingConfirmSubmitLabelTarget) {
+                    this.expBookingConfirmSubmitLabelTargets.forEach((el) => {
+                        const lang = el.dataset.globalLang;
+                        if (loading) {
+                            el.textContent = lang === 'en' ? 'Sending…' : '寄送中…';
+                        } else {
+                            el.textContent = lang === 'en' ? 'Confirm' : '確認預定';
+                        }
+                    });
+                }
+            }
+
+            isValidBookingEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            closeExpBookingConfirm(animate = true) {
+                if (!this.hasExpBookingConfirmOverlayTarget) return;
+                const hide = () => {
+                    this.expBookingConfirmOverlayTarget.classList.add('opacity-0', 'pointer-events-none');
+                    if (this.hasExpBookingConfirmDialogTarget) {
+                        this.expBookingConfirmDialogTarget.classList.add('scale-95');
+                        this.expBookingConfirmDialogTarget.classList.remove('scale-100');
+                    }
+                    this.pendingBookingSlot = null;
+                    if (this.hasExpBookingConfirmEmailTarget) {
+                        this.expBookingConfirmEmailTarget.value = '';
+                    }
+                };
+                if (this.hasExpBookingConfirmDialogTarget) {
+                    this.expBookingConfirmDialogTarget.classList.add('scale-95');
+                    this.expBookingConfirmDialogTarget.classList.remove('scale-100');
+                }
+                if (animate) {
+                    setTimeout(hide, 200);
+                } else {
+                    hide();
+                }
+            }
+
+            cancelExpBookingConfirm() {
+                this.closeExpBookingConfirm();
+            }
+
+            async finalizeExpBooking() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const email = this.hasExpBookingConfirmEmailTarget
+                    ? this.expBookingConfirmEmailTarget.value.trim()
+                    : '';
+                if (!email || !this.isValidBookingEmail(email)) {
+                    this.triggerToast(
+                        isZh ? '請輸入有效的電子郵件' : 'Enter a valid email',
+                        isZh ? '我們會將 Google Meet 連結寄至此信箱' : 'We\'ll send the Google Meet link to this address.',
+                        'info'
+                    );
+                    if (this.hasExpBookingConfirmEmailTarget) {
+                        this.expBookingConfirmEmailTarget.focus();
+                    }
+                    return;
+                }
+                if (!this.selectedBookingDate || !this.pendingBookingSlot) {
+                    this.triggerToast(
+                        isZh ? '預定資料不完整' : 'Incomplete booking',
+                        isZh ? '請重新選擇日期與時段' : 'Please select a date and time slot again.',
+                        'info'
+                    );
+                    return;
+                }
+                if (!window.BookingAPI) {
+                    this.triggerToast(
+                        isZh ? '預定服務未載入' : 'Booking service unavailable',
+                        isZh ? '請確認已執行 npm start' : 'Make sure the server is running (npm start).',
+                        'info'
+                    );
+                    return;
+                }
+
+                const slot = this.pendingBookingSlot;
+                const dateLabel = this.formatBookingDateLabel(this.selectedBookingDate, isZh);
+                const timeLabel = this.formatBookingSlotLabel(slot, isZh);
+                const meta = ExperienceDetailsAPI.getBookingMeta(this.currentExpPayload, {
+                    isZh,
+                    timezone: this.bookingTimezone
+                });
+
+                this.setBookingSubmitLoading(true, isZh);
+                try {
+                    const result = await BookingAPI.createBooking({
+                        guestEmail: email,
+                        title: meta.title,
+                        hostName: meta.hostName,
+                        location: meta.location,
+                        date: this.selectedBookingDate,
+                        time: slot,
+                        timezone: this.bookingTimezone || 'Asia/Taipei',
+                        durationMinutes: meta.durationMinutes,
+                        locale: isZh ? 'zh' : 'en',
+                        dateLabel,
+                        timeLabel
+                    });
+
+                    this.closeExpBookingConfirm(false);
+                    this.closeExpBookingCalendar();
+                    const emailNote = result.customEmailSent
+                        ? (isZh ? `自訂確認信已寄至 ${email}` : `Confirmation email sent to ${email}`)
+                        : (isZh ? `Google 日曆邀請已寄至 ${email}` : `Google Calendar invite sent to ${email}`);
+                    this.triggerToast(
+                        isZh ? '預定成功' : 'Booking confirmed',
+                        `${dateLabel} · ${timeLabel}\n${emailNote}`,
+                        'success'
+                    );
+                    console.info('[Host Pocket] Google Meet:', result.meetLink);
+                } catch (error) {
+                    console.error('[Host Pocket] booking failed', error);
+                    this.triggerToast(
+                        isZh ? '預定失敗' : 'Booking failed',
+                        error.message || (isZh ? '請確認 Google API 設定後再試' : 'Check Google API setup and try again.'),
+                        'info'
+                    );
+                } finally {
+                    this.setBookingSubmitLoading(false, isZh);
+                }
             }
 
             renderBookingCalendarView() {
@@ -2046,8 +2328,22 @@
                 this.expBookingCalendarTarget.innerHTML = ExperienceDetailsAPI.renderBookingCalendar(this.currentExpPayload, {
                     isZh,
                     viewDate: this.bookingViewDate,
-                    selectedDate: this.selectedBookingDate
+                    selectedDate: this.selectedBookingDate,
+                    timeFormat: this.bookingTimeFormat || '24',
+                    timezone: this.bookingTimezone || 'Asia/Taipei'
                 });
+            }
+
+            toggleBookingTimeFormat(event) {
+                const fmt = event.currentTarget.dataset.format;
+                if (!fmt || fmt === this.bookingTimeFormat) return;
+                this.bookingTimeFormat = fmt;
+                this.renderBookingCalendarView();
+            }
+
+            changeBookingTimezone(event) {
+                this.bookingTimezone = event.currentTarget.value || 'Asia/Taipei';
+                this.renderBookingCalendarView();
             }
 
             selectBookingDate(event) {
@@ -2073,14 +2369,16 @@
 
             confirmExpBooking(event) {
                 const slot = event.currentTarget.dataset.slot || '';
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const dateLabel = this.selectedBookingDate || (isZh ? '所選日期' : 'selected date');
-                this.closeExpBookingCalendar();
-                this.triggerToast(
-                    isZh ? '預定成功' : 'Booking confirmed',
-                    isZh ? `已選擇 ${dateLabel} · ${slot}` : `Selected ${dateLabel} · ${slot}`,
-                    'success'
-                );
+                if (!this.selectedBookingDate) {
+                    const isZh = (window.currentLanguage || 'zh') === 'zh';
+                    this.triggerToast(
+                        isZh ? '請先選擇日期' : 'Select a date first',
+                        isZh ? '請在日曆上點選可預訂的日期' : 'Tap an available date on the calendar.',
+                        'info'
+                    );
+                    return;
+                }
+                this.showExpBookingConfirm(slot);
             }
 
             openSimilarExperience(event) {

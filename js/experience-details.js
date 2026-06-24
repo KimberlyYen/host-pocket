@@ -856,51 +856,164 @@
         return keys;
     }
 
-    function renderBookingSlots(availability, isZh) {
-        const slots = (availability || []).filter(s => s.is_available !== false);
-        const fallback = [{
-            duration: '10:00 – 12:00',
-            start_time: isZh ? '上午 10:00' : '10:00 am',
-            availability_description: isZh ? '尚餘名額' : 'Spots available'
-        }];
-        const list = slots.length ? slots : fallback;
+    function format12hTime(h, min, isZh) {
+        if (isZh) {
+            const period = h >= 12 ? '下午' : '上午';
+            const h12 = h % 12 || 12;
+            return `${period} ${h12}:${pad2(min)}`;
+        }
+        const ap = h >= 12 ? 'pm' : 'am';
+        const h12 = h % 12 || 12;
+        return `${h12}:${pad2(min)} ${ap}`;
+    }
+
+    function parseDurationMinutes(availability) {
+        const slot = (availability || [])[0]?.duration || '';
+        const m = slot.match(/(\d{1,2}):(\d{2})\s*[–\-]\s*(\d{1,2}):(\d{2})/);
+        if (m) {
+            const start = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+            const end = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+            return Math.max(30, end - start);
+        }
+        return 120;
+    }
+
+    function formatDurationLabel(minutes, isZh) {
+        if (minutes % 60 === 0) {
+            const h = minutes / 60;
+            return isZh ? `${h} 小時` : `${h} hr${h > 1 ? 's' : ''}`;
+        }
+        return isZh ? `${minutes} 分鐘` : `${minutes} min`;
+    }
+
+    function generateHalfHourSlots(availability) {
+        const out = [];
+        const seen = new Set();
+        const ranges = (availability || []).filter(s => s.is_available !== false);
+        const sources = ranges.length ? ranges : [{ duration: '10:00 – 12:00' }];
+        sources.forEach(src => {
+            const text = src.duration || src.start_time || '';
+            const m = text.match(/(\d{1,2}):(\d{2})\s*[–\-]\s*(\d{1,2}):(\d{2})/);
+            if (!m) {
+                if (!seen.has(text)) {
+                    seen.add(text);
+                    out.push({ value: text, label24: text, label12: text });
+                }
+                return;
+            }
+            const start = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+            const end = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+            for (let t = start; t < end; t += 30) {
+                const h = Math.floor(t / 60);
+                const min = t % 60;
+                const label24 = `${pad2(h)}:${pad2(min)}`;
+                if (seen.has(label24)) continue;
+                seen.add(label24);
+                out.push({ value: label24, label24, label12: format12hTime(h, min, false) });
+            }
+        });
+        return out;
+    }
+
+    function formatSelectedDayHeader(dateKey, isZh) {
+        const parts = dateKey.split('-').map(Number);
+        if (parts.length !== 3) return dateKey;
+        const [y, m, d] = parts;
+        const date = new Date(y, m - 1, d);
+        if (isZh) {
+            const wd = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][date.getDay()];
+            return `${wd} ${pad2(d)}`;
+        }
+        return date.toLocaleDateString('en', { weekday: 'short', day: '2-digit' });
+    }
+
+    const BOOKING_TIMEZONES = [
+        { value: 'Asia/Taipei', label: 'Asia/Taipei' },
+        { value: 'Asia/Tokyo', label: 'Asia/Tokyo' },
+        { value: 'Europe/London', label: 'Europe/London' },
+        { value: 'America/New_York', label: 'America/New_York' }
+    ];
+
+    function getBookingMeta(payload, options = {}) {
+        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const data = localizePayload(payload, isZh);
+        const exp = data.experience || {};
+        const host = data.host || {};
+        const availability = exp.availability || [];
+        const minutes = parseDurationMinutes(availability);
+        return {
+            isZh,
+            exp,
+            host,
+            availability,
+            title: exp.title || (isZh ? '在地體驗' : 'Experience'),
+            hostName: host.name || (isZh ? '體驗達人' : 'Host'),
+            hostAvatar: host.avatar || '',
+            duration: formatDurationLabel(minutes, isZh),
+            durationMinutes: minutes,
+            location: exp.meeting_point || exp.location?.display_label || exp.location?.address || (isZh ? '集合地點待確認' : 'Meeting point TBD'),
+            timezone: options.timezone || 'Asia/Taipei'
+        };
+    }
+
+    function renderBookingTimeColumn(availability, selectedDate, isZh, timeFormat) {
+        const use24 = timeFormat !== '12';
+        const slots = generateHalfHourSlots(availability);
+        const fmtBtn = (fmt, label) => {
+            const active = timeFormat === fmt;
+            return `<button type="button" data-action="click->dashboard#toggleBookingTimeFormat" data-format="${fmt}"
+                class="px-2.5 py-1 text-[10px] font-bold rounded-md transition ${active ? 'bg-hp-dark text-white shadow-sm' : 'text-hp-muted hover:text-hp-dark'}">${label}</button>`;
+        };
+
+        if (!selectedDate) {
+            return `
+                <div class="border border-hp-border rounded-2xl bg-white p-4 min-h-[220px] flex flex-col">
+                    <p class="text-xs font-bold text-hp-muted mb-3">${isZh ? '時段' : 'Time'}</p>
+                    <div class="flex-1 flex items-center justify-center text-center">
+                        <p class="text-xs text-hp-muted leading-relaxed">${isZh ? '請先在左側日曆選擇日期' : 'Select a date on the calendar first'}</p>
+                    </div>
+                </div>`;
+        }
+
+        const dayHeader = formatSelectedDayHeader(selectedDate, isZh);
+        const slotButtons = slots.map(slot => {
+            const label = use24 ? slot.label24 : (isZh ? format12hTime(parseInt(slot.label24.split(':')[0], 10), parseInt(slot.label24.split(':')[1], 10), true) : slot.label12);
+            return `<button type="button" data-action="click->dashboard#confirmExpBooking" data-slot="${escapeHtml(slot.value)}"
+                class="w-full py-2.5 rounded-xl border border-hp-border bg-hp-bgLight hover:border-hp-coral hover:bg-white text-xs font-bold text-hp-dark transition active:scale-[0.99]">${escapeHtml(label)}</button>`;
+        }).join('');
 
         return `
-            <section class="pt-3 border-t border-hp-border">
-                <h4 class="text-xs font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${isZh ? '時段' : 'Time slots'}</h4>
-                <div class="space-y-2">
-                    ${list.slice(0, 4).map(slot => `
-                        <button type="button" data-action="click->dashboard#confirmExpBooking"
-                                data-slot="${escapeHtml(slot.duration || slot.start_time || '')}"
-                                class="w-full flex justify-between items-center bg-white border border-hp-border rounded-xl px-3 py-2.5 text-left hover:border-hp-coral transition active:scale-[0.99]">
-                            <div>
-                                <p class="text-xs font-bold text-hp-dark">${escapeHtml(slot.duration || slot.start_time || '')}</p>
-                                <p class="text-xs text-hp-muted">${escapeHtml(slot.availability_description || '')}</p>
-                            </div>
-                            <span class="text-xs font-bold text-hp-coral">${isZh ? '選擇' : 'Select'}</span>
-                        </button>`).join('')}
+            <div class="border border-hp-border rounded-2xl bg-white p-4 flex flex-col min-h-[220px]">
+                <div class="flex items-center justify-between gap-2 mb-3 shrink-0">
+                    <p class="text-sm font-black text-hp-dark">${escapeHtml(dayHeader)}</p>
+                    <div class="inline-flex rounded-lg border border-hp-border p-0.5 bg-hp-bgLight shrink-0">
+                        ${fmtBtn('12', isZh ? '12 小時' : '12h')}
+                        ${fmtBtn('24', isZh ? '24 小時' : '24h')}
+                    </div>
                 </div>
-            </section>`;
+                <div class="space-y-2 overflow-y-auto hide-scrollbar max-h-[240px] flex-1">${slotButtons}</div>
+            </div>`;
     }
 
     function renderBookingCalendar(payload, options = {}) {
-        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const meta = getBookingMeta(payload, options);
+        const { isZh, exp, host, availability, title, hostName, hostAvatar, duration, location } = meta;
+        const timezone = options.timezone || 'Asia/Taipei';
+        const timeFormat = options.timeFormat || '24';
         const viewDate = options.viewDate instanceof Date ? new Date(options.viewDate) : new Date(2026, 5, 1);
         const year = viewDate.getFullYear();
         const monthIndex = viewDate.getMonth();
         const selectedDate = options.selectedDate || null;
-
-        const data = localizePayload(payload, isZh);
-        const availability = data.experience?.availability || [];
         const bookable = getBookableDateKeys(availability, year, monthIndex);
 
         const monthLabel = isZh
-            ? `${year}年${monthIndex + 1}月`
+            ? `${monthIndex + 1}月 ${year}`
             : viewDate.toLocaleString('en', { month: 'long', year: 'numeric' });
-        const weekdays = isZh ? ['日', '一', '二', '三', '四', '五', '六'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-        const firstDow = new Date(year, monthIndex, 1).getDay();
+        const weekdays = isZh
+            ? ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
+            : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+        const firstDow = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
         const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-        const pickHint = isZh ? '請選擇可預訂的日期' : 'Choose an available date';
 
         let cells = '';
         for (let i = 0; i < firstDow; i++) cells += '<div class="aspect-square"></div>';
@@ -911,30 +1024,73 @@
             const today = year === 2026 && monthIndex === 5 && d === 24;
             cells += `<button type="button" data-action="click->dashboard#selectBookingDate" data-date="${key}"
                 ${available ? '' : 'disabled'}
-                class="aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition
-                    ${selected ? 'bg-hp-coral text-white shadow-md' : available ? 'bg-white border border-hp-border text-hp-dark hover:border-hp-coral' : 'text-hp-muted/40 cursor-not-allowed'}
-                    ${today && !selected ? 'ring-2 ring-hp-coral/30' : ''}">${d}</button>`;
+                class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition
+                    ${selected ? 'bg-hp-dark text-white shadow-md scale-105' : available ? 'bg-hp-bgLight border border-hp-border text-hp-dark hover:border-hp-coral hover:bg-white' : 'text-hp-muted/35 cursor-not-allowed'}
+                    ${today && !selected ? 'ring-2 ring-hp-coral/40' : ''}">
+                ${d}
+                ${available && !selected ? '<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-hp-coral"></span>' : ''}
+            </button>`;
         }
 
+        const tzOptions = BOOKING_TIMEZONES.map(tz =>
+            `<option value="${tz.value}"${tz.value === timezone ? ' selected' : ''}>${tz.label}</option>`
+        ).join('');
+
+        const hostAvatarHtml = hostAvatar
+            ? `<img src="${escapeHtml(hostAvatar)}" alt="" class="w-8 h-8 rounded-full object-cover shrink-0 border border-hp-border" onerror="${IMG_ONERROR}">`
+            : `<div class="w-8 h-8 rounded-full bg-hp-coral/15 text-hp-coral flex items-center justify-center shrink-0 text-xs font-black">${escapeHtml(hostName.charAt(0))}</div>`;
+
         return `
-            <div class="space-y-4">
-                <p class="text-xs text-hp-muted">${pickHint}</p>
-                <div class="flex items-center justify-between">
-                    <button type="button" data-action="click->dashboard#prevBookingMonth"
-                            class="w-8 h-8 rounded-full bg-white border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
-                        <i class="fa-solid fa-chevron-left text-xs"></i>
-                    </button>
-                    <span class="text-sm font-bold text-hp-dark">${monthLabel}</span>
-                    <button type="button" data-action="click->dashboard#nextBookingMonth"
-                            class="w-8 h-8 rounded-full bg-white border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </button>
+            <div class="booking-cal-panel space-y-4">
+                <!-- 左欄：體驗資訊 -->
+                <div class="border border-hp-border rounded-2xl bg-white p-4 space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        ${hostAvatarHtml}
+                        <span class="text-xs font-bold text-hp-muted">${escapeHtml(hostName)}</span>
+                    </div>
+                    <h2 class="text-sm font-black text-hp-dark leading-snug">${escapeHtml(title)}</h2>
+                    <ul class="space-y-2 text-xs text-hp-muted">
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-regular fa-clock w-4 text-center text-hp-coral shrink-0"></i>
+                            <span>${escapeHtml(duration)}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-map-location-dot w-4 text-center text-hp-coral shrink-0 mt-0.5"></i>
+                            <span class="leading-relaxed">${escapeHtml(location)}</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-globe w-4 text-center text-hp-coral shrink-0"></i>
+                            <select data-action="change->dashboard#changeBookingTimezone"
+                                class="flex-1 min-w-0 bg-hp-bgLight border border-hp-border rounded-lg px-2 py-1.5 text-xs font-semibold text-hp-dark focus:outline-none focus:border-hp-coral">
+                                ${tzOptions}
+                            </select>
+                        </li>
+                    </ul>
                 </div>
-                <div class="grid grid-cols-7 gap-1 mb-1">
-                    ${weekdays.map(w => `<div class="text-[10px] font-bold text-hp-muted text-center py-1">${w}</div>`).join('')}
+
+                <!-- 中欄 + 右欄：日曆 & 時段 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="border border-hp-border rounded-2xl bg-white p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-sm font-black text-hp-dark">${monthLabel}</span>
+                            <div class="flex gap-1">
+                                <button type="button" data-action="click->dashboard#prevBookingMonth"
+                                        class="w-7 h-7 rounded-lg border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
+                                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                                </button>
+                                <button type="button" data-action="click->dashboard#nextBookingMonth"
+                                        class="w-7 h-7 rounded-lg border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
+                                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 mb-1">
+                            ${weekdays.map(w => `<div class="text-[10px] font-bold text-hp-muted text-center py-1">${w}</div>`).join('')}
+                        </div>
+                        <div class="grid grid-cols-7 gap-1">${cells}</div>
+                    </div>
+                    ${renderBookingTimeColumn(availability, selectedDate, isZh, timeFormat)}
                 </div>
-                <div class="grid grid-cols-7 gap-1">${cells}</div>
-                ${selectedDate ? renderBookingSlots(availability, isZh) : ''}
             </div>`;
     }
 
@@ -985,6 +1141,7 @@
         renderPanel,
         renderPanelParts,
         renderBookingCalendar,
+        getBookingMeta,
         buildShareContext,
         renderShareSheet,
         initMediaPlayer,
