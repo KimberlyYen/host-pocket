@@ -151,7 +151,9 @@
         }
 
         async function loadSettings() {
-            const saved = await window.HostPocketEmailSettings?.loadFromConfig?.() || window.HostPocketEmailSettings?.load?.() || {};
+            const saved = await window.HostPocketEmailSettings?.loadFromConfig?.()
+                || await window.HostPocketEmailSettings?.load?.()
+                || {};
             if (saved.smtpUser) fields.fromEmail.value = saved.smtpUser;
             if (saved.smtpHost) fields.smtpHost.value = saved.smtpHost;
             if (saved.smtpPort) fields.smtpPort.value = saved.smtpPort;
@@ -241,7 +243,7 @@
                 if (!res.ok || !data.ok) {
                     throw new Error(data.error || `寄信失敗 (${res.status})`);
                 }
-                showStatus('✓ 測試通知已送出！');
+                showStatus('測試通知已送出！');
             } catch (error) {
                 showError(error.message || '寄信失敗，請確認 API 已啟動（npm start）');
             } finally {
