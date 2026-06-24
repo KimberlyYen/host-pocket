@@ -2249,8 +2249,10 @@
                     this.closeExpBookingConfirm(false);
                     this.closeExpBookingCalendar();
                     const emailNote = result.customEmailSent
-                        ? (isZh ? `自訂確認信已寄至 ${email}` : `Confirmation email sent to ${email}`)
-                        : (isZh ? `Google 日曆邀請已寄至 ${email}` : `Google Calendar invite sent to ${email}`);
+                        ? (isZh ? `確認信已寄至 ${email}` : `Confirmation email sent to ${email}`)
+                        : result.calendarInviteSent
+                            ? (isZh ? `Google 日曆邀請已寄至 ${email}` : `Google Calendar invite sent to ${email}`)
+                            : (isZh ? `預定已建立` : `Booking saved`);
                     this.triggerToast(
                         isZh ? '預定成功' : 'Booking confirmed',
                         `${dateLabel} · ${timeLabel}\n${emailNote}`,
@@ -2261,7 +2263,7 @@
                     console.error('[Host Pocket] booking failed', error);
                     this.triggerToast(
                         isZh ? '預定失敗' : 'Booking failed',
-                        error.message || (isZh ? '請確認 Google API 設定後再試' : 'Check Google API setup and try again.'),
+                        error.message || (isZh ? '請確認已設定 Google OAuth 或 Gmail SMTP 後再試' : 'Check Google OAuth or Gmail SMTP setup and try again.'),
                         'info'
                     );
                 } finally {

@@ -1,13 +1,16 @@
+const { isGoogleConfigured } = require('../server/google-booking');
+const { isSmtpConfigured } = require('../server/smtp-mail');
+
 module.exports = async (_req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    const configured = Boolean(
-        process.env.GOOGLE_CLIENT_ID
-        && process.env.GOOGLE_CLIENT_SECRET
-        && process.env.GOOGLE_REFRESH_TOKEN
-    );
+    const googleConfigured = isGoogleConfigured();
+    const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL);
+    const smtpConfigured = isSmtpConfigured();
     res.status(200).json({
         ok: true,
-        bookingConfigured: configured,
-        resendConfigured: Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL)
+        bookingConfigured: googleConfigured || smtpConfigured || resendConfigured,
+        googleConfigured,
+        resendConfigured,
+        smtpConfigured
     });
 };

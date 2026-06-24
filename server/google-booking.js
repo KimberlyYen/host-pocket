@@ -1,10 +1,19 @@
 const { google } = require('googleapis');
 const { Resend } = require('resend');
+const { sendBookingEmailViaSmtp, isSmtpConfigured, buildBookingEmailContent } = require('./smtp-mail');
 
 function requireEnv(name) {
     const value = process.env[name];
     if (!value) throw new Error(`Missing required environment variable: ${name}`);
     return value;
+}
+
+function isGoogleConfigured() {
+    return Boolean(
+        process.env.GOOGLE_CLIENT_ID
+        && process.env.GOOGLE_CLIENT_SECRET
+        && process.env.GOOGLE_REFRESH_TOKEN
+    );
 }
 
 function getOAuth2Client() {
@@ -115,43 +124,7 @@ async function sendBookingEmailViaResend(booking, meetLink, htmlLink) {
     if (!apiKey || !fromEmail) return { sent: false, reason: 'resend_not_configured' };
 
     const resend = new Resend(apiKey);
-    const isZh = booking.locale !== 'en';
-    const subject = isZh
-        ? `【Host Pocket】${booking.title} — Google Meet 連結`
-        : `[Host Pocket] ${booking.title} — Google Meet link`;
-
-    const dateLabel = booking.dateLabel || booking.date;
-    const timeLabel = booking.timeLabel || booking.time;
-
-    const html = isZh ? `
-        <div style="font-family:Inter,'Noto Sans TC',sans-serif;max-width:520px;margin:0 auto;color:#1F1A18">
-            <h2 style="color:#FF5B3E;margin-bottom:8px">您的體驗預定已確認</h2>
-            <p style="margin:0 0 16px;line-height:1.6">${booking.title}</p>
-            <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-                <tr><td style="padding:6px 0;color:#8C807A">主持人</td><td style="padding:6px 0">${booking.hostName}</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">日期</td><td style="padding:6px 0">${dateLabel}</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">時間</td><td style="padding:6px 0">${timeLabel} (${booking.timezone})</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">地點</td><td style="padding:6px 0">${booking.location}</td></tr>
-            </table>
-            <a href="${meetLink}" style="display:inline-block;background:#FF5B3E;color:#fff;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">加入 Google Meet</a>
-            <p style="margin:16px 0 0;font-size:13px;color:#8C807A">Meet 連結：<a href="${meetLink}">${meetLink}</a></p>
-            ${htmlLink ? `<p style="margin:8px 0 0;font-size:13px;color:#8C807A">日曆邀請：<a href="${htmlLink}">在 Google 日曆中查看</a></p>` : ''}
-        </div>
-    ` : `
-        <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#1F1A18">
-            <h2 style="color:#FF5B3E;margin-bottom:8px">Your experience booking is confirmed</h2>
-            <p style="margin:0 0 16px;line-height:1.6">${booking.title}</p>
-            <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-                <tr><td style="padding:6px 0;color:#8C807A">Host</td><td style="padding:6px 0">${booking.hostName}</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">Date</td><td style="padding:6px 0">${dateLabel}</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">Time</td><td style="padding:6px 0">${timeLabel} (${booking.timezone})</td></tr>
-                <tr><td style="padding:6px 0;color:#8C807A">Location</td><td style="padding:6px 0">${booking.location}</td></tr>
-            </table>
-            <a href="${meetLink}" style="display:inline-block;background:#FF5B3E;color:#fff;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700">Join Google Meet</a>
-            <p style="margin:16px 0 0;font-size:13px;color:#8C807A">Meet link: <a href="${meetLink}">${meetLink}</a></p>
-            ${htmlLink ? `<p style="margin:8px 0 0;font-size:13px;color:#8C807A">Calendar invite: <a href="${htmlLink}">View in Google Calendar</a></p>` : ''}
-        </div>
-    `;
+    const { subject, html } = buildBookingEmailContent(booking, meetLink, htmlLink);
 
     await resend.emails.send({
         from: fromEmail,
@@ -188,17 +161,39 @@ async function createBooking(bookingInput) {
         throw new Error('Invalid time format (expected HH:MM)');
     }
 
-    const calendarResult = await createCalendarEventWithMeet(booking);
-    const resendResult = await sendBookingEmailViaResend(booking, calendarResult.meetLink, calendarResult.htmlLink);
+    const googleReady = isGoogleConfigured();
+    const emailReady = Boolean(
+        (process.env.RESEND_API_KEY && process.env.FROM_EMAIL)
+        || isSmtpConfigured()
+    );
+
+    if (!googleReady && !emailReady) {
+        throw new Error('Email not configured: set Google OAuth or SMTP (SMTP_USER + SMTP_APP_PASSWORD)');
+    }
+
+    let calendarResult = null;
+    if (googleReady) {
+        calendarResult = await createCalendarEventWithMeet(booking);
+    }
+
+    const meetLink = calendarResult?.meetLink || null;
+    const htmlLink = calendarResult?.htmlLink || null;
+
+    const resendResult = await sendBookingEmailViaResend(booking, meetLink, htmlLink);
+    const smtpResult = resendResult.sent
+        ? { sent: false }
+        : await sendBookingEmailViaSmtp(booking, meetLink, htmlLink);
+
+    const customEmailSent = resendResult.sent === true || smtpResult.sent === true;
 
     return {
         ok: true,
-        meetLink: calendarResult.meetLink,
-        eventId: calendarResult.eventId,
-        htmlLink: calendarResult.htmlLink,
-        calendarInviteSent: true,
-        customEmailSent: resendResult.sent === true
+        meetLink,
+        eventId: calendarResult?.eventId || null,
+        htmlLink,
+        calendarInviteSent: googleReady,
+        customEmailSent
     };
 }
 
-module.exports = { createBooking };
+module.exports = { createBooking, isGoogleConfigured };

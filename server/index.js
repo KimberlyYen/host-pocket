@@ -2,8 +2,8 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const { createBooking } = require('./google-booking');
-const { sendTestEmail } = require('./smtp-mail');
+const { createBooking, isGoogleConfigured } = require('./google-booking');
+const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -25,15 +25,15 @@ app.use(cors({
 app.use(express.json({ limit: '32kb' }));
 
 app.get('/api/health', (_req, res) => {
-    const configured = Boolean(
-        process.env.GOOGLE_CLIENT_ID
-        && process.env.GOOGLE_CLIENT_SECRET
-        && process.env.GOOGLE_REFRESH_TOKEN
-    );
+    const googleConfigured = isGoogleConfigured();
+    const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL);
+    const smtpConfigured = isSmtpConfigured();
     res.json({
         ok: true,
-        bookingConfigured: configured,
-        resendConfigured: Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL)
+        bookingConfigured: googleConfigured || smtpConfigured || resendConfigured,
+        googleConfigured,
+        resendConfigured,
+        smtpConfigured
     });
 });
 

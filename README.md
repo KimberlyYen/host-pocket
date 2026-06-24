@@ -77,14 +77,25 @@ npm run google:auth
 
 6. 將輸出的 `GOOGLE_REFRESH_TOKEN` 貼入 `.env`，重新 `npm start`
 
-#### 選用：Resend 自訂確認信
+#### 選用：Resend 或 Gmail SMTP 自訂確認信
 
-除 Google 日曆邀請外，可額外寄送 Host Pocket 品牌確認信。在 [Resend](https://resend.com) 取得 API Key，並設定：
+除 Google 日曆邀請外，可額外寄送 Host Pocket 品牌確認信。**擇一設定即可**：
+
+**Resend** — 在 [Resend](https://resend.com) 取得 API Key：
 
 ```
 RESEND_API_KEY=re_...
 FROM_EMAIL=Host Pocket <bookings@yourdomain.com>
 ```
+
+**Gmail SMTP** — 使用 Gmail 應用程式密碼（需開啟兩步驟驗證）。若尚未設定 Google OAuth，僅 SMTP 也能寄出確認信（不含 Meet 連結）：
+
+```
+SMTP_USER=you@gmail.com
+SMTP_APP_PASSWORD=xxxx xxxx xxxx xxxx
+```
+
+測試 SMTP 設定可開啟 [email-test.html](email-test.html)。
 
 #### API
 
@@ -106,6 +117,7 @@ FROM_EMAIL=Host Pocket <bookings@yourdomain.com>
    - `GOOGLE_REFRESH_TOKEN`
    - `GOOGLE_CALENDAR_ID`（選填，預設 `primary`）
    - `RESEND_API_KEY`、`FROM_EMAIL`（選填）
+   - `SMTP_USER`、`SMTP_APP_PASSWORD`（選填，Gmail SMTP 確認信）
 2. 重新 Deploy
 3. 確認：https://host-pocket.vercel.app/api/health 回傳 `"bookingConfigured": true`
 4. OAuth 授權仍在本機執行 `npm run google:auth`；授權後 redirect 可用正式網址 `https://host-pocket.vercel.app/oauth2callback`
