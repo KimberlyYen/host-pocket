@@ -78,8 +78,8 @@
             pointer-events: none;
         }
         .partner-bar {
-            background: linear-gradient(90deg, #FF5B3E 0%, #FF5A5F 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            background: linear-gradient(180deg, #2E2421 0%, #231C19 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
             container-type: inline-size;
             container-name: partner-bar;
         }
@@ -87,13 +87,22 @@
             width: 100%;
             border-radius: 0;
             margin-top: 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.14);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: none;
             padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
             flex-shrink: 0;
         }
+        .partner-bar-item {
+            min-width: 0;
+        }
+        .partner-bar--footer .partner-icon-slot {
+            --slot-size: 1.75rem;
+        }
         .partner-bar-label {
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 0.6875rem;
+            line-height: 1.2;
+            letter-spacing: 0.01em;
         }
         /* App-icon 比例：圖示約佔白底 68%，四邊留白各 16%（對齊 Airbnb app icon） */
         .partner-icon-slot {
@@ -132,9 +141,18 @@
             line-height: 1;
             color: #FF5A5F;
         }
-        @container partner-bar (max-width: 300px) {
-            .partner-bar .partner-icon-slot:not(.partner-icon-slot--md) {
-                --slot-size: 1.75rem;
+        .partner-bar-link {
+            text-decoration: none;
+        }
+        .partner-bar-link:hover {
+            opacity: 0.92;
+        }
+        @container partner-bar (max-width: 320px) {
+            .partner-bar--footer .partner-icon-slot {
+                --slot-size: 1.625rem;
+            }
+            .partner-bar-label {
+                display: none;
             }
         }
     </style>
@@ -276,8 +294,8 @@
                     </div>
 
                     <!-- Partner Bar: host-pocket → Airbnb -->
-                    <footer class="partner-bar partner-bar--footer flex items-center justify-between gap-2 px-5 py-2.5 min-w-0">
-                            <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                    <footer class="partner-bar partner-bar--footer grid grid-cols-3 items-center py-2.5 min-w-0">
+                            <div class="partner-bar-item flex items-center justify-center gap-1.5 min-w-0 px-2">
                                 <div class="partner-icon-slot shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
                                         <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
@@ -288,17 +306,27 @@
                                         </g>
                                     </svg>
                                 </div>
-                                <span class="partner-bar-label text-xs font-bold text-white truncate min-w-0">
+                                <span class="partner-bar-label font-semibold truncate">
                                     <span data-global-lang="zh">房東私藏</span>
                                     <span data-global-lang="en" class="hidden">host-pocket</span>
                                 </span>
                             </div>
-                            <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/60">
+                            <a href="https://www.linkedin.com/company/searchapi/posts/?feedView=all"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-label="SearchAPI on LinkedIn"
+                               class="partner-bar-item partner-bar-link flex items-center justify-center gap-1.5 min-w-0 px-2 border-x border-white/10">
+                                <div class="partner-icon-slot shadow-sm">
+                                    <img src="searchapi-icon.png" alt="" aria-hidden="true">
+                                </div>
+                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate">SearchAPI</span>
+                            </a>
+                            <div class="partner-bar-item flex items-center justify-center gap-1.5 min-w-0 px-2">
                                 <div class="partner-icon-slot shadow-sm">
                                     <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
                                 </div>
-                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white whitespace-nowrap" data-global-lang="zh">Airbnb 合作廠商</span>
-                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white whitespace-nowrap hidden" data-global-lang="en">Airbnb Partner</span>
+                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate" data-global-lang="zh">Airbnb 合作</span>
+                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate hidden" data-global-lang="en">Airbnb Partner</span>
                             </div>
                     </footer>
             </div>
@@ -329,7 +357,7 @@
                         <div class="px-5 py-4">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
                                 <!-- Room Image Cover -->
-                                <div data-dashboard-target="roomHero" class="h-36 relative overflow-hidden">
+                                <div data-dashboard-target="roomHero" class="h-52 relative overflow-hidden">
                                     <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
 
@@ -652,20 +680,22 @@
 
                     <!-- Experience Details Overlay (Airbnb Experience Details API) -->
                     <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
-                        <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
-                            <button data-action="click->dashboard#closeExperienceDetail" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                        <div class="px-4 py-3 border-b border-hp-border flex items-center gap-2 bg-white shrink-0 pt-[max(2.75rem,env(safe-area-inset-top))]">
+                            <button data-action="click->dashboard#closeExperienceDetail" aria-label="Close" class="shrink-0 w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
                                 <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
-                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase flex items-center gap-1">
-                                <i class="fa-brands fa-airbnb text-hp-coral text-base"></i>
-                                <span data-global-lang="zh">體驗詳情</span>
-                                <span data-global-lang="en" class="hidden">Experience</span>
-                            </span>
                             <button type="button" data-action="click->dashboard#openExpDetailMap" data-dashboard-target="expDetailMapBtn"
-                                    class="text-xs font-bold text-hp-coral px-2 py-1 rounded-lg bg-hp-coral/10 border border-hp-coral/20">
+                                    class="shrink-0 text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
+                                <i class="fa-solid fa-map-location-dot mr-1"></i>
                                 <span data-global-lang="zh">地圖</span>
                                 <span data-global-lang="en" class="hidden">Map</span>
                             </button>
+                            <span class="flex-1 min-w-0 text-center text-xs font-black tracking-widest text-hp-dark uppercase flex items-center justify-center gap-1">
+                                <i class="fa-brands fa-airbnb text-hp-coral text-base shrink-0"></i>
+                                <span data-global-lang="zh">體驗詳情</span>
+                                <span data-global-lang="en" class="hidden">Experience</span>
+                            </span>
+                            <div class="shrink-0 w-[5.25rem]" aria-hidden="true"></div>
                         </div>
                         <div data-dashboard-target="expDetailBody" class="flex-grow overflow-y-auto hide-scrollbar pb-8"></div>
                     </div>
@@ -801,7 +831,7 @@
 
                         <!-- Map View - full bleed background -->
                         <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
-                            <div data-explorer-target="mapLayer" class="absolute inset-0 origin-center transition-transform duration-300 ease-out will-change-transform">
+                            <div data-explorer-target="mapLayer" class="absolute inset-0 transition-transform duration-300 ease-out will-change-transform">
                             
                             <!-- Simulated street lines -->
                             <svg class="absolute inset-0 w-full h-full opacity-40 pointer-events-none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -1240,8 +1270,8 @@
                 if (name === "explorer") {
                     const explorerEl = this.screenTargets.find(el => el.dataset.screen === "explorer");
                     const explorerCtrl = explorerEl && this.application.getControllerForElementAndIdentifier(explorerEl, "explorer");
-                    if (explorerCtrl?.updateRouteLine) {
-                        requestAnimationFrame(() => explorerCtrl.updateRouteLine());
+                    if (explorerCtrl?.centerMapOnRoute) {
+                        requestAnimationFrame(() => explorerCtrl.centerMapOnRoute());
                     }
                 }
 
@@ -2036,30 +2066,68 @@
                 this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
                 this.onSelectRec = this.onSelectRec.bind(this);
                 this.updateRouteLine = this.updateRouteLine.bind(this);
+                this.centerMapOnRoute = this.centerMapOnRoute.bind(this);
+                this.onResize = () => requestAnimationFrame(() => this.centerMapOnRoute());
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
                 window.addEventListener("explorer:selectRec", this.onSelectRec);
-                window.addEventListener("resize", this.updateRouteLine);
+                window.addEventListener("resize", this.onResize);
                 this.updateDetails(guidesDb['TAIPEI-CITY']);
-                requestAnimationFrame(() => this.updateRouteLine());
+                requestAnimationFrame(() => this.centerMapOnRoute());
             }
 
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
                 window.removeEventListener("explorer:selectRec", this.onSelectRec);
-                window.removeEventListener("resize", this.updateRouteLine);
+                window.removeEventListener("resize", this.onResize);
+            }
+
+            getPinLocalCenter(dotEl) {
+                const layer = this.mapLayerTarget;
+                let x = 0;
+                let y = 0;
+                let node = dotEl;
+                while (node && node !== layer) {
+                    x += node.offsetLeft;
+                    y += node.offsetTop;
+                    node = node.offsetParent;
+                }
+                return {
+                    x: x + dotEl.offsetWidth / 2,
+                    y: y + dotEl.offsetHeight / 2
+                };
+            }
+
+            getMapFocalPoint() {
+                const w = this.mapContainerTarget.offsetWidth;
+                const h = this.mapContainerTarget.offsetHeight;
+                return { x: w / 2, y: h * 0.30 };
+            }
+
+            centerMapOnRoute({ animate = false } = {}) {
+                if (!this.hasMapLayerTarget || !this.hasStartPinDotTarget || !this.hasEndPinDotTarget) return;
+
+                const start = this.getPinLocalCenter(this.startPinDotTarget);
+                const end = this.getPinLocalCenter(this.endPinDotTarget);
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+                const focal = this.getMapFocalPoint();
+
+                this.mapScale = 1;
+                this.mapPanX = focal.x - midX;
+                this.mapPanY = focal.y - midY;
+                this.applyMapTransform({ animate });
+                this.updateRouteLine();
             }
 
             updateRouteLine() {
-                if (!this.hasMapContainerTarget || !this.hasStartPinDotTarget || !this.hasEndPinDotTarget || !this.hasRoutePathTarget) return;
+                if (!this.hasMapLayerTarget || !this.hasStartPinDotTarget || !this.hasEndPinDotTarget || !this.hasRoutePathTarget) return;
 
-                const mapRect = this.mapContainerTarget.getBoundingClientRect();
-                const startRect = this.startPinDotTarget.getBoundingClientRect();
-                const endRect = this.endPinDotTarget.getBoundingClientRect();
-
-                const x1 = startRect.left + startRect.width / 2 - mapRect.left;
-                const y1 = startRect.top + startRect.height / 2 - mapRect.top;
-                const x2 = endRect.left + endRect.width / 2 - mapRect.left;
-                const y2 = endRect.top + endRect.height / 2 - mapRect.top;
+                const start = this.getPinLocalCenter(this.startPinDotTarget);
+                const end = this.getPinLocalCenter(this.endPinDotTarget);
+                const x1 = start.x;
+                const y1 = start.y;
+                const x2 = end.x;
+                const y2 = end.y;
 
                 const dx = x2 - x1;
                 const dy = y2 - y1;
@@ -2069,7 +2137,7 @@
                 this.routePathTarget.setAttribute("d", `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`);
 
                 if (this.hasEndPinPingTarget) {
-                    const size = endRect.width;
+                    const size = this.endPinDotTarget.offsetWidth;
                     this.endPinPingTarget.style.width = `${size}px`;
                     this.endPinPingTarget.style.height = `${size}px`;
                 }
@@ -2081,7 +2149,7 @@
 
             onSelectRec(event) {
                 this.updateDetailsFromRec(event.detail);
-                requestAnimationFrame(() => this.updateRouteLine());
+                requestAnimationFrame(() => this.centerMapOnRoute());
             }
 
             updateDetails(data) {
@@ -2125,27 +2193,41 @@
                 );
             }
 
-            applyMapTransform() {
+            applyMapTransform({ animate = true } = {}) {
                 if (!this.hasMapLayerTarget) return;
+                this.mapLayerTarget.style.transformOrigin = "0 0";
+                this.mapLayerTarget.style.transition = animate ? "transform 300ms ease-out" : "none";
                 this.mapLayerTarget.style.transform = `translate(${this.mapPanX}px, ${this.mapPanY}px) scale(${this.mapScale})`;
+                if (!animate) {
+                    requestAnimationFrame(() => {
+                        if (this.hasMapLayerTarget) {
+                            this.mapLayerTarget.style.transition = "transform 300ms ease-out";
+                        }
+                    });
+                }
             }
 
             zoomMap(event) {
-                event?.stopPropagation();
-                event?.preventDefault();
-                this.mapScale = Math.min(2, +(this.mapScale + 0.2).toFixed(2));
+                event?.stopPropagation?.();
+                event?.preventDefault?.();
+                const oldScale = this.mapScale;
+                const newScale = Math.min(2, +(oldScale + 0.2).toFixed(2));
+                if (newScale === oldScale) return;
+
+                const focal = this.getMapFocalPoint();
+                const lx = (focal.x - this.mapPanX) / oldScale;
+                const ly = (focal.y - this.mapPanY) / oldScale;
+                this.mapScale = newScale;
+                this.mapPanX = focal.x - lx * newScale;
+                this.mapPanY = focal.y - ly * newScale;
                 this.applyMapTransform();
-                requestAnimationFrame(() => this.updateRouteLine());
+                this.updateRouteLine();
             }
 
             recenterMap(event) {
-                event?.stopPropagation();
-                event?.preventDefault();
-                this.mapScale = 1;
-                this.mapPanX = 0;
-                this.mapPanY = 0;
-                this.applyMapTransform();
-                requestAnimationFrame(() => this.updateRouteLine());
+                event?.stopPropagation?.();
+                event?.preventDefault?.();
+                this.centerMapOnRoute({ animate: true });
             }
 
             triggerToast(title, msg, type) {}
