@@ -2290,8 +2290,8 @@
                 try {
                     BookingAPI.openBookingMailto(bookingPayload);
                     const mailtoNote = isZh
-                        ? `已開啟郵件 app，請確認內容後寄出（副本至 ${email}）`
-                        : `Email app opened — review and send (copy to ${email})`;
+                        ? `已開啟郵件 app，收件人為 ${email}，請確認後寄出`
+                        : `Email app opened — recipient ${email}, review and send`;
                     this.setBookingConfirmFeedback('success', mailtoNote);
                     this.triggerToast(
                         isZh ? '預定成功' : 'Booking confirmed',

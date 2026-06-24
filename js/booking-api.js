@@ -102,10 +102,7 @@
         const params = new URLSearchParams();
         params.set('subject', subject);
         params.set('body', lines.join('\n'));
-        if (booking.guestEmail) {
-            params.set('cc', booking.guestEmail);
-        }
-        const to = String(booking.hostEmail || '').trim();
+        const to = String(booking.guestEmail || '').trim();
         return to ? `mailto:${to}?${params}` : `mailto:?${params}`;
     }
 
