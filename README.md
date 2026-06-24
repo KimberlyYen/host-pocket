@@ -92,6 +92,11 @@ FROM_EMAIL=Host Pocket <bookings@yourdomain.com>
 |------|------|
 | `GET /api/health` | 檢查 Google / Resend 是否已設定 |
 | `POST /api/booking` | 建立 Meet + 寄信（body: guestEmail, title, date, time, timezone…） |
+| `POST /api/test-email` | Gmail SMTP 測試寄信 |
+
+#### Gmail SMTP 測試頁
+
+開啟 [email-test.html](email-test.html)（或 `http://localhost:3000/email-test.html`）可測試 Gmail 應用程式密碼寄信，無需 Google OAuth。需先 `npm install` 安裝 `nodemailer`。
 
 #### Vercel 部署（https://host-pocket.vercel.app）
 

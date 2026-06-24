@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { createBooking } = require('./google-booking');
+const { sendTestEmail } = require('./smtp-mail');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -45,6 +46,16 @@ app.post('/api/booking', async (req, res) => {
         const message = error?.message || 'Booking failed';
         const status = /invalid|missing/i.test(message) ? 400 : 500;
         res.status(status).json({ ok: false, error: message });
+    }
+});
+
+app.post('/api/test-email', async (req, res) => {
+    try {
+        const result = await sendTestEmail(req.body || {});
+        res.json(result);
+    } catch (error) {
+        console.error('[test-email]', error);
+        res.status(400).json({ ok: false, error: error?.message || 'Failed to send test email' });
     }
 });
 
