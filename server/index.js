@@ -2,8 +2,9 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const { createBooking, isGoogleConfigured } = require('./google-booking');
+const { createBooking, isEmailConfigured } = require('./google-booking');
 const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
+const { getPublicSmtpConfig, writeSmtpConfigFile } = require('./smtp-config');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -25,13 +26,11 @@ app.use(cors({
 app.use(express.json({ limit: '32kb' }));
 
 app.get('/api/health', (_req, res) => {
-    const googleConfigured = isGoogleConfigured();
     const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL);
     const smtpConfigured = isSmtpConfigured();
     res.json({
         ok: true,
-        bookingConfigured: googleConfigured || smtpConfigured || resendConfigured,
-        googleConfigured,
+        bookingConfigured: isEmailConfigured(),
         resendConfigured,
         smtpConfigured
     });
@@ -56,6 +55,20 @@ app.post('/api/test-email', async (req, res) => {
     } catch (error) {
         console.error('[test-email]', error);
         res.status(400).json({ ok: false, error: error?.message || 'Failed to send test email' });
+    }
+});
+
+app.get('/api/smtp-config', (_req, res) => {
+    res.json({ ok: true, ...getPublicSmtpConfig() });
+});
+
+app.post('/api/smtp-config', (req, res) => {
+    try {
+        writeSmtpConfigFile(req.body || {});
+        res.json({ ok: true, ...getPublicSmtpConfig() });
+    } catch (error) {
+        console.error('[smtp-config]', error);
+        res.status(400).json({ ok: false, error: error?.message || 'Failed to save SMTP config' });
     }
 });
 

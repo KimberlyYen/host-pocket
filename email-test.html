@@ -52,8 +52,14 @@
                 </label>
                 <label class="block space-y-1.5 sm:col-span-2">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-hp-muted">Gmail 應用程式密碼</span>
-                    <input id="appPassword" type="password" placeholder="16 位應用程式密碼（空格可省略）" autocomplete="off"
-                           class="w-full px-3 py-2.5 rounded-xl border border-hp-border focus:outline-none focus:border-hp-coral">
+                    <div class="relative" data-password-field>
+                        <input id="appPassword" type="password" placeholder="16 位應用程式密碼（空格可省略）" autocomplete="off"
+                               class="w-full px-3 py-2.5 pr-10 rounded-xl border border-hp-border focus:outline-none focus:border-hp-coral">
+                        <button type="button" data-password-toggle aria-label="顯示密碼" aria-pressed="false"
+                                class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-hp-bgLight transition">
+                            <i class="fa-regular fa-eye text-xs text-hp-muted"></i>
+                        </button>
+                    </div>
                 </label>
                 <label class="block space-y-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-hp-muted">SMTP（預設 Gmail）</span>
@@ -105,14 +111,15 @@
         </section>
 
         <p class="text-[10px] text-hp-muted leading-relaxed px-1">
-            此頁僅供開發測試 SMTP 寄信。應用程式密碼不會存入 localStorage，僅暫存於瀏覽器工作階段。
+            此頁測試 SMTP 寄信。按「儲存設定」會寫入 <code class="bg-white px-1 rounded border border-hp-border">config/smtp.local.json</code>（不提交 git）。
             API：<code class="bg-white px-1 rounded border border-hp-border">POST /api/test-email</code>
         </p>
     </main>
 
+    <script src="js/password-toggle.js"></script>
+    <script src="js/email-settings.js"></script>
     <script src="js/booking-api.js"></script>
     <script>
-        const STORAGE_KEY = 'host-pocket-email-test-settings';
         const fields = {
             toEmail: document.getElementById('toEmail'),
             fromEmail: document.getElementById('fromEmail'),
@@ -132,24 +139,33 @@
             return window.BookingAPI?.getApiBase?.() ?? '';
         }
 
-        function loadSettings() {
+        async function loadSettings() {
+            const saved = await window.HostPocketEmailSettings?.loadFromConfig?.() || window.HostPocketEmailSettings?.load?.() || {};
+            if (saved.smtpUser) fields.fromEmail.value = saved.smtpUser;
+            if (saved.smtpHost) fields.smtpHost.value = saved.smtpHost;
+            if (saved.smtpPort) fields.smtpPort.value = saved.smtpPort;
+            if (saved.appPassword) fields.appPassword.value = saved.appPassword;
             try {
-                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                if (saved.toEmail) fields.toEmail.value = saved.toEmail;
-                if (saved.fromEmail) fields.fromEmail.value = saved.fromEmail;
-                if (saved.smtpHost) fields.smtpHost.value = saved.smtpHost;
-                if (saved.smtpPort) fields.smtpPort.value = saved.smtpPort;
+                const legacy = JSON.parse(localStorage.getItem('host-pocket-email-test-settings') || '{}');
+                if (legacy.toEmail) fields.toEmail.value = legacy.toEmail;
             } catch (_) { /* ignore */ }
         }
 
-        function saveSettings() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                toEmail: fields.toEmail.value.trim(),
-                fromEmail: fields.fromEmail.value.trim(),
-                smtpHost: fields.smtpHost.value.trim(),
-                smtpPort: fields.smtpPort.value.trim()
-            }));
-            showStatus('設定已儲存（不含應用程式密碼）');
+        async function saveSettings() {
+            try {
+                await window.HostPocketEmailSettings?.saveToConfig?.({
+                    smtpUser: fields.fromEmail.value.trim(),
+                    smtpHost: fields.smtpHost.value.trim(),
+                    smtpPort: fields.smtpPort.value.trim(),
+                    appPassword: fields.appPassword.value
+                });
+                localStorage.setItem('host-pocket-email-test-settings', JSON.stringify({
+                    toEmail: fields.toEmail.value.trim()
+                }));
+                showStatus('設定已儲存至 config/smtp.local.json');
+            } catch (error) {
+                showError(error.message || '儲存失敗');
+            }
         }
 
         function showStatus(text) {

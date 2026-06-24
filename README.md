@@ -56,9 +56,9 @@ python3 -m http.server 8080
 
 **使用 Live Server（VS Code）時：** 前端可在 port 5500，但預定 API 需另外執行 `npm start`（port 3000）。前端會自動將 API 請求轉發至 `http://localhost:3000`。
 
-### 體驗預定與 Google Meet
+### 體驗預定與 Email 確認信
 
-確認預定時，後端會透過 **Google Calendar API** 建立含 **Google Meet** 連結的日曆活動，並以 `sendUpdates: all` 寄送日曆邀請至旅客 email。
+確認預定時，後端會透過 **Gmail SMTP** 或 **Resend** 寄送預定確認信至旅客 email（含日期、時間、地點、主持人）。
 
 #### 設定步驟
 
@@ -102,7 +102,7 @@ SMTP_APP_PASSWORD=xxxx xxxx xxxx xxxx
 | 端點 | 說明 |
 |------|------|
 | `GET /api/health` | 檢查 Google / Resend 是否已設定 |
-| `POST /api/booking` | 建立 Meet + 寄信（body: guestEmail, title, date, time, timezone…） |
+| `POST /api/booking` | 寄送預定確認信（body: guestEmail, title, date, time, timezone…） |
 | `POST /api/test-email` | Gmail SMTP 測試寄信 |
 
 #### Gmail SMTP 測試頁

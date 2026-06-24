@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+config/smtp.local.json
 node_modules/
 __pycache__/
 *.pyc

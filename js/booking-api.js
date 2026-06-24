@@ -24,7 +24,7 @@
     function bookingServerHint() {
         return isStaticDevServer()
             ? '請在專案目錄執行 npm start（API 在 http://localhost:3000）'
-            : '請確認已執行 npm start 且 Google API 已設定';
+            : '請確認已執行 npm start，並在「寄件設定」填寫 Gmail 應用程式密碼';
     }
 
     async function checkHealth() {

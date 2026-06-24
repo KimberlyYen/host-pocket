@@ -877,10 +877,11 @@
                                                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
                                     </div>
                                     <p class="mt-1.5 text-[10px] text-hp-muted leading-relaxed">
-                                        <span data-global-lang="zh">確認後將寄送 Google Meet 連結至此信箱</span>
-                                        <span data-global-lang="en" class="hidden">We'll email you a Google Meet link after confirmation</span>
+                                        <span data-global-lang="zh">確認後將寄送預定確認信至此信箱</span>
+                                        <span data-global-lang="en" class="hidden">We'll email you a booking confirmation to this address</span>
                                     </p>
                                 </div>
+                                <p data-dashboard-target="expBookingConfirmFeedback" class="hidden text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5"></p>
                                 <div class="grid grid-cols-2 gap-2 mt-5">
                                     <button type="button" data-action="click->dashboard#cancelExpBookingConfirm"
                                             class="py-2.5 rounded-xl border border-hp-border text-xs font-bold text-hp-dark hover:bg-hp-bgLight transition active:scale-[0.98]">
@@ -1204,6 +1205,9 @@
     </main>
 
     <!-- Simulated Backend Database within Hotwire Client -->
+    <script src="js/password-toggle.js"></script>
+    <script src="js/email-settings.js"></script>
+    <script src="js/toast.js"></script>
     <script src="js/booking-api.js"></script>
     <script src="js/experience-details.js"></script>
     <script>
@@ -1682,7 +1686,9 @@
             }
 
             // Universal toast dispatching logic (Non-Alert rule compliant)
-            dispatchNotification(title, message, type) {}
+            dispatchNotification(title, message, type) {
+                window.hpTriggerToast?.(title, message, type);
+            }
         });
 
 
@@ -1726,7 +1732,9 @@
                 this.performPairing();
             }
 
-            triggerToast(title, msg, type) {}
+            triggerToast(title, msg, type) {
+                window.hpTriggerToast?.(title, msg, type);
+            }
         });
 
 
@@ -1739,7 +1747,7 @@
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -2175,6 +2183,7 @@
                 if (this.hasExpBookingConfirmEmailTarget) {
                     this.expBookingConfirmEmailTarget.value = '';
                 }
+                this.setBookingConfirmFeedback(null);
                 this.pendingBookingSlot = slot;
                 this.expBookingConfirmOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
                 if (this.hasExpBookingConfirmDialogTarget) {
@@ -2210,6 +2219,25 @@
                 }
             }
 
+            setBookingConfirmFeedback(state, message) {
+                if (!this.hasExpBookingConfirmFeedbackTarget) return;
+                const el = this.expBookingConfirmFeedbackTarget;
+                if (!state || !message) {
+                    el.classList.add('hidden');
+                    el.textContent = '';
+                    el.className = 'hidden text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5';
+                    return;
+                }
+                const styles = {
+                    loading: 'text-hp-muted bg-hp-bgLight border border-hp-border',
+                    success: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+                    error: 'text-red-700 bg-red-50 border border-red-200'
+                };
+                el.className = `text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5 ${styles[state] || styles.loading}`;
+                el.textContent = message;
+                el.classList.remove('hidden');
+            }
+
             isValidBookingEmail(email) {
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
             }
@@ -2226,6 +2254,7 @@
                     if (this.hasExpBookingConfirmEmailTarget) {
                         this.expBookingConfirmEmailTarget.value = '';
                     }
+                    this.setBookingConfirmFeedback(null);
                 };
                 if (this.hasExpBookingConfirmDialogTarget) {
                     this.expBookingConfirmDialogTarget.classList.add('scale-95');
@@ -2250,7 +2279,7 @@
                 if (!email || !this.isValidBookingEmail(email)) {
                     this.triggerToast(
                         isZh ? '請輸入有效的電子郵件' : 'Enter a valid email',
-                        isZh ? '我們會將 Google Meet 連結寄至此信箱' : 'We\'ll send the Google Meet link to this address.',
+                        isZh ? '我們會將預定確認信寄至此信箱' : 'We\'ll send a booking confirmation to this address.',
                         'info'
                     );
                     if (this.hasExpBookingConfirmEmailTarget) {
@@ -2283,7 +2312,27 @@
                     timezone: this.bookingTimezone
                 });
 
+                try {
+                    const health = await BookingAPI.checkHealth();
+                    if (!health.smtpConfigured && !health.bookingConfigured) {
+                        this.triggerToast(
+                            isZh ? '寄件尚未設定' : 'Email not configured',
+                            isZh ? '請至 email-test.html 儲存 Gmail 設定至 config' : 'Save Gmail settings via email-test.html first.',
+                            'info'
+                        );
+                        return;
+                    }
+                } catch {
+                    this.triggerToast(
+                        isZh ? '無法連線 API' : 'API unavailable',
+                        isZh ? '請確認 npm start 已執行' : 'Make sure npm start is running.',
+                        'error'
+                    );
+                    return;
+                }
+
                 this.setBookingSubmitLoading(true, isZh);
+                this.setBookingConfirmFeedback('loading', isZh ? '寄送中，請稍候…' : 'Sending, please wait…');
                 try {
                     const result = await BookingAPI.createBooking({
                         guestEmail: email,
@@ -2299,25 +2348,24 @@
                         timeLabel
                     });
 
-                    this.closeExpBookingConfirm(false);
-                    this.closeExpBookingCalendar();
-                    const emailNote = result.customEmailSent
-                        ? (isZh ? `確認信已寄至 ${email}` : `Confirmation email sent to ${email}`)
-                        : result.calendarInviteSent
-                            ? (isZh ? `Google 日曆邀請已寄至 ${email}` : `Google Calendar invite sent to ${email}`)
-                            : (isZh ? `預定已建立` : `Booking saved`);
+                    const emailNote = isZh ? `✓ 確認信已寄至 ${email}` : `✓ Confirmation email sent to ${email}`;
+                    this.setBookingConfirmFeedback('success', emailNote);
                     this.triggerToast(
                         isZh ? '預定成功' : 'Booking confirmed',
-                        `${dateLabel} · ${timeLabel}\n${emailNote}`,
+                        `${dateLabel} · ${timeLabel}\n${emailNote.replace(/^✓\s?/, '')}`,
                         'success'
                     );
-                    console.info('[Host Pocket] Google Meet:', result.meetLink);
+                    await new Promise((resolve) => setTimeout(resolve, 1400));
+                    this.closeExpBookingConfirm(false);
+                    this.closeExpBookingCalendar();
                 } catch (error) {
                     console.error('[Host Pocket] booking failed', error);
+                    const errMsg = error.message || (isZh ? '請至 email-test.html 設定 Gmail 並儲存至 config' : 'Configure Gmail via email-test.html first.');
+                    this.setBookingConfirmFeedback('error', errMsg);
                     this.triggerToast(
                         isZh ? '預定失敗' : 'Booking failed',
-                        error.message || (isZh ? '請確認已設定 Google OAuth 或 Gmail SMTP 後再試' : 'Check Google OAuth or Gmail SMTP setup and try again.'),
-                        'info'
+                        errMsg,
+                        'error'
                     );
                 } finally {
                     this.setBookingSubmitLoading(false, isZh);
@@ -2631,7 +2679,9 @@
                 setTimeout(() => section.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl'), 1200);
             }
 
-            triggerToast(title, msg, type) {}
+            triggerToast(title, msg, type) {
+                window.hpTriggerToast?.(title, msg, type);
+            }
         });
 
 
@@ -2810,7 +2860,9 @@
                 this.centerMapOnRoute({ animate: true });
             }
 
-            triggerToast(title, msg, type) {}
+            triggerToast(title, msg, type) {
+                window.hpTriggerToast?.(title, msg, type);
+            }
         });
 
 
