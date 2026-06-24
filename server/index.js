@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const { createBooking, isEmailConfigured } = require('./google-booking');
 const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
-const { getPublicSmtpConfig, writeSmtpConfigFile } = require('./smtp-config');
+const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = require('./smtp-config');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -68,7 +68,12 @@ app.post('/api/smtp-config', (req, res) => {
         res.json({ ok: true, ...getPublicSmtpConfig() });
     } catch (error) {
         console.error('[smtp-config]', error);
-        res.status(400).json({ ok: false, error: error?.message || 'Failed to save SMTP config' });
+        const readOnlyStorage = isReadOnlyConfigStorage();
+        res.status(readOnlyStorage ? 503 : 400).json({
+            ok: false,
+            readOnlyStorage,
+            error: error?.message || 'Failed to save SMTP config'
+        });
     }
 });
 

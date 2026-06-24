@@ -110,8 +110,18 @@
             </div>
         </section>
 
+        <div id="prodNotice" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] text-amber-950 leading-relaxed">
+            <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-700"></i>
+            正式環境（Vercel）無法寫入設定檔。請至
+            <strong>Vercel → Settings → Environment Variables</strong>
+            設定 <code class="bg-white/70 px-1 rounded">SMTP_USER</code>、
+            <code class="bg-white/70 px-1 rounded">SMTP_APP_PASSWORD</code>，重新部署後即可寄信。
+            此頁「儲存設定」僅保留在瀏覽器，「測試通知」仍可直接測試。
+        </div>
+
         <p class="text-[10px] text-hp-muted leading-relaxed px-1">
-            此頁測試 SMTP 寄信。按「儲存設定」會寫入 <code class="bg-white px-1 rounded border border-hp-border">config/smtp.local.json</code>（不提交 git）。
+            本機開發：按「儲存設定」會寫入 <code class="bg-white px-1 rounded border border-hp-border">config/smtp.local.json</code>（不提交 git）。
+            正式環境：請改用 Vercel 環境變數。
             API：<code class="bg-white px-1 rounded border border-hp-border">POST /api/test-email</code>
         </p>
     </main>
@@ -134,6 +144,7 @@
         const statusText = document.getElementById('statusText');
         const errorMsg = document.getElementById('errorMsg');
         const testBtn = document.getElementById('testBtn');
+        const prodNotice = document.getElementById('prodNotice');
 
         function getApiBase() {
             return window.BookingAPI?.getApiBase?.() ?? '';
@@ -145,6 +156,9 @@
             if (saved.smtpHost) fields.smtpHost.value = saved.smtpHost;
             if (saved.smtpPort) fields.smtpPort.value = saved.smtpPort;
             if (saved.appPassword) fields.appPassword.value = saved.appPassword;
+            if (saved.readOnlyStorage) {
+                prodNotice.classList.remove('hidden');
+            }
             try {
                 const legacy = JSON.parse(localStorage.getItem('host-pocket-email-test-settings') || '{}');
                 if (legacy.toEmail) fields.toEmail.value = legacy.toEmail;
@@ -153,7 +167,7 @@
 
         async function saveSettings() {
             try {
-                await window.HostPocketEmailSettings?.saveToConfig?.({
+                const result = await window.HostPocketEmailSettings?.saveToConfig?.({
                     smtpUser: fields.fromEmail.value.trim(),
                     smtpHost: fields.smtpHost.value.trim(),
                     smtpPort: fields.smtpPort.value.trim(),
@@ -162,6 +176,11 @@
                 localStorage.setItem('host-pocket-email-test-settings', JSON.stringify({
                     toEmail: fields.toEmail.value.trim()
                 }));
+                if (result?.readOnlyStorage) {
+                    prodNotice.classList.remove('hidden');
+                    showStatus('已儲存至瀏覽器。正式環境請至 Vercel 設定 SMTP 環境變數後重新部署。');
+                    return;
+                }
                 showStatus('設定已儲存至 config/smtp.local.json');
             } catch (error) {
                 showError(error.message || '儲存失敗');

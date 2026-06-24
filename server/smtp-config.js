@@ -8,6 +8,26 @@ function normalizeAppPassword(password) {
     return String(password || '').replace(/\s/g, '');
 }
 
+function isReadOnlyConfigStorage() {
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) return true;
+    if (String(process.cwd()).startsWith('/var/task')) return true;
+    return false;
+}
+
+function readEnvSmtpConfig() {
+    const user = String(process.env.SMTP_USER || '').trim();
+    const pass = normalizeAppPassword(process.env.SMTP_APP_PASSWORD);
+    if (!user || !pass) return null;
+    return {
+        user,
+        pass: process.env.SMTP_APP_PASSWORD || '',
+        host: String(process.env.SMTP_HOST || 'smtp.gmail.com').trim(),
+        port: Number(process.env.SMTP_PORT) || 587,
+        from: process.env.SMTP_FROM || null,
+        source: 'env'
+    };
+}
+
 function readSmtpConfigFile() {
     try {
         if (!fs.existsSync(CONFIG_PATH)) return null;
@@ -20,11 +40,16 @@ function readSmtpConfigFile() {
             pass: raw.SMTP_APP_PASSWORD || raw.smtpAppPassword || '',
             host: String(raw.SMTP_HOST || raw.smtpHost || 'smtp.gmail.com').trim(),
             port: Number(raw.SMTP_PORT || raw.smtpPort) || 587,
-            from: raw.SMTP_FROM || raw.smtpFrom || null
+            from: raw.SMTP_FROM || raw.smtpFrom || null,
+            source: 'file'
         };
     } catch {
         return null;
     }
+}
+
+function resolveSmtpConfigRecord() {
+    return readEnvSmtpConfig() || readSmtpConfigFile();
 }
 
 function writeSmtpConfigFile(input) {
@@ -35,6 +60,11 @@ function writeSmtpConfigFile(input) {
     }
     if (!normalizeAppPassword(appPassword)) {
         throw new Error('Gmail 應用程式密碼為必填');
+    }
+    if (isReadOnlyConfigStorage()) {
+        throw new Error(
+            '正式環境無法寫入設定檔。請至 Vercel → Settings → Environment Variables 設定 SMTP_USER、SMTP_APP_PASSWORD（可選 SMTP_HOST、SMTP_PORT），然後重新部署。'
+        );
     }
 
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
@@ -49,10 +79,12 @@ function writeSmtpConfigFile(input) {
 }
 
 function getPublicSmtpConfig() {
-    const file = readSmtpConfigFile();
-    if (!file) {
+    const readOnlyStorage = isReadOnlyConfigStorage();
+    const config = resolveSmtpConfigRecord();
+    if (!config) {
         return {
             configured: false,
+            readOnlyStorage,
             smtpUser: '',
             smtpHost: 'smtp.gmail.com',
             smtpPort: 587,
@@ -61,21 +93,26 @@ function getPublicSmtpConfig() {
     }
     return {
         configured: true,
-        smtpUser: file.user,
-        smtpHost: file.host,
-        smtpPort: file.port,
+        readOnlyStorage,
+        configSource: config.source,
+        smtpUser: config.user,
+        smtpHost: config.host,
+        smtpPort: config.port,
         hasPassword: true
     };
 }
 
 function isFileSmtpConfigured() {
-    return Boolean(readSmtpConfigFile());
+    return Boolean(resolveSmtpConfigRecord());
 }
 
 module.exports = {
     readSmtpConfigFile,
+    readEnvSmtpConfig,
+    resolveSmtpConfigRecord,
     writeSmtpConfigFile,
     getPublicSmtpConfig,
     isFileSmtpConfigured,
+    isReadOnlyConfigStorage,
     CONFIG_PATH
 };

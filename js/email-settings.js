@@ -57,7 +57,9 @@
                 smtpPort: Number(data.smtpPort) || local.smtpPort,
                 appPassword: local.appPassword,
                 configuredOnServer: Boolean(data.configured),
-                hasPasswordOnServer: Boolean(data.hasPassword)
+                hasPasswordOnServer: Boolean(data.hasPassword),
+                readOnlyStorage: Boolean(data.readOnlyStorage),
+                configSource: data.configSource || null
             };
         } catch (error) {
             if (error?.message?.includes('API 回傳非 JSON')) throw error;
@@ -85,6 +87,9 @@
         }
         const data = await parseJsonResponse(res, `儲存失敗 (${res.status})`);
         if (!res.ok || !data.ok) {
+            if (data.readOnlyStorage) {
+                return { ok: true, savedLocally: true, readOnlyStorage: true };
+            }
             throw new Error(data.error || `儲存失敗 (${res.status})`);
         }
         return data;

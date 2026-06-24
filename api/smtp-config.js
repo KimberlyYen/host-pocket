@@ -1,6 +1,7 @@
 const {
     getPublicSmtpConfig,
-    writeSmtpConfigFile
+    writeSmtpConfigFile,
+    isReadOnlyConfigStorage
 } = require('../server/smtp-config');
 
 module.exports = async (req, res) => {
@@ -28,6 +29,11 @@ module.exports = async (req, res) => {
         res.status(200).json({ ok: true, ...getPublicSmtpConfig() });
     } catch (error) {
         console.error('[smtp-config]', error);
-        res.status(400).json({ ok: false, error: error?.message || 'Failed to save SMTP config' });
+        const readOnlyStorage = isReadOnlyConfigStorage();
+        res.status(readOnlyStorage ? 503 : 400).json({
+            ok: false,
+            readOnlyStorage,
+            error: error?.message || 'Failed to save SMTP config'
+        });
     }
 };
