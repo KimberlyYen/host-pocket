@@ -63,7 +63,9 @@ python3 -m http.server 8080
 1. 前往 [Google Cloud Console](https://console.cloud.google.com/) 建立專案
 2. 啟用 **Google Calendar API**
 3. 建立 **OAuth 2.0 Client ID**（應用程式類型：Web）
-   - 授權重新導向 URI：`http://localhost:3000/oauth2callback`
+   - 授權重新導向 URI（**兩個都要加**）：
+     - `http://localhost:3000/oauth2callback`（本地開發）
+     - `https://host-pocket.vercel.app/oauth2callback`（Vercel 正式環境）
 4. 將 Client ID / Secret 填入 `.env` 的 `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`
 5. 執行一次性授權取得 refresh token：
 
@@ -88,6 +90,18 @@ FROM_EMAIL=Host Pocket <bookings@yourdomain.com>
 |------|------|
 | `GET /api/health` | 檢查 Google / Resend 是否已設定 |
 | `POST /api/booking` | 建立 Meet + 寄信（body: guestEmail, title, date, time, timezone…） |
+
+#### Vercel 部署（https://host-pocket.vercel.app）
+
+1. 在 [Vercel Dashboard](https://vercel.com) → 專案 → **Settings → Environment Variables** 加入：
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_REFRESH_TOKEN`
+   - `GOOGLE_CALENDAR_ID`（選填，預設 `primary`）
+   - `RESEND_API_KEY`、`FROM_EMAIL`（選填）
+2. 重新 Deploy
+3. 確認：https://host-pocket.vercel.app/api/health 回傳 `"bookingConfigured": true`
+4. OAuth 授權仍在本機執行 `npm run google:auth`；授權後 redirect 可用正式網址 `https://host-pocket.vercel.app/oauth2callback`
 
 ### 原型操作提示
 

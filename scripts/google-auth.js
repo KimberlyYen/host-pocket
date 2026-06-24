@@ -31,7 +31,12 @@ async function main() {
 
     console.log('\n1. Open this URL in your browser:\n');
     console.log(authUrl);
-    console.log('\n2. Authorize with the Google account that will host meetings.');
+    console.log('\n--- Google Cloud Console setup ---');
+    console.log(`Client ID: ${clientId}`);
+    console.log(`Redirect URI (copy exactly into OAuth client): ${REDIRECT_URI}`);
+    console.log('Credentials → your OAuth 2.0 Client ID → Authorized redirect URIs');
+    console.log('---\n');
+    console.log('2. Authorize with the Google account that will host meetings.');
     console.log('3. Paste the authorization code below.\n');
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
