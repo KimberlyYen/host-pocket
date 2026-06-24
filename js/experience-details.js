@@ -435,7 +435,7 @@
 
     function renderMediaHero(media, category, isZh) {
         if (!media.length) {
-            return `<div class="exp-media-hero h-[66dvh] relative shrink-0 bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
+            return `<div class="exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
         }
 
         const slides = media.map((item, i) => {
@@ -443,7 +443,7 @@
             const baseClass = `exp-media-slide absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
             if (item.type === 'video') {
                 return `<div class="${baseClass}" data-exp-media-index="${i}">
-                    <video class="w-full h-full object-cover bg-black" src="${escapeHtml(item.url)}"${item.poster ? ` poster="${escapeHtml(item.poster)}"` : ''} muted playsinline loop controls preload="metadata"${active ? ' autoplay' : ''}></video>
+                    <video class="exp-media-video w-full h-full object-cover bg-black pointer-events-none" src="${escapeHtml(item.url)}"${item.poster ? ` poster="${escapeHtml(item.poster)}"` : ''} muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="metadata"${active ? ' autoplay' : ''}></video>
                 </div>`;
             }
             return `<div class="${baseClass}" data-exp-media-index="${i}">
@@ -463,7 +463,7 @@
             </div>` : '';
 
         return `
-            <div class="exp-media-hero h-[66dvh] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
+            <div class="exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
                 ${slides}
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-[15]"></div>
                 ${nav}
@@ -677,14 +677,265 @@
             </div>`;
     }
 
+    function renderBookingBar(isZh) {
+        return `<div class="px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <button type="button" data-action="click->dashboard#openExpBookingCalendar"
+                    class="w-full bg-hp-coral hover:bg-hp-coral/90 text-white text-sm font-bold py-3 rounded-xl transition active:scale-[0.98] shadow-md">
+                <i class="fa-regular fa-calendar-check mr-1.5"></i>
+                ${isZh ? '預定' : 'Book'}
+            </button>
+        </div>`;
+    }
+
     function renderMapBar(isZh) {
-        return `<div class="px-4 py-2.5 border-b border-hp-border bg-white shrink-0">
+        return `<div class="px-4 py-2.5 border-b border-hp-border bg-white shrink-0 flex items-center gap-2">
             <button type="button" data-action="click->dashboard#openExpDetailMap"
                     class="inline-flex items-center text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
                 <i class="fa-solid fa-map-location-dot mr-1"></i>
                 ${isZh ? '地圖' : 'Map'}
             </button>
+            <button type="button" data-action="click->dashboard#openExpShareSheet"
+                    class="inline-flex items-center text-xs font-bold text-hp-dark px-2.5 py-1.5 rounded-lg bg-hp-bgLight border border-hp-border hover:border-hp-coral/40 whitespace-nowrap transition">
+                <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
+                ${isZh ? '分享' : 'Share'}
+            </button>
         </div>`;
+    }
+
+    function buildShareContext(payload, options = {}) {
+        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const data = localizePayload(payload, isZh);
+        const exp = data.experience || {};
+        const loc = exp.location || {};
+        const query = encodeURIComponent(loc.display_label || loc.address || exp.meeting_point || exp.title || '');
+        const lat = loc.latitude;
+        const lng = loc.longitude;
+        const mapsUrl = lat != null && lng != null
+            ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+            : `https://www.google.com/maps/search/?api=1&query=${query}`;
+        const shareUrl = exp.link || mapsUrl;
+        const shareText = isZh
+            ? `我在 host-pocket 發現這個在地體驗：${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`
+            : `Check out this experience on host-pocket: ${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
+        const cover = normalizeMedia(exp)[0]?.url || exp.cover_image || IMAGE_FALLBACK;
+
+        return { isZh, exp, loc, shareUrl, mapsUrl, shareText, cover };
+    }
+
+    function renderShareSheet(payload, options = {}) {
+        const ctx = buildShareContext(payload, options);
+        const { isZh, exp, loc, shareUrl, mapsUrl, shareText, cover } = ctx;
+        const labels = isZh ? {
+            link: '分享連結', copy: '複製', copied: '已複製',
+            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式'
+        } : {
+            link: 'Share link', copy: 'Copy', copied: 'Copied',
+            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options'
+        };
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
+        const mailUrl = `mailto:?subject=${encodeURIComponent(exp.title || 'host-pocket')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}\n\n${mapsUrl}`)}`;
+
+        return `
+            <div class="space-y-4">
+                <div class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3 shadow-sm">
+                    <img src="${escapeHtml(cover)}" alt="" class="w-16 h-16 rounded-xl object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-hp-dark leading-snug line-clamp-2">${escapeHtml(exp.title)}</p>
+                        ${loc.display_label || loc.address ? `
+                        <p class="text-xs text-hp-muted mt-1 flex items-start gap-1">
+                            <i class="fa-solid fa-location-dot text-hp-coral mt-0.5 shrink-0"></i>
+                            <span class="line-clamp-2">${escapeHtml(loc.display_label || loc.address)}</span>
+                        </p>` : ''}
+                    </div>
+                </div>
+
+                <div class="bg-hp-bgLight border border-hp-border rounded-2xl p-3">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${labels.link}</p>
+                    <div class="flex gap-2 items-stretch">
+                        <div class="flex-1 min-w-0 bg-white border border-hp-border rounded-xl px-3 py-2.5 text-xs text-hp-dark truncate font-mono">${escapeHtml(shareUrl)}</div>
+                        <button type="button" data-action="click->dashboard#copyExpShareLink"
+                                class="shrink-0 px-3 py-2.5 rounded-xl bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold transition active:scale-95">
+                            ${labels.copy}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-action="click->dashboard#copyExpShareLink"
+                            class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-hp-bgLight border border-hp-border flex items-center justify-center text-hp-dark"><i class="fa-regular fa-copy"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.copy}</span>
+                    </button>
+                    <a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-brands fa-google"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark text-center leading-tight">${labels.openMaps}</span>
+                    </a>
+                    <a href="${escapeHtml(waUrl)}" target="_blank" rel="noopener noreferrer"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-600"><i class="fa-brands fa-whatsapp"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.whatsapp}</span>
+                    </a>
+                    <a href="${escapeHtml(mailUrl)}"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><i class="fa-regular fa-envelope"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.email}</span>
+                    </a>
+                </div>
+
+                <button type="button" data-action="click->dashboard#shareExpNative"
+                        class="w-full py-3 rounded-xl border border-hp-border bg-white text-xs font-bold text-hp-dark hover:border-hp-coral transition active:scale-[0.99]">
+                    <i class="fa-solid fa-share-nodes mr-1.5 text-hp-coral"></i>${labels.more}
+                </button>
+            </div>`;
+    }
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    function bookingDateKey(year, month, day) {
+        return `${year}-${pad2(month)}-${pad2(day)}`;
+    }
+
+    function getBookableDateKeys(availability, year, monthIndex) {
+        const keys = new Set();
+        const month = monthIndex + 1;
+        const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+
+        const addDay = (d) => {
+            if (d >= 1 && d <= lastDay) keys.add(bookingDateKey(year, month, d));
+        };
+
+        const addWeekdayFilter = (allowed) => {
+            for (let d = 1; d <= lastDay; d++) {
+                if (allowed.includes(new Date(year, monthIndex, d).getDay())) addDay(d);
+            }
+        };
+
+        (availability || []).forEach(slot => {
+            const text = (slot.day || '').toLowerCase();
+            if (/daily|每日/.test(text)) {
+                for (let d = 1; d <= lastDay; d++) addDay(d);
+                return;
+            }
+            if (/sat.*sun|sun.*sat|weekend|週末|週六.*週日|週六至週日/.test(text)) {
+                addWeekdayFilter([0, 6]);
+                return;
+            }
+            if (/wed.*sun|週三.*週日/.test(text)) {
+                addWeekdayFilter([0, 3, 4, 5, 6]);
+                return;
+            }
+            if (/tue.*sat|週二.*週六/.test(text)) {
+                addWeekdayFilter([2, 3, 4, 5, 6]);
+                return;
+            }
+            if ((/\bfri\b|週五/.test(text)) && !/[–\-]/.test(text)) {
+                addWeekdayFilter([5]);
+                return;
+            }
+            const dayMatch = text.match(/(\d{1,2})\s*(?:jun|june|6\s*月)/i)
+                || text.match(/(?:6\s*月|jun)\s*(\d{1,2})/i)
+                || text.match(/(\d{1,2})\s*(?:日|th)/i);
+            if (dayMatch) {
+                const d = parseInt(dayMatch[1], 10);
+                if (!Number.isNaN(d)) addDay(d);
+            }
+        });
+
+        if (!keys.size) {
+            const ref = new Date(year, monthIndex, 24);
+            for (let i = 1; i <= 14; i++) {
+                const dt = new Date(ref);
+                dt.setDate(ref.getDate() + i);
+                if (dt.getMonth() === monthIndex && dt.getFullYear() === year) {
+                    addDay(dt.getDate());
+                }
+            }
+        }
+
+        return keys;
+    }
+
+    function renderBookingSlots(availability, isZh) {
+        const slots = (availability || []).filter(s => s.is_available !== false);
+        const fallback = [{
+            duration: '10:00 – 12:00',
+            start_time: isZh ? '上午 10:00' : '10:00 am',
+            availability_description: isZh ? '尚餘名額' : 'Spots available'
+        }];
+        const list = slots.length ? slots : fallback;
+
+        return `
+            <section class="pt-3 border-t border-hp-border">
+                <h4 class="text-xs font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${isZh ? '時段' : 'Time slots'}</h4>
+                <div class="space-y-2">
+                    ${list.slice(0, 4).map(slot => `
+                        <button type="button" data-action="click->dashboard#confirmExpBooking"
+                                data-slot="${escapeHtml(slot.duration || slot.start_time || '')}"
+                                class="w-full flex justify-between items-center bg-white border border-hp-border rounded-xl px-3 py-2.5 text-left hover:border-hp-coral transition active:scale-[0.99]">
+                            <div>
+                                <p class="text-xs font-bold text-hp-dark">${escapeHtml(slot.duration || slot.start_time || '')}</p>
+                                <p class="text-xs text-hp-muted">${escapeHtml(slot.availability_description || '')}</p>
+                            </div>
+                            <span class="text-xs font-bold text-hp-coral">${isZh ? '選擇' : 'Select'}</span>
+                        </button>`).join('')}
+                </div>
+            </section>`;
+    }
+
+    function renderBookingCalendar(payload, options = {}) {
+        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const viewDate = options.viewDate instanceof Date ? new Date(options.viewDate) : new Date(2026, 5, 1);
+        const year = viewDate.getFullYear();
+        const monthIndex = viewDate.getMonth();
+        const selectedDate = options.selectedDate || null;
+
+        const data = localizePayload(payload, isZh);
+        const availability = data.experience?.availability || [];
+        const bookable = getBookableDateKeys(availability, year, monthIndex);
+
+        const monthLabel = isZh
+            ? `${year}年${monthIndex + 1}月`
+            : viewDate.toLocaleString('en', { month: 'long', year: 'numeric' });
+        const weekdays = isZh ? ['日', '一', '二', '三', '四', '五', '六'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const firstDow = new Date(year, monthIndex, 1).getDay();
+        const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+        const pickHint = isZh ? '請選擇可預訂的日期' : 'Choose an available date';
+
+        let cells = '';
+        for (let i = 0; i < firstDow; i++) cells += '<div class="aspect-square"></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const key = bookingDateKey(year, monthIndex + 1, d);
+            const available = bookable.has(key);
+            const selected = selectedDate === key;
+            const today = year === 2026 && monthIndex === 5 && d === 24;
+            cells += `<button type="button" data-action="click->dashboard#selectBookingDate" data-date="${key}"
+                ${available ? '' : 'disabled'}
+                class="aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition
+                    ${selected ? 'bg-hp-coral text-white shadow-md' : available ? 'bg-white border border-hp-border text-hp-dark hover:border-hp-coral' : 'text-hp-muted/40 cursor-not-allowed'}
+                    ${today && !selected ? 'ring-2 ring-hp-coral/30' : ''}">${d}</button>`;
+        }
+
+        return `
+            <div class="space-y-4">
+                <p class="text-xs text-hp-muted">${pickHint}</p>
+                <div class="flex items-center justify-between">
+                    <button type="button" data-action="click->dashboard#prevBookingMonth"
+                            class="w-8 h-8 rounded-full bg-white border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <span class="text-sm font-bold text-hp-dark">${monthLabel}</span>
+                    <button type="button" data-action="click->dashboard#nextBookingMonth"
+                            class="w-8 h-8 rounded-full bg-white border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 mb-1">
+                    ${weekdays.map(w => `<div class="text-[10px] font-bold text-hp-muted text-center py-1">${w}</div>`).join('')}
+                </div>
+                <div class="grid grid-cols-7 gap-1">${cells}</div>
+                ${selectedDate ? renderBookingSlots(availability, isZh) : ''}
+            </div>`;
     }
 
     function renderPanelParts(payload, options = {}) {
@@ -692,13 +943,14 @@
         return {
             mediaHtml: renderMediaHero(ctx.media, ctx.exp.category, ctx.isZh),
             mapHtml: renderMapBar(ctx.isZh),
-            contentHtml: renderDetailContent(ctx)
+            contentHtml: renderDetailContent(ctx),
+            bookingHtml: renderBookingBar(ctx.isZh)
         };
     }
 
     function renderPanel(payload, options = {}) {
         const parts = renderPanelParts(payload, options);
-        return parts.mediaHtml + parts.mapHtml + parts.contentHtml;
+        return parts.mediaHtml + parts.mapHtml + parts.contentHtml + parts.bookingHtml;
     }
 
     async function fetchDetails(experienceId, options = {}) {
@@ -732,6 +984,9 @@
         localizePayload,
         renderPanel,
         renderPanelParts,
+        renderBookingCalendar,
+        buildShareContext,
+        renderShareSheet,
         initMediaPlayer,
         pauseMediaPlayer,
         getExperienceIdForRec

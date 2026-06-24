@@ -155,6 +155,24 @@
                 display: none;
             }
         }
+        /* 體驗詳情 media：隱藏手機原生播放/暫停 overlay */
+        .exp-media-video::-webkit-media-controls {
+            display: none !important;
+        }
+        .exp-media-video {
+            -webkit-touch-callout: none;
+        }
+        .exp-media-video::-webkit-media-controls-enclosure {
+            display: none !important;
+        }
+        .exp-media-video::-webkit-media-controls-start-playback-button,
+        .exp-media-video::-webkit-media-controls-play-button,
+        .exp-media-video::-webkit-media-controls-overlay-play-button {
+            display: none !important;
+            -webkit-appearance: none;
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
@@ -295,7 +313,11 @@
 
                     <!-- Partner Bar: host-pocket → Airbnb -->
                     <footer class="partner-bar partner-bar--footer grid grid-cols-3 items-center py-2.5 min-w-0">
-                            <div class="partner-bar-item flex items-center justify-center gap-1.5 min-w-0 px-2">
+                            <a href="https://github.com/KimberlyYen/host-pocket"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-label="host-pocket on GitHub"
+                               class="partner-bar-item partner-bar-link flex items-center justify-center gap-1.5 min-w-0 px-2">
                                 <div class="partner-icon-slot shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
                                         <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
@@ -310,8 +332,8 @@
                                     <span data-global-lang="zh">房東私藏</span>
                                     <span data-global-lang="en" class="hidden">host-pocket</span>
                                 </span>
-                            </div>
-                            <a href="https://www.linkedin.com/company/searchapi/posts/?feedView=all"
+                            </a>
+                            <a href="https://www.linkedin.com/company/searchapi/"
                                target="_blank"
                                rel="noopener noreferrer"
                                aria-label="SearchAPI on LinkedIn"
@@ -321,38 +343,40 @@
                                 </div>
                                 <span class="partner-bar-label partner-bar-label--partner font-semibold truncate">SearchAPI</span>
                             </a>
-                            <div class="partner-bar-item flex items-center justify-center gap-1.5 min-w-0 px-2">
+                            <a href="https://www.airbnb.com.tw/"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-label="Airbnb Taiwan"
+                               class="partner-bar-item partner-bar-link flex items-center justify-center gap-1.5 min-w-0 px-2">
                                 <div class="partner-icon-slot shadow-sm">
                                     <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
                                 </div>
                                 <span class="partner-bar-label partner-bar-label--partner font-semibold truncate" data-global-lang="zh">Airbnb 合作</span>
                                 <span class="partner-bar-label partner-bar-label--partner font-semibold truncate hidden" data-global-lang="en">Airbnb Partner</span>
-                            </div>
+                            </a>
                     </footer>
             </div>
 
             <!-- 畫面 2：指南主頁 -->
             <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <!-- Top Nav Tabs -->
-                    <nav class="shrink-0 z-10 px-5 pt-[max(2.5rem,env(safe-area-inset-top))] pb-3 bg-hp-bgLight/95 backdrop-blur-md border-b border-hp-border">
-                        <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
-                            <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
-                                    class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
-                                <i class="fa-solid fa-house text-hp-coral text-xs"></i>
-                                <span data-global-lang="zh">房屋指南</span>
-                                <span data-global-lang="en" class="hidden">House Stay</span>
-                            </button>
-                            <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
-                                    class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
-                                <i class="fa-solid fa-compass text-xs"></i>
-                                <span data-global-lang="zh">在地探索</span>
-                                <span data-global-lang="en" class="hidden">Explore</span>
-                            </button>
-                        </div>
-                    </nav>
-
                     <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
-                        
+                        <!-- Top Nav Tabs（隨內容捲動，非固定） -->
+                        <nav class="px-5 pt-[max(2.5rem,env(safe-area-inset-top))] pb-3 bg-hp-bgLight border-b border-hp-border">
+                            <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
+                                <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
+                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
+                                    <i class="fa-solid fa-house text-hp-coral text-xs"></i>
+                                    <span data-global-lang="zh">房屋指南</span>
+                                    <span data-global-lang="en" class="hidden">House Stay</span>
+                                </button>
+                                <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
+                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
+                                    <i class="fa-solid fa-compass text-xs"></i>
+                                    <span data-global-lang="zh">在地探索</span>
+                                    <span data-global-lang="en" class="hidden">Explore</span>
+                                </button>
+                            </div>
+                        </nav>
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
@@ -684,8 +708,48 @@
                                 class="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-50 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-hp-dark flex items-center justify-center shadow-md transition active:scale-95 pointer-events-auto">
                             <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
-                        <div data-dashboard-target="expDetailBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar pb-8"></div>
+                        <div data-dashboard-target="expDetailBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar"></div>
+                        <!-- Share Sheet (Google Maps / Airbnb style) -->
+                        <div data-dashboard-target="expShareOverlay" class="absolute inset-0 bg-black/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col justify-end">
+                            <button type="button" data-action="click->dashboard#closeExpShareSheet" aria-label="Close share sheet"
+                                    class="absolute inset-0 w-full h-full cursor-default"></button>
+                            <div class="relative bg-[#FAF8F5] rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col transform translate-y-full transition-transform duration-500 ease-out" data-dashboard-target="expShareSheet">
+                                <div class="shrink-0 px-5 pt-3 pb-4 border-b border-hp-border bg-white rounded-t-3xl">
+                                    <div class="w-10 h-1 bg-hp-border rounded-full mx-auto mb-4"></div>
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-black text-hp-dark" data-global-lang="zh">分享體驗</h3>
+                                        <h3 class="text-sm font-black text-hp-dark hidden" data-global-lang="en">Share experience</h3>
+                                        <button type="button" data-action="click->dashboard#closeExpShareSheet" aria-label="Close"
+                                                class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                            <i class="fa-solid fa-xmark text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div data-dashboard-target="expShareBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"></div>
+                            </div>
+                        </div>
+                        <!-- Booking Calendar Sheet -->
+                        <div data-dashboard-target="expBookingOverlay" class="absolute inset-0 bg-[#FAF8F5] z-[60] transform translate-y-full transition-transform duration-500 flex flex-col">
+                            <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-[max(2.75rem,env(safe-area-inset-top))]">
+                                <button type="button" data-action="click->dashboard#closeExpBookingCalendar" aria-label="Close calendar"
+                                        class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                </button>
+                                <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">選擇日期</span>
+                                <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Select Date</span>
+                                <div class="w-8"></div>
+                            </div>
+                            <div data-dashboard-target="expBookingCalendar" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar p-5 pb-8"></div>
+                        </div>
                     </div>
+
+                    <!-- Back to Top（下滑後顯示） -->
+                    <button type="button" data-action="click->dashboard#scrollToTop" data-dashboard-target="scrollToTopBtn"
+                            aria-label="Back to top"
+                            class="absolute right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 min-w-[2.75rem] h-11 px-3 rounded-full bg-hp-dark/90 hover:bg-hp-dark text-white shadow-lg flex flex-col items-center justify-center gap-0 opacity-0 pointer-events-none translate-y-2 transition-all duration-300 active:scale-95">
+                        <i class="fa-solid fa-chevron-up text-[10px] leading-none"></i>
+                        <span class="text-[9px] font-black tracking-wider leading-none mt-0.5">TOP</span>
+                    </button>
 
                     <!-- Bottom Nav -->
                     <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
@@ -814,10 +878,10 @@
 
             <!-- 畫面 3：實境探索 -->
             <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-[#EADCC9] text-hp-dark overflow-hidden">
-                    <div class="relative flex-grow min-h-0 overflow-hidden">
-
-                        <!-- Map View - full bleed background -->
-                        <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
+                    <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden">
+                        <!-- Map View -->
+                        <div class="relative flex-1 min-h-[38%] overflow-hidden">
+                            <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
                             <div data-explorer-target="mapLayer" class="absolute inset-0 transition-transform duration-300 ease-out will-change-transform">
                             
                             <!-- Simulated street lines -->
@@ -863,23 +927,24 @@
                             </div>
                         </div>
 
-                        <!-- Floating Map Controls (above bottom sheet) -->
-                        <div class="absolute right-3 top-[38%] z-30 flex flex-col gap-1.5 pointer-events-auto">
+                        <!-- Floating Map Controls（限定在地圖區域右下角） -->
+                        <div class="absolute right-3 bottom-3 z-30 flex flex-col gap-1.5 pointer-events-auto">
                             <button type="button" data-action="click->explorer#zoomMap" aria-label="Zoom in"
-                                    class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
+                                    class="w-9 h-9 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
                                 <i class="fa-solid fa-plus text-xs"></i>
                             </button>
                             <button type="button" data-action="click->explorer#recenterMap" aria-label="Recenter map"
-                                    class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
+                                    class="w-9 h-9 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
                                 <i class="fa-solid fa-location-crosshairs text-xs text-hp-coral"></i>
                             </button>
                         </div>
+                        </div>
 
-                        <!-- Details card - bottom sheet over map -->
-                        <div class="absolute inset-x-0 bottom-14 z-10 max-h-[52%] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4">
+                        <!-- Details card - bottom sheet -->
+                        <div class="shrink-0 max-h-[min(48%,20rem)] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4 z-10">
                             
-                            <div class="flex justify-between items-start">
-                                <div>
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="min-w-0 flex-1">
                                     <span class="text-xs uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">
                                         <span data-global-lang="zh">導航進行中</span>
                                         <span data-global-lang="en" class="hidden">Navigation Active</span>
@@ -1551,8 +1616,8 @@
                 "wifiValue", "lockValue", "recImg1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "stayGuides", "localRecs",
-                "scrollContainer", "tabBtn", "bottomNavBtn",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "helpHostName",
+                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -1564,6 +1629,7 @@
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
                 this.bindRoomHeroSwipe();
                 this.bindOverlayHeroSwipe();
+                this.bindScrollContainer();
                 this.currentListingId = 'TAIPEI-CITY';
                 
                 // Initialize default view
@@ -1572,6 +1638,31 @@
 
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
+                if (this.hasScrollContainerTarget && this.onScrollContainerScroll) {
+                    this.scrollContainerTarget.removeEventListener('scroll', this.onScrollContainerScroll);
+                }
+            }
+
+            bindScrollContainer() {
+                if (!this.hasScrollContainerTarget) return;
+                this.onScrollContainerScroll = this.onScrollContainerScroll.bind(this);
+                this.scrollContainerTarget.addEventListener('scroll', this.onScrollContainerScroll, { passive: true });
+                this.onScrollContainerScroll();
+            }
+
+            onScrollContainerScroll() {
+                if (!this.hasScrollToTopBtnTarget || !this.hasScrollContainerTarget) return;
+                const show = this.scrollContainerTarget.scrollTop > 160;
+                this.scrollToTopBtnTarget.classList.toggle('opacity-0', !show);
+                this.scrollToTopBtnTarget.classList.toggle('pointer-events-none', !show);
+                this.scrollToTopBtnTarget.classList.toggle('translate-y-2', !show);
+            }
+
+            scrollToTop() {
+                if (this.hasScrollContainerTarget) {
+                    this.scrollContainerTarget.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                if (this.hasTabBtnTarget) this.setActiveTab(this.tabBtnTargets[0]);
             }
 
             bindRoomHeroSwipe() {
@@ -1784,7 +1875,7 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (this.hasExpDetailBodyTarget) {
                     this.expDetailBodyTarget.scrollTop = 0;
-                    this.expDetailBodyTarget.innerHTML = `<div class="h-[66dvh] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
+                    this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
                 const payload = await ExperienceDetailsAPI.fetchDetails(expId);
@@ -1795,20 +1886,148 @@
                 if (!payload || !this.hasExpDetailBodyTarget) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 this.currentExpRecIndex = recIndex;
-                const { mediaHtml, mapHtml, contentHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
-                this.expDetailBodyTarget.innerHTML = mediaHtml + mapHtml + contentHtml;
+                this.currentExpPayload = payload;
+                const { mediaHtml, mapHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
+                this.expDetailBodyTarget.innerHTML = mediaHtml + mapHtml + contentHtml + bookingHtml;
                 this.expDetailBodyTarget.scrollTop = 0;
                 ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
             }
 
             closeExperienceDetail() {
+                this.closeExpBookingCalendar();
+                this.closeExpShareSheet(false);
                 if (this.hasExpDetailBodyTarget) {
                     ExperienceDetailsAPI.pauseMediaPlayer?.(this.expDetailBodyTarget);
                     this.expDetailBodyTarget.innerHTML = '';
                 }
+                this.currentExpPayload = null;
+                this.selectedBookingDate = null;
                 if (this.hasExpDetailOverlayTarget) {
                     this.expDetailOverlayTarget.classList.add('translate-y-full');
                 }
+            }
+
+            openExpShareSheet() {
+                if (!this.currentExpPayload || !this.hasExpShareOverlayTarget) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                if (this.hasExpShareBodyTarget) {
+                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, { isZh });
+                }
+                this.expShareOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
+                requestAnimationFrame(() => {
+                    if (this.hasExpShareSheetTarget) {
+                        this.expShareSheetTarget.classList.remove('translate-y-full');
+                    }
+                });
+            }
+
+            closeExpShareSheet(animate = true) {
+                if (!this.hasExpShareOverlayTarget) return;
+                if (this.hasExpShareSheetTarget) {
+                    this.expShareSheetTarget.classList.add('translate-y-full');
+                }
+                const hide = () => {
+                    this.expShareOverlayTarget.classList.add('opacity-0', 'pointer-events-none');
+                    if (this.hasExpShareBodyTarget) this.expShareBodyTarget.innerHTML = '';
+                };
+                if (animate) {
+                    setTimeout(hide, 300);
+                } else {
+                    hide();
+                }
+            }
+
+            getExpShareUrl() {
+                if (!this.currentExpPayload) return '';
+                return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
+                    isZh: (window.currentLanguage || 'zh') === 'zh'
+                }).shareUrl;
+            }
+
+            copyExpShareLink() {
+                const url = this.getExpShareUrl();
+                if (!url) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const temp = document.createElement('textarea');
+                temp.value = url;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                this.triggerToast(
+                    isZh ? '連結已複製' : 'Link copied',
+                    isZh ? '可貼到訊息或社群分享給旅伴' : 'Paste into messages or social apps to share.',
+                    'success'
+                );
+            }
+
+            shareExpNative() {
+                if (!this.currentExpPayload) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, { isZh });
+                if (navigator.share) {
+                    navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});
+                    return;
+                }
+                this.copyExpShareLink();
+            }
+
+            openExpBookingCalendar() {
+                if (!this.currentExpPayload || !this.hasExpBookingOverlayTarget) return;
+                this.bookingViewDate = this.bookingViewDate || new Date(2026, 5, 1);
+                this.selectedBookingDate = null;
+                this.renderBookingCalendarView();
+                this.expBookingOverlayTarget.classList.remove('translate-y-full');
+            }
+
+            closeExpBookingCalendar() {
+                if (this.hasExpBookingOverlayTarget) {
+                    this.expBookingOverlayTarget.classList.add('translate-y-full');
+                }
+                this.selectedBookingDate = null;
+            }
+
+            renderBookingCalendarView() {
+                if (!this.hasExpBookingCalendarTarget || !this.currentExpPayload) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                this.expBookingCalendarTarget.innerHTML = ExperienceDetailsAPI.renderBookingCalendar(this.currentExpPayload, {
+                    isZh,
+                    viewDate: this.bookingViewDate,
+                    selectedDate: this.selectedBookingDate
+                });
+            }
+
+            selectBookingDate(event) {
+                const dateKey = event.currentTarget.dataset.date;
+                if (!dateKey || event.currentTarget.disabled) return;
+                this.selectedBookingDate = dateKey;
+                this.renderBookingCalendarView();
+            }
+
+            prevBookingMonth() {
+                const base = this.bookingViewDate || new Date(2026, 5, 1);
+                this.bookingViewDate = new Date(base.getFullYear(), base.getMonth() - 1, 1);
+                this.selectedBookingDate = null;
+                this.renderBookingCalendarView();
+            }
+
+            nextBookingMonth() {
+                const base = this.bookingViewDate || new Date(2026, 5, 1);
+                this.bookingViewDate = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+                this.selectedBookingDate = null;
+                this.renderBookingCalendarView();
+            }
+
+            confirmExpBooking(event) {
+                const slot = event.currentTarget.dataset.slot || '';
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const dateLabel = this.selectedBookingDate || (isZh ? '所選日期' : 'selected date');
+                this.closeExpBookingCalendar();
+                this.triggerToast(
+                    isZh ? '預定成功' : 'Booking confirmed',
+                    isZh ? `已選擇 ${dateLabel} · ${slot}` : `Selected ${dateLabel} · ${slot}`,
+                    'success'
+                );
             }
 
             openSimilarExperience(event) {
