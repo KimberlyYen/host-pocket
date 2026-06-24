@@ -161,8 +161,8 @@
       data-controller="global"
       data-global-lang-value="zh">
 
-    <!-- 語言切換（浮動） -->
-    <div class="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
+    <!-- 語言切換（僅 Step 1 配對畫面顯示） -->
+    <div data-global-target="langBar" class="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
         <button data-global-target="zhBtn"
                 data-action="click->global#switchLanguage"
                 data-lang="zh"
@@ -679,25 +679,12 @@
                     </div>
 
                     <!-- Experience Details Overlay (Airbnb Experience Details API) -->
-                    <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
-                        <div class="px-4 py-3 border-b border-hp-border flex items-center gap-2 bg-white shrink-0 pt-[max(2.75rem,env(safe-area-inset-top))]">
-                            <button data-action="click->dashboard#closeExperienceDetail" aria-label="Close" class="shrink-0 w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
-                                <i class="fa-solid fa-xmark text-sm"></i>
-                            </button>
-                            <button type="button" data-action="click->dashboard#openExpDetailMap" data-dashboard-target="expDetailMapBtn"
-                                    class="shrink-0 text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
-                                <i class="fa-solid fa-map-location-dot mr-1"></i>
-                                <span data-global-lang="zh">地圖</span>
-                                <span data-global-lang="en" class="hidden">Map</span>
-                            </button>
-                            <span class="flex-1 min-w-0 text-center text-xs font-black tracking-widest text-hp-dark uppercase flex items-center justify-center gap-1">
-                                <i class="fa-brands fa-airbnb text-hp-coral text-base shrink-0"></i>
-                                <span data-global-lang="zh">體驗詳情</span>
-                                <span data-global-lang="en" class="hidden">Experience</span>
-                            </span>
-                            <div class="shrink-0 w-[5.25rem]" aria-hidden="true"></div>
-                        </div>
-                        <div data-dashboard-target="expDetailBody" class="flex-grow overflow-y-auto hide-scrollbar pb-8"></div>
+                    <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col overflow-hidden">
+                        <button data-action="click->dashboard#closeExperienceDetail" aria-label="Close"
+                                class="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-50 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-hp-dark flex items-center justify-center shadow-md transition active:scale-95 pointer-events-auto">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                        <div data-dashboard-target="expDetailBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar pb-8"></div>
                     </div>
 
                     <!-- Bottom Nav -->
@@ -930,13 +917,17 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <button data-action="click->explorer#requestWifiReset" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
                                         <i class="fa-solid fa-wifi text-hp-coral text-xs mb-1"></i>
-                                        <div class="text-xs font-bold text-hp-dark">Wi-Fi 斷線重置</div>
-                                        <p class="text-xs text-[#8C807A] mt-0.5">一鍵發送重啟請求</p>
+                                        <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">Wi-Fi 斷線重置</div>
+                                        <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Wi-Fi Reset</div>
+                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">一鍵發送重啟請求</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">Send router reboot request</p>
                                     </button>
                                     <button data-action="click->explorer#requestTrashPolicy" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
                                         <i class="fa-solid fa-trash-can text-hp-coral text-xs mb-1"></i>
-                                        <div class="text-xs font-bold text-hp-dark">清潔/垃圾處理說明</div>
-                                        <p class="text-xs text-[#8C807A] mt-0.5">了解分類回收規章</p>
+                                        <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">清潔/垃圾處理說明</div>
+                                        <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Trash & Recycling</div>
+                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">了解分類回收規章</p>
+                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">View local sorting rules</p>
                                     </button>
                                 </div>
                             </div>
@@ -1019,8 +1010,8 @@
                 roomImg: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
                 roomGallery: [
                     "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1480072618760-64360a658a43?auto=format&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1512918728675-ebd0bcb0b4e8?auto=format&fit=crop&w=600&q=80"
+                    "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"
                 ],
                 roomTitleZh: "肖爾迪奇 · 倫敦時尚公寓",
                 roomTitleEn: "Shoreditch · London Designer Flat",
@@ -1055,7 +1046,8 @@
                 explorerEstZh: "預估花費：免費",
                 explorerEstEn: "Est: Free",
                 wifi: "LondonShoreditch_5G / pass: britannia24",
-                lock: "智慧門鎖輸入 #2468#，綠燈亮起後推門進入",
+                lockZh: "智慧門鎖輸入 #2468#，綠燈亮起後推門進入",
+                lockEn: "Enter #2468# on the smart lock; push the door when the green light turns on",
                 recImg1: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "博羅市場週末早午餐",
                 recTitle1En: "Borough Market Weekend Brunch",
@@ -1113,7 +1105,8 @@
                 explorerEstZh: "預估花費：免費",
                 explorerEstEn: "Est: Free",
                 wifi: "TaipeiDaan_5G / pass: nightmarket88",
-                lock: "電子門鎖輸入 #2024#，聽到滴聲後推門進入",
+                lockZh: "電子門鎖輸入 #2024#，聽到滴聲後推門進入",
+                lockEn: "Enter #2024# on the electronic lock; push the door after the beep",
                 recImg1: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "撫順街傳統早餐與豆漿",
                 recTitle1En: "Fushun Street Classic Breakfast",
@@ -1171,7 +1164,8 @@
                 explorerEstZh: "預估花費：免費",
                 explorerEstEn: "Est: Free",
                 wifi: "VilniusOldTown_Guest / pass: amber2024",
-                lock: "感應鑰匙卡輕觸門把，綠燈亮起後推門進入",
+                lockZh: "感應鑰匙卡輕觸門把，綠燈亮起後推門進入",
+                lockEn: "Tap the key card on the handle; push the door when the green light turns on",
                 recImg1: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "特拉凱城堡湖上獨木舟",
                 recTitle1En: "Trakai Castle Lake Kayak",
@@ -1229,7 +1223,8 @@
                 explorerEstZh: "預估花費：R$150 起",
                 explorerEstEn: "Est: From R$150",
                 wifi: "CopaBeach_5G / pass: samba1234",
-                lock: "電子鎖輸入 #8420# 後轉動把手開門",
+                lockZh: "電子鎖輸入 #8420# 後轉動把手開門",
+                lockEn: "Enter #8420# on the electronic lock, then turn the handle",
                 recImg1: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "拉帕區森巴之夜體驗",
                 recTitle1En: "Lapa Samba Night Experience",
@@ -1266,6 +1261,9 @@
                     el.classList.toggle("is-active", el.dataset.screen === name);
                 });
                 this.currentValue = name;
+
+                const langBar = document.querySelector('[data-global-target="langBar"]');
+                if (langBar) langBar.classList.toggle('hidden', name !== 'pairing');
 
                 if (name === "explorer") {
                     const explorerEl = this.screenTargets.find(el => el.dataset.screen === "explorer");
@@ -1387,7 +1385,8 @@
                         explorerEstZh: "預估花費：免費",
                         explorerEstEn: "Est: Free",
                         wifi: `MyWifi_${targetId} / pass: welcome123456`,
-                        lock: "點選下方電子鎖按鈕並取得臨時動態密碼 8820",
+                        lockZh: "點選下方電子鎖按鈕並取得臨時動態密碼 8820",
+                        lockEn: "Tap the lock button below to get temporary code 8820",
                         recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
                         recTitle1Zh: "在地老街特色美食品嚐行程",
                         recTitle1En: "Authentic Old Street Gourmet Tour",
@@ -1553,7 +1552,7 @@
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "bottomNavBtn",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expDetailMapBtn", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -1687,13 +1686,14 @@
                         : (data.listingLabelEn || id);
                 }
                 this.wifiValueTarget.innerText = data.wifi;
-                this.lockValueTarget.innerText = data.lock;
+                const lockText = isZh ? (data.lockZh || data.lock) : (data.lockEn || data.lock);
+                this.lockValueTarget.innerText = lockText;
                 if (this.hasLockCodeTarget) {
-                    const codeMatch = data.lock.match(/#[\d]+#/);
-                    this.lockCodeTarget.innerText = codeMatch ? codeMatch[0] : (data.lockCode || data.lock);
+                    const codeMatch = lockText.match(/#[\d]+#/);
+                    this.lockCodeTarget.innerText = codeMatch ? codeMatch[0] : (data.lockCode || lockText);
                 }
                 if (this.hasLockDetailTarget) {
-                    this.lockDetailTarget.innerText = data.lock;
+                    this.lockDetailTarget.innerText = lockText;
                 }
 
                 setImgWithFallback(this.recImg1Target, data.recImg1, IMAGE_FALLBACKS.rec);
@@ -1781,9 +1781,10 @@
 
                 this.currentExpRecIndex = recIndex;
                 this.expDetailOverlayTarget.classList.remove('translate-y-full');
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (this.hasExpDetailBodyTarget) {
-                    const isZh = (window.currentLanguage || 'zh') === 'zh';
-                    this.expDetailBodyTarget.innerHTML = `<p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
+                    this.expDetailBodyTarget.scrollTop = 0;
+                    this.expDetailBodyTarget.innerHTML = `<div class="h-[66dvh] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
                 const payload = await ExperienceDetailsAPI.fetchDetails(expId);
@@ -1794,10 +1795,17 @@
                 if (!payload || !this.hasExpDetailBodyTarget) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 this.currentExpRecIndex = recIndex;
-                this.expDetailBodyTarget.innerHTML = ExperienceDetailsAPI.renderPanel(payload, { isZh });
+                const { mediaHtml, mapHtml, contentHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
+                this.expDetailBodyTarget.innerHTML = mediaHtml + mapHtml + contentHtml;
+                this.expDetailBodyTarget.scrollTop = 0;
+                ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
             }
 
             closeExperienceDetail() {
+                if (this.hasExpDetailBodyTarget) {
+                    ExperienceDetailsAPI.pauseMediaPlayer?.(this.expDetailBodyTarget);
+                    this.expDetailBodyTarget.innerHTML = '';
+                }
                 if (this.hasExpDetailOverlayTarget) {
                     this.expDetailOverlayTarget.classList.add('translate-y-full');
                 }

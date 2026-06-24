@@ -3,6 +3,21 @@
  * Set window.SEARCHAPI_KEY to fetch live data; otherwise uses local fixtures.
  */
 (function (global) {
+    const IMAGE_FALLBACK = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
+    const IMG_ONERROR = `this.onerror=null;this.src='${IMAGE_FALLBACK}'`;
+
+    const DEMO_VIDEOS = {
+        '5829101': 'https://videos.pexels.com/video-files/5637865/5637865-hd_1920_1080_25fps.mp4',
+        '5829102': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
+        '3310245': 'https://videos.pexels.com/video-files/5637865/5637865-hd_1920_1080_25fps.mp4',
+        '3310246': 'https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4',
+        '4410201': 'https://videos.pexels.com/video-files/6981411/6981411-hd_1920_1080_25fps.mp4',
+        '4410202': 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4',
+        '5510301': 'https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4',
+        '5510302': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
+        default: 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4'
+    };
+
     const FIXTURES = {
         '5829101': {
             experience: {
@@ -47,14 +62,37 @@
             ],
             similar_experiences: [
                 { id: '5829102', title: 'Thames Riverside Photography Walk', link: 'https://www.airbnb.com/experiences/5829102', category: 'Outdoors', rating: 4.88, reviews: 412, price: 'Free', extracted_price: 0, duration: '2h', location: 'London', images: ['https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=400&q=80'] },
-                { id: '6785604', title: 'Fast-Access Seine River Cruise', link: 'https://www.airbnb.com/experiences/6785604', category: 'Landmarks', rating: 4.68, reviews: 302, price: 'From £22, per guest', extracted_price: 22, duration: '1h', location: 'London', images: ['https://images.unsplash.com/photo-1480072618760-64360a658a43?auto=format&fit=crop&w=400&q=80'] }
+                { id: '6785604', title: 'Fast-Access Thames River Cruise', link: 'https://www.airbnb.com/experiences/6785604', category: 'Landmarks', rating: 4.68, reviews: 302, price: 'From £22, per guest', extracted_price: 22, duration: '1h', location: 'London', images: ['https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=400&q=80'] }
             ],
             i18n: {
                 zh: {
                     title: '博羅市場週末早午餐',
                     description: '跟著在地嚮導品嚐現烤酸種麵包、英式起司與季節食材，走訪倫敦最經典的博羅市場。',
                     agenda_preamble: 'Emma 建議週六上午 10 點前往，排隊最短、攤位最齊全。',
-                    language: '體驗語言：英文'
+                    language: '體驗語言：英文',
+                    category: '美食與飲品',
+                    meeting_point: '博羅市場，倫敦橋',
+                    highlights: [
+                        { type: 'PROFILE', name: 'Emma 帶隊', description: '肖爾迪奇房東・市集常客' },
+                        { type: 'BADGE', name: '小團體', description: '每場最多 8 位旅客' }
+                    ],
+                    agenda: [
+                        { position: 1, title: '博羅市場集合', description: '簡介與發放市集地圖。' },
+                        { position: 2, title: '品嚐路線', description: '酸種麵包、起司與 Emma 私藏咖啡店家。' }
+                    ],
+                    location: { display_label: '倫敦，英國', address: '博羅市場，倫敦 SE1' },
+                    price: { price_label: '每位 £18 起', price: '£18', qualifier: '/ 每位' },
+                    availability: [
+                        { day: '6 月 28 日（六）', duration: '10:00 – 12:00', start_time: '上午 10:00', availability_description: '尚餘 6 位', is_available: true },
+                        { day: '6 月 29 日（日）', duration: '10:00 – 12:00', start_time: '上午 10:00', availability_description: '尚餘 4 位', is_available: true }
+                    ],
+                    accessibility_features: [{ name: '無台階通道' }, { name: '寬敞入口' }],
+                    cancellation_policy: { name: '免費取消', description: '開始時間 24 小時前可取消' },
+                    host: { about: '倫敦在地人與肖爾迪奇超讚房東，專為房客策劃美食步行。', tagline: '市集 insider・房東' },
+                    reviews: [
+                        { review_id: 'r1', text: '週六早晨超棒——光酸種麵包那一站就值了！', rating: 5, date: '2 週前', user: { name: 'James', location: '英國曼徹斯特' } },
+                        { review_id: 'r2', text: 'Emma 對每個攤商都瞭若指掌，像在地朋友帶路。', rating: 5, date: '1 個月前', user: { name: 'Sophie', location: '法國巴黎' } }
+                    ]
                 }
             }
         },
@@ -83,7 +121,24 @@
             host: { name: 'Emma', about: 'Evening walks are my favorite way to show guests the city.', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r3', text: 'Sunset on the Thames was magical.', rating: 5, date: '3 days ago', user: { name: 'Alex', location: 'Berlin' } }],
             similar_experiences: [{ id: '5829101', title: 'Borough Market Food Walk', rating: 4.92, reviews: 1248, price: 'From £18', extracted_price: 18, images: ['https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '泰晤士河黃昏河畔漫步', description: '傍晚從倫敦塔橋出發沿河散步，夕陽映在泰晤士河上的經典免費秘境。' } }
+            i18n: {
+                zh: {
+                    title: '泰晤士河黃昏河畔漫步',
+                    description: '傍晚從倫敦塔橋出發沿河散步，夕陽映在泰晤士河上的經典免費秘境。',
+                    language: '體驗語言：英文',
+                    category: '戶外活動',
+                    meeting_point: '倫敦塔橋',
+                    highlights: [{ type: 'BADGE', name: '免費體驗', description: '房東私藏房客免預約費' }],
+                    agenda: [{ position: 1, title: '塔橋集合', description: '傍晚 6 點出發，欣賞泰晤士河夕陽。' }],
+                    location: { display_label: '倫敦塔橋，倫敦' },
+                    price: { price_label: '免費', price: '免費' },
+                    availability: [{ day: '每日', duration: '18:00 – 19:30', start_time: '下午 6:00', availability_description: '自由參加', is_available: true }],
+                    accessibility_features: [{ name: '大多平坦步道' }],
+                    cancellation_policy: { name: '彈性取消', description: '開始前隨時可取消' },
+                    host: { about: '傍晚散步是我向房客展示倫敦最喜歡的方式。', tagline: '河畔導覽・房東' },
+                    reviews: [{ review_id: 'r3', text: '泰晤士河上的夕陽太夢幻了。', rating: 5, date: '3 天前', user: { name: 'Alex', location: '德國柏林' } }]
+                }
+            }
         },
         '3310245': {
             experience: {
@@ -109,7 +164,24 @@
             host: { name: 'Mia', about: 'I send every guest to this breakfast line first.', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r4', text: 'Exactly like a local friend\'s recommendation.', rating: 5, user: { name: 'Lin', location: 'Taichung' } }],
             similar_experiences: [{ id: '3310246', title: 'Xiangshan Sunset & Taipei 101', rating: 4.95, reviews: 2103, price: 'Free', extracted_price: 0, images: ['https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '撫順街傳統早餐與豆漿', description: '週末早上品嚐現炸油條與濃豆漿，本地人排隊的經典早餐路線。' } }
+            i18n: {
+                zh: {
+                    title: '撫順街傳統早餐與豆漿',
+                    description: '週末早上品嚐現炸油條與濃豆漿，本地人排隊的經典早餐路線。',
+                    language: '體驗語言：中文',
+                    category: '美食與飲品',
+                    agenda_preamble: '建議週末早上 8 點前抵達，避開最長人龍。',
+                    highlights: [{ type: 'PROFILE', name: 'Mia 帶隊', description: '大安設計複層房東' }],
+                    agenda: [{ position: 1, title: '撫順街早餐', description: '現炸油條、豆漿與蛋餅。' }],
+                    location: { display_label: '台北，大安' },
+                    price: { price_label: '每位 NT$120 起', price: 'NT$120' },
+                    availability: [{ day: '週六至週日', duration: '08:00 – 09:30', availability_description: '現場排隊即可', is_available: true }],
+                    accessibility_features: [{ name: '街道平面入口' }],
+                    cancellation_policy: { name: '免費取消', description: '開始 12 小時前可取消' },
+                    host: { about: '每位房客我都會先帶來這條早餐動線。', tagline: '早餐路線・房東' },
+                    reviews: [{ review_id: 'r4', text: '就像在地朋友帶路一樣道地。', rating: 5, user: { name: 'Lin', location: '台中' } }]
+                }
+            }
         },
         '3310246': {
             experience: {
@@ -134,7 +206,22 @@
             host: { name: 'Mia', about: 'This view is why I love hosting in Da\'an.', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r5', text: 'Taipei 101 at dusk — unforgettable.', rating: 5, user: { name: 'Yuki', location: 'Osaka' } }],
             similar_experiences: [{ id: '3310245', title: 'Da\'an Breakfast Tour', rating: 4.91, extracted_price: 120, images: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '象山步道夕陽看台北 101', description: '傍晚登山約 20 分鐘，夕陽灑在台北 101 上的台北最經典免費秘境。' } }
+            i18n: {
+                zh: {
+                    title: '象山步道夕陽看台北 101',
+                    description: '傍晚登山約 20 分鐘，夕陽灑在台北 101 上的台北最經典免費秘境。',
+                    category: '戶外活動',
+                    highlights: [{ type: 'BADGE', name: '免費', description: '公共步道，無需門票' }],
+                    agenda: [{ position: 1, title: '下午 5 點登山口集合', description: '記得帶水，約 20 分鐘抵達觀景台。' }],
+                    location: { display_label: '台北，象山' },
+                    price: { price_label: '免費' },
+                    availability: [{ day: '每日', duration: '17:00 – 19:00', availability_description: '晴天最佳', is_available: true }],
+                    accessibility_features: [{ name: '階梯陡峭，輪椅無法進入' }],
+                    cancellation_policy: { name: '彈性取消', description: '依天氣自行安排' },
+                    host: { about: '這個景色是我愛在大安接待房客的原因。', tagline: '夕陽秘境・房東' },
+                    reviews: [{ review_id: 'r5', text: '黃昏的台北 101 令人難忘。', rating: 5, user: { name: 'Yuki', location: '日本大阪' } }]
+                }
+            }
         },
         '4410201': {
             experience: {
@@ -158,7 +245,21 @@
             host: { name: 'Mindaugas', about: 'Summer on the lake is non-negotiable for my guests.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r6', text: 'Castle views from the water were stunning.', rating: 5, user: { name: 'Anna', location: 'Warsaw' } }],
             similar_experiences: [{ id: '4410202', title: 'Amber Workshop', rating: 4.90, extracted_price: 25, images: ['https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '特拉凱城堡湖上獨木舟', description: '夏季下午 4 點前在城堡前湖上划獨木舟，光線最佳。' } }
+            i18n: {
+                zh: {
+                    title: '特拉凱城堡湖上獨木舟',
+                    description: '夏季下午 4 點前在城堡前湖上划獨木舟，光線最佳。',
+                    category: '戶外活動',
+                    price: { price_label: '每位 €35 起' },
+                    location: { display_label: '特拉凱，立陶宛' },
+                    availability: [{ day: '週三至週日', duration: '14:00 – 16:00', availability_description: '尚餘 8 位', is_available: true }],
+                    accessibility_features: [{ name: '中等體力需求' }],
+                    cancellation_policy: { name: '標準取消', description: '開始 48 小時前可取消' },
+                    agenda: [{ position: 1, title: '湖上簡介', description: '舊城出發車程 30 分鐘，裝備已含。' }],
+                    host: { about: '夏天帶房客上湖是我絕對不會省略的行程。', tagline: '湖上體驗・房東' },
+                    reviews: [{ review_id: 'r6', text: '從水面看城堡太震撼了。', rating: 5, user: { name: 'Anna', location: '波蘭華沙' } }]
+                }
+            }
         },
         '4410202': {
             experience: {
@@ -181,7 +282,21 @@
             host: { name: 'Mindaugas', about: 'Every guest leaves with a tiny amber keepsake.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r7', text: 'Unique souvenir we made ourselves.', rating: 5, user: { name: 'Petra', location: 'Prague' } }],
             similar_experiences: [{ id: '4410201', title: 'Trakai Kayak', rating: 4.87, extracted_price: 35, images: ['https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '舊城琥珀工藝工作坊', description: '步行 10 分鐘到工作坊，親手打磨琥珀小飾品，需提前一天預約。' } }
+            i18n: {
+                zh: {
+                    title: '舊城琥珀工藝工作坊',
+                    description: '步行 10 分鐘到工作坊，親手打磨琥珀小飾品，需提前一天預約。',
+                    category: '藝術與文化',
+                    price: { price_label: '每位 €25 起' },
+                    location: { display_label: '維爾紐斯舊城' },
+                    availability: [{ day: '週二至週六', duration: '11:00 – 13:00', availability_description: '尚餘 5 位', is_available: true }],
+                    accessibility_features: [{ name: '歷史建築，樓梯狹窄' }],
+                    cancellation_policy: { name: '中等取消', description: '開始 24 小時前可取消' },
+                    agenda: [{ position: 1, title: '工作坊介紹', description: '從閣樓公寓步行 10 分鐘。' }],
+                    host: { about: '每位房客都會帶走一枚親手打磨的琥珀紀念。', tagline: '工藝體驗・房東' },
+                    reviews: [{ review_id: 'r7', text: '親手做的紀念品獨一無二。', rating: 5, user: { name: 'Petra', location: '捷克布拉格' } }]
+                }
+            }
         },
         '5510301': {
             experience: {
@@ -204,7 +319,21 @@
             host: { name: 'Carlos', about: 'Samba is how I welcome every guest to Rio.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r8', text: 'Energy was incredible — felt safe with Carlos.', rating: 5, user: { name: 'Maria', location: 'São Paulo' } }],
             similar_experiences: [{ id: '5510302', title: 'Sugarloaf Sunrise', rating: 4.93, extracted_price: 120, images: ['https://images.unsplash.com/photo-1548919973-8162e84749af?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '拉帕區森巴之夜體驗', description: '週五晚間街頭森巴與現場音樂，建議 9 點後前往。' } }
+            i18n: {
+                zh: {
+                    title: '拉帕區森巴之夜體驗',
+                    description: '週五晚間街頭森巴與現場音樂，建議 9 點後前往。',
+                    category: '夜生活',
+                    price: { price_label: '每位 R$80 起' },
+                    location: { display_label: '里約，拉帕區' },
+                    availability: [{ day: '週五', duration: '21:00 – 00:00', availability_description: '尚餘 12 位', is_available: true }],
+                    accessibility_features: [{ name: '現場音樂音量較大' }],
+                    cancellation_policy: { name: '嚴格取消', description: '24 小時內不可退款' },
+                    agenda: [{ position: 1, title: '拉帕區集合', description: 'Carlos 帶你前往最愛的 samba roda。' }],
+                    host: { about: '森巴是我歡迎每位里約房客的方式。', tagline: '夜間體驗・房東' },
+                    reviews: [{ review_id: 'r8', text: '現場能量超強，有 Carlos 帶很安心。', rating: 5, user: { name: 'Maria', location: '巴西聖保羅' } }]
+                }
+            }
         },
         '5510302': {
             experience: {
@@ -227,26 +356,181 @@
             host: { name: 'Carlos', about: 'Sunrise from Sugarloaf is my #1 Rio tip.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' },
             reviews: [{ review_id: 'r9', text: 'Worth the early wake-up.', rating: 5, user: { name: 'Tom', location: 'New York' } }],
             similar_experiences: [{ id: '5510301', title: 'Lapa Samba Night', rating: 4.85, extracted_price: 80, images: ['https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=400&q=80'] }],
-            i18n: { zh: { title: '糖麵包山日出健行', description: '清晨從科帕卡巴納搭纜車上糖麵包山，俯瞰日出與瓜納巴拉灣。' } }
+            i18n: {
+                zh: {
+                    title: '糖麵包山日出纜車',
+                    description: '清晨從科帕卡巴納搭纜車上糖麵包山，俯瞰日出與瓜納巴拉灣。',
+                    category: '戶外活動',
+                    price: { price_label: '每位 R$120 起' },
+                    location: { display_label: '科帕卡巴納，里約' },
+                    availability: [{ day: '每日', duration: '06:00 – 08:00', availability_description: '尚餘 6 位', is_available: true }],
+                    accessibility_features: [{ name: '纜車可達' }],
+                    cancellation_policy: { name: '彈性取消', description: '遇雨天可改期' },
+                    agenda: [{ position: 1, title: '纜車上山', description: '從站點出發約 8 分鐘。' }],
+                    host: { about: '糖麵包山日出是我給里約房客的第一建議。', tagline: '日出體驗・房東' },
+                    reviews: [{ review_id: 'r9', text: '早起完全值得。', rating: 5, user: { name: 'Tom', location: '美國紐約' } }]
+                }
+            }
+        },
+        '6785604': {
+            i18n: {
+                zh: {
+                    title: '泰晤士河快速遊船',
+                    price: '每位 £22 起',
+                    category: '地標'
+                }
+            }
         }
     };
 
     function localizePayload(payload, isZh) {
-        if (!payload || !isZh || !payload.i18n?.zh) return payload;
-        const zh = payload.i18n.zh;
+        if (!payload || !isZh) return payload;
+        const zh = payload.i18n?.zh;
+        if (!zh) return payload;
+
         const exp = { ...payload.experience };
-        if (zh.title) exp.title = zh.title;
-        if (zh.description) exp.description = zh.description;
-        if (zh.agenda_preamble) exp.agenda_preamble = zh.agenda_preamble;
-        if (zh.language) exp.language = zh.language;
-        return { ...payload, experience: exp };
+        ['title', 'description', 'agenda_preamble', 'language', 'category', 'meeting_point'].forEach(key => {
+            if (zh[key]) exp[key] = zh[key];
+        });
+        if (zh.highlights) exp.highlights = zh.highlights;
+        if (zh.agenda) exp.agenda = zh.agenda;
+        if (zh.location) exp.location = { ...(exp.location || {}), ...zh.location };
+        if (zh.price) exp.price = { ...(exp.price || {}), ...zh.price };
+        if (zh.availability) exp.availability = zh.availability;
+        if (zh.accessibility_features) exp.accessibility_features = zh.accessibility_features;
+        if (zh.cancellation_policy) {
+            exp.cancellation_policy = { ...(exp.cancellation_policy || {}), ...zh.cancellation_policy };
+        }
+
+        const host = zh.host ? { ...(payload.host || {}), ...zh.host } : payload.host;
+        const reviews = zh.reviews || payload.reviews;
+        const similar_experiences = (payload.similar_experiences || []).map(sim => {
+            const simZh = FIXTURES[sim.id]?.i18n?.zh;
+            if (!simZh) return sim;
+            return {
+                ...sim,
+                title: simZh.title || sim.title,
+                price: (typeof simZh.price === 'string' ? simZh.price : simZh.price?.price_label) || sim.price,
+                category: simZh.category || sim.category
+            };
+        });
+
+        return { ...payload, experience: exp, host, reviews, similar_experiences };
     }
 
     function escapeHtml(str) {
         return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function renderPanel(payload, options = {}) {
+    function normalizeMedia(exp) {
+        const items = (exp.media && exp.media.length)
+            ? exp.media.filter(m => m?.url)
+            : (exp.cover_image ? [{ type: 'image', url: exp.cover_image }] : []);
+        if (items.some(m => m.type === 'video')) return items;
+
+        const poster = items.find(m => m.type === 'image')?.url || exp.cover_image || '';
+        const videoUrl = DEMO_VIDEOS[exp.id] || DEMO_VIDEOS.default;
+        return [{ type: 'video', url: videoUrl, poster }, ...items];
+    }
+
+    function renderMediaHero(media, category, isZh) {
+        if (!media.length) {
+            return `<div class="exp-media-hero h-[66dvh] relative shrink-0 bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
+        }
+
+        const slides = media.map((item, i) => {
+            const active = i === 0;
+            const baseClass = `exp-media-slide absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
+            if (item.type === 'video') {
+                return `<div class="${baseClass}" data-exp-media-index="${i}">
+                    <video class="w-full h-full object-cover bg-black" src="${escapeHtml(item.url)}"${item.poster ? ` poster="${escapeHtml(item.poster)}"` : ''} muted playsinline loop controls preload="metadata"${active ? ' autoplay' : ''}></video>
+                </div>`;
+            }
+            return `<div class="${baseClass}" data-exp-media-index="${i}">
+                <img src="${escapeHtml(item.url)}" alt="" class="w-full h-full object-cover" onerror="${IMG_ONERROR}">
+            </div>`;
+        }).join('');
+
+        const nav = media.length > 1 ? `
+            <button type="button" data-exp-media-prev aria-label="Previous" class="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/55 text-white flex items-center justify-center transition active:scale-95">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button type="button" data-exp-media-next aria-label="Next" class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/55 text-white flex items-center justify-center transition active:scale-95">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-1 pointer-events-auto">
+                ${media.map((_, i) => `<button type="button" data-exp-media-dot="${i}" aria-label="Slide ${i + 1}" class="w-1.5 h-1.5 rounded-full transition ${i === 0 ? 'bg-white scale-110' : 'bg-white/45 hover:bg-white/70'}"></button>`).join('')}
+            </div>` : '';
+
+        return `
+            <div class="exp-media-hero h-[66dvh] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
+                ${slides}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-[15]"></div>
+                ${nav}
+                <span class="absolute bottom-3 left-4 z-20 bg-white/90 text-hp-dark text-xs font-bold px-2 py-0.5 rounded-md">${escapeHtml(category || (isZh ? '體驗' : 'Experience'))}</span>
+                ${media.some(m => m.type === 'video') ? `<span class="absolute top-3 right-4 z-20 bg-black/45 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">${isZh ? '預覽影片' : 'Preview'}</span>` : ''}
+            </div>`;
+    }
+
+    function initMediaPlayer(root) {
+        const hero = root?.querySelector?.('.exp-media-hero');
+        if (!hero || hero.dataset.expMediaBound === 'true') return;
+        hero.dataset.expMediaBound = 'true';
+
+        const slides = [...hero.querySelectorAll('.exp-media-slide')];
+        const dots = [...hero.querySelectorAll('[data-exp-media-dot]')];
+        if (!slides.length) return;
+
+        let index = 0;
+
+        const syncSlide = (next) => {
+            index = (next + slides.length) % slides.length;
+            slides.forEach((slide, i) => {
+                const active = i === index;
+                slide.classList.toggle('opacity-100', active);
+                slide.classList.toggle('z-10', active);
+                slide.classList.toggle('opacity-0', !active);
+                slide.classList.toggle('z-0', !active);
+                slide.classList.toggle('pointer-events-none', !active);
+                const video = slide.querySelector('video');
+                if (!video) return;
+                if (active) {
+                    video.play().catch(() => {});
+                } else {
+                    video.pause();
+                }
+            });
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('bg-white', i === index);
+                dot.classList.toggle('scale-110', i === index);
+                dot.classList.toggle('bg-white/45', i !== index);
+            });
+        };
+
+        hero.querySelector('[data-exp-media-prev]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            syncSlide(index - 1);
+        });
+        hero.querySelector('[data-exp-media-next]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            syncSlide(index + 1);
+        });
+        dots.forEach(dot => dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            syncSlide(parseInt(dot.dataset.expMediaDot, 10));
+        }));
+
+        slides[0]?.querySelector('video')?.play().catch(() => {});
+    }
+
+    function pauseMediaPlayer(root) {
+        root?.querySelectorAll?.('video').forEach(video => {
+            video.pause();
+            video.currentTime = 0;
+        });
+    }
+
+    function preparePanelContext(payload, options = {}) {
         const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
         const data = localizePayload(payload, isZh);
         const exp = data.experience || {};
@@ -255,8 +539,7 @@
         const loc = exp.location || {};
         const cancel = exp.cancellation_policy || {};
         const reqs = exp.guest_requirements || {};
-        const media = (exp.media && exp.media.length) ? exp.media : (exp.cover_image ? [{ type: 'image', url: exp.cover_image }] : []);
-        const hero = media.find(m => m.type === 'image')?.url || exp.cover_image || '';
+        const media = normalizeMedia(exp);
         const highlights = exp.highlights || [];
         const agenda = exp.agenda || [];
         const availability = exp.availability || [];
@@ -280,12 +563,16 @@
             ? (isZh ? `年齡 ${reqs.min_age} 歲以上` : `Ages ${reqs.min_age}+`)
             : (isZh ? '無年齡限制' : 'All ages welcome');
 
+        return {
+            isZh, exp, host, price, loc, cancel, media, highlights, agenda,
+            availability, reviews, similar, a11y, labels, guestReqText
+        };
+    }
+
+    function renderDetailContent(ctx) {
+        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText } = ctx;
+
         return `
-            <div class="h-44 relative shrink-0">
-                <img src="${escapeHtml(hero)}" alt="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80'">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <span class="absolute bottom-3 left-4 bg-white/90 text-hp-dark text-xs font-bold px-2 py-0.5 rounded-md">${escapeHtml(exp.category || 'Experience')}</span>
-            </div>
             <div class="p-5 space-y-4">
                 <div>
                     <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
@@ -293,7 +580,7 @@
                         <span class="text-xs font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
                         <span class="text-xs text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()} ${labels.reviewsCount})</span>
                         <span class="text-xs font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
-                        ${price.extracted_price != null ? `<span class="text-xs text-hp-muted font-mono">extracted_price: ${price.extracted_price}</span>` : ''}
+                        ${price.extracted_price != null && !isZh ? `<span class="text-xs text-hp-muted font-mono">extracted_price: ${price.extracted_price}</span>` : ''}
                     </div>
                     <p class="text-xs text-hp-muted mt-2 leading-relaxed">${escapeHtml(exp.description)}</p>
                     ${exp.link ? `<a href="${escapeHtml(exp.link)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-hp-coral mt-2 hover:underline"><i class="fa-brands fa-airbnb"></i> ${labels.openAirbnb}</a>` : ''}
@@ -323,7 +610,7 @@
 
                 ${host.name ? `
                 <section class="flex gap-3 items-start border border-hp-border rounded-2xl p-3 bg-white">
-                    ${host.avatar ? `<img src="${escapeHtml(host.avatar)}" alt="" class="w-12 h-12 rounded-full object-cover shrink-0">` : ''}
+                    ${host.avatar ? `<img src="${escapeHtml(host.avatar)}" alt="" class="w-12 h-12 rounded-full object-cover shrink-0" onerror="${IMG_ONERROR}">` : ''}
                     <div>
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#8C807A]">${labels.host}</h3>
                         <p class="text-xs font-bold text-hp-dark mt-0.5">${escapeHtml(host.name)}${host.tagline ? ` · ${escapeHtml(host.tagline)}` : ''}</p>
@@ -353,7 +640,7 @@
                         ${reviews.slice(0, 3).map(r => `
                             <div class="bg-white border border-hp-border rounded-xl p-3">
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs font-bold text-hp-dark">${escapeHtml(r.user?.name || 'Guest')}</span>
+                                    <span class="text-xs font-bold text-hp-dark">${escapeHtml(r.user?.name || (isZh ? '旅客' : 'Guest'))}</span>
                                     <span class="text-xs text-hp-coral">★ ${r.rating}</span>
                                 </div>
                                 <p class="text-xs text-[#332C2A] leading-relaxed">${escapeHtml(r.text || r.highlighted_comment)}</p>
@@ -375,19 +662,43 @@
                 ${similar.length ? `
                 <section>
                     <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${labels.similar}</h3>
-                    <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
+                    <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1 items-start">
                         ${similar.map(s => `
                             <button type="button" data-action="click->dashboard#openSimilarExperience" data-experience-id="${escapeHtml(s.id)}"
-                                    class="min-w-[160px] w-[160px] shrink-0 bg-white border border-hp-border rounded-xl overflow-hidden text-left hover:border-hp-coral transition active:scale-[0.98]">
-                                ${s.images?.[0] ? `<img src="${escapeHtml(s.images[0])}" alt="" class="w-full h-20 object-cover">` : ''}
-                                <div class="p-2.5">
+                                    class="min-w-[160px] w-[160px] shrink-0 flex flex-col bg-white border border-hp-border rounded-xl overflow-hidden text-left hover:border-hp-coral transition active:scale-[0.98]">
+                                ${s.images?.[0] ? `<img src="${escapeHtml(s.images[0])}" alt="" class="w-full h-20 object-cover bg-hp-bgLight shrink-0" onerror="${IMG_ONERROR}">` : `<div class="w-full h-20 bg-hp-bgLight flex items-center justify-center shrink-0"><i class="fa-solid fa-image text-hp-muted text-lg"></i></div>`}
+                                <div class="px-2.5 py-2">
                                     <p class="text-xs font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(s.title)}</p>
-                                    <p class="text-xs text-hp-muted mt-0.5">★ ${s.rating} · ${escapeHtml(s.price || '')}</p>
+                                    <p class="text-xs text-hp-muted mt-0.5">★ ${s.rating}${s.price ? ` · ${escapeHtml(s.price)}` : ''}</p>
                                 </div>
                             </button>`).join('')}
                     </div>
                 </section>` : ''}
             </div>`;
+    }
+
+    function renderMapBar(isZh) {
+        return `<div class="px-4 py-2.5 border-b border-hp-border bg-white shrink-0">
+            <button type="button" data-action="click->dashboard#openExpDetailMap"
+                    class="inline-flex items-center text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
+                <i class="fa-solid fa-map-location-dot mr-1"></i>
+                ${isZh ? '地圖' : 'Map'}
+            </button>
+        </div>`;
+    }
+
+    function renderPanelParts(payload, options = {}) {
+        const ctx = preparePanelContext(payload, options);
+        return {
+            mediaHtml: renderMediaHero(ctx.media, ctx.exp.category, ctx.isZh),
+            mapHtml: renderMapBar(ctx.isZh),
+            contentHtml: renderDetailContent(ctx)
+        };
+    }
+
+    function renderPanel(payload, options = {}) {
+        const parts = renderPanelParts(payload, options);
+        return parts.mediaHtml + parts.mapHtml + parts.contentHtml;
     }
 
     async function fetchDetails(experienceId, options = {}) {
@@ -420,6 +731,9 @@
         fetchDetails,
         localizePayload,
         renderPanel,
+        renderPanelParts,
+        initMediaPlayer,
+        pauseMediaPlayer,
         getExperienceIdForRec
     };
 })(window);
