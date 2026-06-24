@@ -879,15 +879,6 @@
                                     <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Wi-Fi, check-in, local tips</p>
                                 </div>
                             </button>
-                            <button data-action="click->dashboard#callHost" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-phone"></i></div>
-                                <div>
-                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">緊急語音通話</div>
-                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Emergency Voice Call</div>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">透過房東私藏加密 VoIP</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Via encrypted host-pocket VoIP</p>
-                                </div>
-                            </button>
                             <button data-action="click->dashboard#scrollToSectionFromHelp" data-section="stayGuides" class="w-full bg-hp-bgLight border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-white text-hp-dark flex items-center justify-center border border-hp-border"><i class="fa-solid fa-wifi"></i></div>
                                 <div>
@@ -1688,8 +1679,8 @@
                 this.performPairing();
             }
 
-            triggerToast(title, msg, type) {
-                window.hpTriggerToast?.(title, msg, type);
+            triggerToast(title, msg, type, options) {
+                window.hpTriggerToast?.(title, msg, type, options);
             }
         });
 
@@ -2273,8 +2264,9 @@
                     if (!health.smtpConfigured && !health.bookingConfigured) {
                         this.triggerToast(
                             isZh ? '寄件尚未設定' : 'Email not configured',
-                            isZh ? '請至 email-test.html 儲存 Gmail 設定至 config' : 'Save Gmail settings via email-test.html first.',
-                            'info'
+                            isZh ? '請先設定 Gmail SMTP，才能寄送預定確認信' : 'Set up Gmail SMTP before sending booking confirmations.',
+                            'info',
+                            this.emailSetupToastOptions(isZh)
                         );
                         return;
                     }
@@ -2316,12 +2308,13 @@
                     this.closeExpBookingCalendar();
                 } catch (error) {
                     console.error('[Host Pocket] booking failed', error);
-                    const errMsg = error.message || (isZh ? '請至 email-test.html 設定 Gmail 並儲存至 config' : 'Configure Gmail via email-test.html first.');
+                    const errMsg = error.message || (isZh ? '請先設定 Gmail SMTP' : 'Configure Gmail SMTP first.');
                     this.setBookingConfirmFeedback('error', errMsg);
                     this.triggerToast(
                         isZh ? '預定失敗' : 'Booking failed',
                         errMsg,
-                        'error'
+                        'error',
+                        this.isEmailConfigError(errMsg) ? this.emailSetupToastOptions(isZh) : undefined
                     );
                 } finally {
                     this.setBookingSubmitLoading(false, isZh);
@@ -2460,15 +2453,6 @@
                     isZh ? '訊息已送出' : 'Message Sent',
                     isZh ? 'Sarah 已收到您的訊息，將盡快回覆！' : 'Sarah received your message and will reply soon!',
                     'success'
-                );
-            }
-
-            callHost() {
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                this.triggerToast(
-                    isZh ? '正在撥號...' : 'Calling...',
-                    isZh ? '正使用加密 VoIP 連線 Sarah...' : 'Connecting to Sarah via encrypted VoIP...',
-                    'info'
                 );
             }
 
@@ -2635,8 +2619,21 @@
                 setTimeout(() => section.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl'), 1200);
             }
 
-            triggerToast(title, msg, type) {
-                window.hpTriggerToast?.(title, msg, type);
+            triggerToast(title, msg, type, options) {
+                window.hpTriggerToast?.(title, msg, type, options);
+            }
+
+            emailSetupToastOptions(isZh) {
+                return {
+                    link: {
+                        href: 'email-test.html',
+                        label: isZh ? '前往設定信件' : 'Configure email'
+                    }
+                };
+            }
+
+            isEmailConfigError(message) {
+                return /email-test|Gmail|SMTP|寄件|smtp/i.test(String(message || ''));
             }
         });
 
@@ -2768,14 +2765,6 @@
                     window.currentLanguage === 'en' ? 'Policy Loaded' : '環保政策下載',
                     window.currentLanguage === 'en' ? 'Local sorting policy PDF saved to system downloads.' : '本區廚餘與瓶罐細分回收指南已儲存至您的檔案目錄中！',
                     'info'
-                );
-            }
-
-            triggerEmergency() {
-                this.triggerToast(
-                    window.currentLanguage === 'en' ? 'Calling Host...' : '正與房東通話',
-                    window.currentLanguage === 'en' ? 'Dialing Sarah through encrypted companion VoIP...' : '正使用加密網路語音系統撥號給 Sarah...',
-                    'error'
                 );
             }
 

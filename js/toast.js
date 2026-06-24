@@ -30,9 +30,10 @@
         return root;
     }
 
-    function show(title, message, type) {
+    function show(title, message, type, options) {
         const style = TYPE_STYLES[type] || TYPE_STYLES.info;
         const container = ensureRoot();
+        const link = options?.link;
 
         if (hideTimer) {
             clearTimeout(hideTimer);
@@ -49,6 +50,7 @@
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-black text-hp-dark leading-snug">${escapeHtml(title)}</p>
                     ${message ? `<p class="text-[11px] text-hp-muted mt-1 leading-relaxed whitespace-pre-line">${escapeHtml(message)}</p>` : ''}
+                    ${link?.href ? `<a href="${escapeHtml(link.href)}" class="inline-flex items-center gap-1.5 mt-2.5 text-[11px] font-bold text-hp-coral hover:underline">${escapeHtml(link.label || 'Open')}<i class="fa-solid fa-arrow-right text-[9px]"></i></a>` : ''}
                 </div>
             </div>`;
         container.appendChild(toast);
@@ -57,12 +59,13 @@
             toast.classList.add('scale-100');
         });
 
+        const duration = link?.href ? 8000 : (type === 'error' ? 6000 : 4500);
         hideTimer = setTimeout(() => {
             toast.classList.add('opacity-0', '-translate-y-1');
             setTimeout(() => {
                 if (container.contains(toast)) toast.remove();
             }, 300);
-        }, type === 'error' ? 6000 : 4500);
+        }, duration);
     }
 
     function escapeHtml(text) {
