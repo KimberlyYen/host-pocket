@@ -65,6 +65,15 @@
             container-type: inline-size;
             container-name: partner-bar;
         }
+        .partner-bar--footer {
+            width: 100%;
+            border-radius: 0;
+            margin-top: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
+            flex-shrink: 0;
+        }
         .partner-bar-label {
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
         }
@@ -108,9 +117,6 @@
         @container partner-bar (max-width: 300px) {
             .partner-bar .partner-icon-slot:not(.partner-icon-slot--md) {
                 --slot-size: 1.75rem;
-            }
-            .partner-bar-label--partner {
-                display: none;
             }
         }
     </style>
@@ -161,7 +167,7 @@
                 <div class="flex bg-[#2F2724] rounded-xl p-1 border border-[#3E3430] text-xs">
                     <span class="px-2 py-1 font-semibold text-hp-muted">快速測試:</span>
                     <button data-action="click->global#injectDemoID" data-id="TAIPEI-CITY" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">Taipei</button>
-                    <button data-action="click->global#injectDemoID" data-id="KYOTO-STATION" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">KYOTO</button>
+                    <button data-action="click->global#injectDemoID" data-id="UK-LONDON" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">UK</button>
                     <button data-action="click->global#injectDemoID" data-id="VILNIUS-OLDTOWN" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg mr-1 transition font-mono font-bold">VILNIUS</button>
                     <button data-action="click->global#injectDemoID" data-id="RIO-COPACABANA" class="px-2.5 py-1 bg-[#1F1A18] hover:bg-hp-coral hover:text-white rounded-lg transition font-mono font-bold">RIO</button>
                 </div>
@@ -216,37 +222,12 @@
                     </div>
 
                     <!-- Inner App Content -->
-                    <div class="flex-grow flex flex-col justify-between p-6 pb-12 pt-10">
-                        
-                        <!-- Partner Bar: host-pocket → Airbnb -->
-                        <div class="partner-bar rounded-xl flex items-center justify-between gap-2 px-3 py-2.5 shadow-lg shadow-black/25 ring-1 ring-white/25 min-w-0">
-                            <div class="flex items-center gap-2 min-w-0 flex-1">
-                                <div class="partner-icon-slot shadow-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
-                                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
-                                            <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
-                                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </g>
-                                    </svg>
-                                </div>
-                                <span class="partner-bar-label text-xs font-bold text-white truncate">
-                                    <span data-global-lang="zh">房東私藏</span>
-                                    <span data-global-lang="en" class="hidden">host-pocket</span>
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/60">
-                                <div class="partner-icon-slot shadow-sm">
-                                    <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
-                                </div>
-                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white truncate max-w-[5.5rem]" data-global-lang="zh">Airbnb 合作廠商</span>
-                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white truncate max-w-[5.5rem] hidden" data-global-lang="en">Airbnb Partner</span>
-                            </div>
-                        </div>
+                    <div class="flex-grow flex flex-col min-h-0">
+                        <div class="flex-1 flex flex-col px-6 pt-8 pb-4 min-h-0 overflow-y-auto">
 
+                        <div class="flex-1 flex flex-col justify-center min-h-0">
                         <!-- Central Pairing Core -->
-                        <div class="my-auto space-y-8">
+                        <div class="space-y-5 shrink-0">
                             
                             <!-- Brand Text Area -->
                             <div class="space-y-2 text-center">
@@ -299,11 +280,8 @@
 
                                     <!-- Tagline inside same card -->
                                     <div class="border-t border-[#3E3430] bg-gradient-to-b from-hp-coral/[0.04] to-transparent px-5 py-4 text-center">
-                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85 italic">
-                                            "Automated local experience guide for Airbnb hosts."
-                                        </p>
-                                        <p class="text-xs text-hp-muted mt-1.5" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
-                                        <p class="text-xs text-hp-muted mt-1.5 hidden" data-global-lang="en">Automated local guide built for Airbnb hosts</p>
+                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
+                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85 italic hidden" data-global-lang="en">"Automated local experience guide for Airbnb hosts."</p>
                                     </div>
                                 </div>
                             </div>
@@ -311,46 +289,80 @@
                         </div>
 
                         <!-- Active presets helper -->
-                        <div class="space-y-3">
-                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center">快速切換測試主題</p>
+                        <div class="space-y-3 shrink-0 mt-4">
+                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center" data-global-lang="zh">快速切換測試主題</p>
+                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center hidden" data-global-lang="en">Quick Demo Themes</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <button data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">Taipei</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">大安設計 Loft</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">台北</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Taipei</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">大安設計複層</div>
                                         <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Designer loft stay</div>
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
-                                <button data-action="click->pairing#quickPair" data-id="KYOTO-STATION" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                <button data-action="click->pairing#quickPair" data-id="UK-LONDON" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">KYOTO</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">町屋茶器體驗</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Teahouse stay</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">英國</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">UK</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">倫敦</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">London</div>
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                                 <button data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">VILNIUS</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">維爾紐斯舊城琥珀</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Vilnius amber stay</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">立陶宛</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Lithuania</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">維爾紐斯</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Vilnius</div>
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                                 <button data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
-                                        <div class="text-xs text-hp-coral font-bold font-mono group-hover:text-white">RIO</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">科帕卡巴納海景</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Copacabana beach</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">巴西</div>
+                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Brazil</div>
+                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">里約</div>
+                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Rio</div>
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
                             </div>
                         </div>
+                        </div>
+                        </div>
+
+                        <!-- Partner Bar: host-pocket → Airbnb -->
+                        <footer class="partner-bar partner-bar--footer flex items-center justify-between gap-2 px-6 py-2.5 min-w-0">
+                            <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                                <div class="partner-icon-slot shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#FF5B3E"/>
+                                            <path d="M 38 42 L 202 42 L 188 202 Q 184 222 120 238 Q 56 222 52 202 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="5 5" stroke-linejoin="round"/>
+                                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                                <span class="partner-bar-label text-xs font-bold text-white truncate min-w-0">
+                                    <span data-global-lang="zh">房東私藏</span>
+                                    <span data-global-lang="en" class="hidden">host-pocket</span>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/60">
+                                <div class="partner-icon-slot shadow-sm">
+                                    <i class="fa-brands fa-airbnb" aria-hidden="true"></i>
+                                </div>
+                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white whitespace-nowrap" data-global-lang="zh">Airbnb 合作廠商</span>
+                                <span class="partner-bar-label partner-bar-label--partner text-xs font-bold text-white whitespace-nowrap hidden" data-global-lang="en">Airbnb Partner</span>
+                            </div>
+                        </footer>
 
                         <!-- iPhone Home Indicator -->
-                        <div class="w-32 h-1 bg-hp-muted/30 rounded-full mx-auto mt-2"></div>
+                        <div class="w-32 h-1 bg-hp-muted/30 rounded-full mx-auto py-2 shrink-0"></div>
                     </div>
                 </div>
             </div>
@@ -435,12 +447,6 @@
                                         </button>
                                         <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
                                     </div>
-                                    <button type="button" data-action="click->dashboard#addAnotherListing"
-                                            class="w-full border border-hp-coral/40 bg-hp-coral/5 hover:bg-hp-coral/10 text-hp-coral text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98]">
-                                        <i class="fa-solid fa-plus text-xs"></i>
-                                        <span data-global-lang="zh">新增其他房源</span>
-                                        <span data-global-lang="en" class="hidden">Add Another Listing</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -450,8 +456,8 @@
                             <div class="px-5 flex justify-between items-center mb-3">
                                 <div>
                                     <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
-                                    <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh">房東 Sarah 的精選私藏行程</p>
-                                    <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en">Sarah's Handpicked Escapes</p>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh"><span data-dashboard-target="hostRecLabelZh">Mia 的精選私藏行程</span></p>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en"><span data-dashboard-target="hostRecLabelEn">Mia's Handpicked Escapes</span></p>
                                     <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片開啟該行程的地圖導航</p>
                                     <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card to open its map route</p>
                                 </div>
@@ -516,7 +522,7 @@
 
                         <!-- Navigation Tabs (Replicated and adapted from Mockup 1) -->
                         <div class="px-5 mb-4">
-                            <div class="grid grid-cols-3 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
+                            <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
                                 <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
                                         class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
                                     <i class="fa-solid fa-house text-hp-coral text-xs"></i>
@@ -528,12 +534,6 @@
                                     <i class="fa-solid fa-compass text-xs"></i>
                                     <span data-global-lang="zh">在地探索</span>
                                     <span data-global-lang="en" class="hidden">Explore</span>
-                                </button>
-                                <button data-action="click->dashboard#scrollToSection" data-section="hostTask" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
-                                    <i class="fa-solid fa-bolt text-xs"></i>
-                                    <span data-global-lang="zh">快速任務</span>
-                                    <span data-global-lang="en" class="hidden">Actions</span>
                                 </button>
                             </div>
                         </div>
@@ -579,35 +579,13 @@
                             </button>
                         </div>
 
-                        <!-- Quick Tasks Section -->
-                        <div id="hostTask" data-dashboard-target="hostTask" class="px-5 py-4 space-y-3 transition-all duration-300">
-                            <div class="flex justify-between items-center">
-                                <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Quick Actions</h4>
-                                <span class="text-xs text-hp-coral font-bold">3 項可用</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <button data-action="click->global#navigateToExplorer" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
-                                    <i class="fa-solid fa-map-location-dot text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">開啟地圖導航</div>
-                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Open Map Guide</div>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">前往 Phone 03 實境探索</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Go to Phone 03 explorer</p>
-                                </button>
-                                <button data-action="click->dashboard#copyWifi" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm">
-                                    <i class="fa-solid fa-wifi text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">複製 Wi-Fi</div>
-                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Copy Wi-Fi</div>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">一鍵複製連線資訊</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">One-tap credentials</p>
-                                </button>
-                                <button data-action="click->dashboard#connectBackToRoom" class="bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-3.5 text-left transition group shadow-sm col-span-2">
-                                    <i class="fa-solid fa-house-circle-check text-hp-coral text-sm mb-2"></i>
-                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">返回 Airbnb 房源主頁</div>
-                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Back to Airbnb Listing</div>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">一鍵導回已出租房源頁面</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Connect back to your booked room</p>
-                                </button>
-                            </div>
+                        <div class="px-5 pb-6">
+                            <button type="button" data-action="click->dashboard#addAnotherListing"
+                                    class="w-full border border-hp-coral/40 bg-hp-coral/5 hover:bg-hp-coral/10 text-hp-coral text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98]">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                                <span data-global-lang="zh">新增其他房源</span>
+                                <span data-global-lang="en" class="hidden">Add Another Listing</span>
+                            </button>
                         </div>
 
                     </div>
@@ -1024,30 +1002,30 @@
         }
 
         const guidesDb = {
-            'KYOTO-STATION': {
-                roomImg: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
-                roomTitleZh: "西陣町家織屋 · 百年包棟古民家",
-                roomTitleEn: "Kyoto Machiya · Century-old Townhouse",
-                hostNameZh: "Sarah 的京都西陣織屋",
-                hostNameEn: "Sarah's Kyoto Nishijin Machiya",
-                locationZh: "京都, 日本 - 3 晚預訂",
-                locationEn: "Kyoto, Japan - 3 Nights Reservation",
-                wifi: "KyotoNishijin_5G / pass: 1029384756",
-                lock: "點擊喚醒鍵盤，輸入 #771239# 鎖頭自動轉開",
-                recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
-                recTitle1Zh: "西陣百年大德寺抹茶體驗",
-                recTitle1En: "Daitoku-ji Matcha Ceremony",
-                desc1Zh: "「Sarah 推薦步行 7 分鐘到大德寺旁茶室，體驗西陣傳統抹茶與和菓子，適合下午兩點前到達避開人潮。」",
-                desc1En: "Sarah suggests a 7-minute walk to a teahouse near Daitoku-ji for matcha and wagashi—arrive before 2 PM to skip the crowds.",
-                recImg2: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80",
-                recTitle2Zh: "船岡溫泉：傳承百年的大正木雕湯屋",
-                recTitle2En: "Funaoka Onsen & Antique Sento",
-                desc2Zh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
-                desc2En: "Funaoka Onsen is a masterpiece of Taisho-era styling. Visit around 7 PM to dodge the dinner rush. Free guest cycle racks outside.",
-                targetTitleZh: "船岡溫泉：傳承百年的大正木雕湯屋",
-                targetTitleEn: "Funaoka Sento: Taisho Heritage Bathhouse",
-                descZh: "「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」",
-                descEn: "Funaoka Onsen is a masterpiece of Taisho-era styling. Its changing rooms feature rare woodwork. Visit around 7 PM to dodge the dinner rush. Free guest cycle racks available outside."
+            'UK-LONDON': {
+                roomImg: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+                roomTitleZh: "肖爾迪奇 · 倫敦時尚公寓",
+                roomTitleEn: "Shoreditch · London Designer Flat",
+                hostNameZh: "Emma 的倫敦肖爾迪奇公寓",
+                hostNameEn: "Emma's Shoreditch London Flat",
+                locationZh: "倫敦, 英國 - 4 晚預訂",
+                locationEn: "London, UK - 4 Nights Stay",
+                wifi: "LondonShoreditch_5G / pass: britannia24",
+                lock: "智慧門鎖輸入 #2468#，綠燈亮起後推門進入",
+                recImg1: "https://images.unsplash.com/photo-1511739001487-6b10f8037908?auto=format&fit=crop&w=300&q=80",
+                recTitle1Zh: "博羅市場週末早午餐",
+                recTitle1En: "Borough Market Weekend Brunch",
+                desc1Zh: "「Emma 推薦週六上午 10 點前往博羅市場，品嚐現烤酸種麵包與英式起司，是倫敦最經典的在地早餐路線。」",
+                desc1En: "Emma recommends Borough Market around 10 AM on Saturdays for sourdough and British cheese—a classic London breakfast route.",
+                recImg2: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=300&q=80",
+                recTitle2Zh: "泰晤士河黃昏河畔漫步",
+                recTitle2En: "Thames Riverside Sunset Walk",
+                desc2Zh: "「Emma 在地力薦：傍晚 6 點從倫敦塔橋出發沿河散步，夕陽映在泰晤士河上的景色是倫敦最經典的免費秘境。」",
+                desc2En: "Emma's tip: start at Tower Bridge around 6 PM for a riverside walk—sunset on the Thames is London's classic free hidden gem.",
+                targetTitleZh: "泰晤士河黃昏河畔漫步",
+                targetTitleEn: "Thames Riverside Sunset Walk",
+                descZh: "「Emma 在地力薦：傍晚 6 點從倫敦塔橋出發沿河散步，夕陽映在泰晤士河上的景色是倫敦最經典的免費秘境。」",
+                descEn: "Emma's tip: start at Tower Bridge around 6 PM for a riverside walk—sunset on the Thames is London's classic free hidden gem."
             },
             'TAIPEI-CITY': {
                 roomImg: "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=600&q=80",
@@ -1295,9 +1273,7 @@
             }
 
             // Universal toast dispatching logic (Non-Alert rule compliant)
-            dispatchNotification(title, message, type) {
-                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message, type } }));
-            }
+            dispatchNotification(title, message, type) {}
         });
 
 
@@ -1341,9 +1317,7 @@
                 this.performPairing();
             }
 
-            triggerToast(title, msg, type) {
-                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
-            }
+            triggerToast(title, msg, type) {}
         });
 
 
@@ -1352,11 +1326,12 @@
             static targets = [
                 "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", 
                 "wifiValue", "lockValue", "recImg1", "recTitle1", 
-                "recImg2", "recTitle2", "stayGuides", "localRecs", "hostTask",
+                "recImg2", "recTitle2", "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "bottomNavBtn",
                 "roomOverlay", "helpOverlay", "lockOverlay", "helpHostName",
                 "lockCode", "lockDetail",
-                "overlayHero", "overlayTitle", "overlayLocation", "overlayHost"
+                "overlayHero", "overlayTitle", "overlayLocation", "overlayHost",
+                "hostRecLabelZh", "hostRecLabelEn"
             ]
 
             connect() {
@@ -1410,6 +1385,11 @@
                 if (this.hasHelpHostNameTarget) {
                     const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
                     this.helpHostNameTarget.innerText = `${hostFirst} · Superhost`;
+                }
+                if (this.hasHostRecLabelZhTarget && this.hasHostRecLabelEnTarget) {
+                    const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
+                    this.hostRecLabelZhTarget.innerText = `${hostFirst} 的精選私藏行程`;
+                    this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
             }
 
@@ -1633,7 +1613,7 @@
 
                 this.highlightSection(section);
 
-                const sectionToTab = { stayGuides: 0, localRecs: 1, hostTask: 2 };
+                const sectionToTab = { stayGuides: 0, localRecs: 1 };
                 const tabIdx = sectionToTab[sectionName];
                 if (tabIdx !== undefined && this.hasTabBtnTarget) {
                     this.setActiveTab(this.tabBtnTargets[tabIdx]);
@@ -1644,8 +1624,7 @@
 
                 const labels = {
                     stayGuides: { zh: '已捲動至房屋指南', en: 'Scrolled to House Stay' },
-                    localRecs: { zh: '已捲動至在地探索', en: 'Scrolled to Local Explore' },
-                    hostTask: { zh: '已捲動至快速任務', en: 'Scrolled to Quick Actions' }
+                    localRecs: { zh: '已捲動至在地探索', en: 'Scrolled to Local Explore' }
                 };
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const label = labels[sectionName];
@@ -1670,17 +1649,14 @@
 
             highlightSection(section) {
                 [this.hasStayGuidesTarget && this.stayGuidesTarget,
-                 this.hasLocalRecsTarget && this.localRecsTarget,
-                 this.hasHostTaskTarget && this.hostTaskTarget].filter(Boolean).forEach(el => {
+                 this.hasLocalRecsTarget && this.localRecsTarget].filter(Boolean).forEach(el => {
                     el.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl');
                 });
                 section.classList.add('ring-2', 'ring-hp-coral/40', 'rounded-2xl');
                 setTimeout(() => section.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl'), 1200);
             }
 
-            triggerToast(title, msg, type) {
-                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
-            }
+            triggerToast(title, msg, type) {}
         });
 
 
@@ -1785,65 +1761,10 @@
                 requestAnimationFrame(() => this.updateRouteLine());
             }
 
-            triggerToast(title, msg, type) {
-                window.dispatchEvent(new CustomEvent("toast:trigger", { detail: { title, message: msg, type } }));
-            }
+            triggerToast(title, msg, type) {}
         });
 
 
-        // 5. TOAST NOTIFICATION GENERATOR (Listens and paints notices elegantly)
-        window.addEventListener("toast:trigger", function(event) {
-            const { title, message, type } = event.detail;
-
-            let container = document.getElementById('toast-box');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-box';
-                container.className = "fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none";
-                document.body.appendChild(container);
-            }
-
-            const toast = document.createElement('div');
-            toast.className = "bg-[#1C1715] text-[#EFECE9] border border-[#2C2422] rounded-2xl p-4 shadow-2xl flex gap-3 items-center transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-auto";
-            
-            let iconColor = 'bg-hp-coral';
-            let iconHtml = '<i class="fa-solid fa-bell"></i>';
-            if (type === 'success') {
-                iconColor = 'bg-hp-accentTeal';
-                iconHtml = '<i class="fa-solid fa-circle-check"></i>';
-            } else if (type === 'error') {
-                iconColor = 'bg-rose-500';
-                iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
-            } else if (type === 'info') {
-                iconColor = 'bg-amber-500';
-                iconHtml = '<i class="fa-solid fa-circle-info"></i>';
-            }
-
-            toast.innerHTML = `
-                <div class="w-9 h-9 rounded-xl ${iconColor} text-white flex items-center justify-center shrink-0">
-                    ${iconHtml}
-                </div>
-                <div>
-                    <h5 class="font-bold text-xs">${title}</h5>
-                    <p class="text-xs text-hp-muted mt-0.5 leading-relaxed">${message}</p>
-                </div>
-            `;
-
-            container.appendChild(toast);
-            
-            // Animate In
-            setTimeout(() => {
-                toast.classList.remove('translate-y-10', 'opacity-0');
-            }, 50);
-
-            // Animate Out & Clean up
-            setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 4000);
-        });
     </script>
 </body>
 </html>
