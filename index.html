@@ -2133,12 +2133,6 @@
                 });
             }
 
-            buildGoogleMeetLink() {
-                const alpha = 'abcdefghijklmnopqrstuvwxyz';
-                const seg = (len) => Array.from({ length: len }, () => alpha[Math.floor(Math.random() * alpha.length)]).join('');
-                return `https://meet.google.com/${seg(3)}-${seg(4)}-${seg(3)}`;
-            }
-
             setBookingSubmitLoading(loading, isZh) {
                 if (this.hasExpBookingConfirmSubmitTarget) {
                     this.expBookingConfirmSubmitTarget.disabled = loading;

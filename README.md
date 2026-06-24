@@ -118,9 +118,8 @@ SMTP_APP_PASSWORD=xxxx xxxx xxxx xxxx
 |------|------|
 | [Tailwind CSS](https://tailwindcss.com/) | CDN，Sunset Terracotta 自訂色票 |
 | [Hotwire Stimulus](https://stimulus.hotwired.dev/) | `global` / `pairing` / `dashboard` / `explorer` 四個 Controller |
-| Node.js + Express | 預定 API、Google Calendar Meet、寄信 |
-| Google Calendar API | 建立真實 Google Meet 連結與日曆邀請 |
-| Resend（選用） | 自訂品牌確認信 |
+| Node.js + Express | 預定 API、寄送確認信 |
+| Resend / Gmail SMTP | 寄送預定確認信 |
 | [Font Awesome 6](https://fontawesome.com/) | 圖示（含 Airbnb brand icon） |
 | Google Fonts | Inter + Noto Sans TC |
 
@@ -150,9 +149,8 @@ host-pocket/
 │   └── booking-api.js
 ├── server/
 │   ├── index.js
-│   └── google-booking.js
-├── scripts/
-│   └── google-auth.js
+│   ├── booking.js
+│   └── smtp-mail.js
 └── pocket-icon.png
 ```
 
@@ -195,11 +193,11 @@ The top **Partner Bar** uses a `#FF5B3E → #FF5A5F` gradient for **host-pocket 
 
 ### Quick start
 
-Install dependencies and start the local server (includes booking API):
+Install dependencies and start the local server (includes booking email API):
 
 ```bash
 npm install
-cp .env.example .env   # Google OAuth credentials — see "Experience booking & Google Meet"
+cp .env.example .env   # Resend or SMTP credentials — see "Experience booking & email"
 npm start
 ```
 
@@ -211,11 +209,35 @@ Static-only preview (no real email):
 python3 -m http.server 8080
 ```
 
-### Experience booking & Google Meet
+### Experience booking & email
 
-On confirm, the backend creates a **Google Calendar** event with a **Google Meet** link and emails the guest a calendar invite (`sendUpdates: all`).
+On confirm, the backend sends a **booking confirmation email** to the guest via **Resend** or **Gmail SMTP**. Guests only need to enter their email — no OAuth or SMTP setup on their side.
 
-Setup: enable Google Calendar API, create OAuth 2.0 Web client with redirect `http://localhost:3000/oauth2callback`, fill `.env`, then run `npm run google:auth` once for `GOOGLE_REFRESH_TOKEN`. Optional: `RESEND_API_KEY` + `FROM_EMAIL` for a branded confirmation email.
+**Admin setup (one-time)** — in [Vercel Dashboard](https://vercel.com) → **Settings → Environment Variables**, choose one:
+
+**Resend (recommended)**
+
+```
+RESEND_API_KEY=re_...
+FROM_EMAIL=Host Pocket <bookings@yourdomain.com>
+```
+
+**Gmail SMTP**
+
+```
+SMTP_USER=you@gmail.com
+SMTP_APP_PASSWORD=xxxx xxxx xxxx xxxx
+```
+
+For local dev, copy `.env.example` to `.env`, or use `config/smtp.local.json` (see `config/smtp.local.json.example`).
+
+Admin test page: [email-test.html](email-test.html) (`/email-test.html`, not linked in the guest UI)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/health` | Check whether Resend / SMTP is configured |
+| `POST /api/booking` | Send booking confirmation email |
+| `POST /api/test-email` | Admin SMTP test send |
 
 ### Prototype tips
 
@@ -239,6 +261,8 @@ Setup: enable Google Calendar API, create OAuth 2.0 Web client with redirect `ht
 |-------|--------|
 | [Tailwind CSS](https://tailwindcss.com/) | CDN, custom Sunset Terracotta palette |
 | [Hotwire Stimulus](https://stimulus.hotwired.dev/) | Controllers: `global`, `pairing`, `dashboard`, `explorer` |
+| Node.js + Express | Booking API, confirmation email |
+| Resend / Gmail SMTP | Booking confirmation email |
 | [Font Awesome 6](https://fontawesome.com/) | Icons (incl. Airbnb brand) |
 | Google Fonts | Inter + Noto Sans TC |
 

@@ -1,4 +1,4 @@
-const { isEmailConfigured } = require('../server/google-booking');
+const { isEmailConfigured } = require('../server/booking');
 const { isSmtpConfigured } = require('../server/smtp-mail');
 
 module.exports = async (_req, res) => {

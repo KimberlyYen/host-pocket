@@ -1,4 +1,4 @@
-const { createBooking } = require('../server/google-booking');
+const { createBooking } = require('../server/booking');
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

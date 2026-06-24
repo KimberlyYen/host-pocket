@@ -5,8 +5,7 @@
   "description": "host-pocket — Airbnb host stay guide prototype with experience booking",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
-    "google:auth": "node scripts/google-auth.js"
+    "dev": "node --watch server/index.js"
   },
   "engines": {
     "node": ">=18"
@@ -15,7 +14,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "googleapis": "^144.0.0",
     "nodemailer": "^6.10.1",
     "resend": "^4.1.2"
   }
