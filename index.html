@@ -791,8 +791,8 @@
                                                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
                                     </div>
                                     <p class="mt-1.5 text-[10px] text-hp-muted leading-relaxed">
-                                        <span data-global-lang="zh">確認後將寄送預定確認信至此信箱</span>
-                                        <span data-global-lang="en" class="hidden">We'll email you a booking confirmation to this address</span>
+                                        <span data-global-lang="zh">確認後寄送預定確認信；若無法自動寄信，將開啟郵件 app</span>
+                                        <span data-global-lang="en" class="hidden">We'll send a confirmation email, or open your mail app if auto-send isn't available</span>
                                     </p>
                                 </div>
                                 <p data-dashboard-target="expBookingConfirmFeedback" class="hidden text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5"></p>
@@ -2239,68 +2239,75 @@
                 const timeLabel = this.formatBookingSlotLabel(slot, isZh);
                 const meta = ExperienceDetailsAPI.getBookingMeta(this.currentExpPayload, {
                     isZh,
-                    timezone: this.bookingTimezone
+                    timezone: this.bookingTimezone,
+                    hostEmail: guidesDb[this.currentListingId || 'TAIPEI-CITY']?.hostEmail || ''
                 });
 
-                try {
-                    const health = await BookingAPI.checkHealth();
-                    if (!health.smtpConfigured && !health.bookingConfigured) {
-                        const msg = isZh
-                            ? '確認信暫時無法寄出，請稍後再試或聯絡房東'
-                            : 'Confirmation email is temporarily unavailable. Please try again later or contact your host.';
-                        this.setBookingConfirmFeedback('error', msg);
-                        this.triggerToast(
-                            isZh ? '無法完成預定' : 'Booking unavailable',
-                            msg,
-                            'info'
-                        );
-                        return;
-                    }
-                } catch {
-                    this.triggerToast(
-                        isZh ? '無法連線 API' : 'API unavailable',
-                        isZh ? '請確認 npm start 已執行' : 'Make sure npm start is running.',
-                        'error'
-                    );
-                    return;
-                }
+                const bookingPayload = {
+                    guestEmail: email,
+                    title: meta.title,
+                    hostName: meta.hostName,
+                    hostEmail: meta.hostEmail,
+                    location: meta.location,
+                    date: this.selectedBookingDate,
+                    time: slot,
+                    timezone: this.bookingTimezone || 'Asia/Taipei',
+                    durationMinutes: meta.durationMinutes,
+                    locale: isZh ? 'zh' : 'en',
+                    dateLabel,
+                    timeLabel
+                };
 
                 this.setBookingSubmitLoading(true, isZh);
-                this.setBookingConfirmFeedback('loading', isZh ? '寄送中，請稍候…' : 'Sending, please wait…');
-                try {
-                    const result = await BookingAPI.createBooking({
-                        guestEmail: email,
-                        title: meta.title,
-                        hostName: meta.hostName,
-                        location: meta.location,
-                        date: this.selectedBookingDate,
-                        time: slot,
-                        timezone: this.bookingTimezone || 'Asia/Taipei',
-                        durationMinutes: meta.durationMinutes,
-                        locale: isZh ? 'zh' : 'en',
-                        dateLabel,
-                        timeLabel
-                    });
 
-                    const emailNote = isZh ? `✓ 確認信已寄至 ${email}` : `✓ Confirmation email sent to ${email}`;
-                    this.setBookingConfirmFeedback('success', emailNote);
+                let apiAvailable = false;
+                try {
+                    apiAvailable = await BookingAPI.isEmailApiConfigured();
+                } catch {
+                    apiAvailable = false;
+                }
+
+                if (apiAvailable) {
+                    this.setBookingConfirmFeedback('loading', isZh ? '寄送中，請稍候…' : 'Sending, please wait…');
+                    try {
+                        await BookingAPI.createBooking(bookingPayload);
+                        const emailNote = isZh ? `✓ 確認信已寄至 ${email}` : `✓ Confirmation email sent to ${email}`;
+                        this.setBookingConfirmFeedback('success', emailNote);
+                        this.triggerToast(
+                            isZh ? '預定成功' : 'Booking confirmed',
+                            `${dateLabel} · ${timeLabel}\n${emailNote.replace(/^✓\s?/, '')}`,
+                            'success'
+                        );
+                        await new Promise((resolve) => setTimeout(resolve, 1400));
+                        this.closeExpBookingConfirm(false);
+                        this.closeExpBookingCalendar();
+                        return;
+                    } catch (error) {
+                        console.warn('[Host Pocket] API booking failed, falling back to mailto', error);
+                    }
+                }
+
+                try {
+                    BookingAPI.openBookingMailto(bookingPayload);
+                    const mailtoNote = isZh
+                        ? `已開啟郵件 app，請確認內容後寄出（副本至 ${email}）`
+                        : `Email app opened — review and send (copy to ${email})`;
+                    this.setBookingConfirmFeedback('success', mailtoNote);
                     this.triggerToast(
                         isZh ? '預定成功' : 'Booking confirmed',
-                        `${dateLabel} · ${timeLabel}\n${emailNote.replace(/^✓\s?/, '')}`,
+                        `${dateLabel} · ${timeLabel}\n${mailtoNote}`,
                         'success'
                     );
                     await new Promise((resolve) => setTimeout(resolve, 1400));
                     this.closeExpBookingConfirm(false);
                     this.closeExpBookingCalendar();
                 } catch (error) {
-                    console.error('[Host Pocket] booking failed', error);
-                    const errMsg = error.message || (isZh ? '確認信寄送失敗，請稍後再試或聯絡房東' : 'We could not send the confirmation email. Please try again later or contact your host.');
+                    console.error('[Host Pocket] mailto booking failed', error);
+                    const errMsg = isZh
+                        ? '無法開啟郵件 app，請稍後再試或聯絡房東'
+                        : 'Could not open your mail app. Please try again or contact your host.';
                     this.setBookingConfirmFeedback('error', errMsg);
-                    this.triggerToast(
-                        isZh ? '預定失敗' : 'Booking failed',
-                        errMsg,
-                        'error'
-                    );
+                    this.triggerToast(isZh ? '預定失敗' : 'Booking failed', errMsg, 'error');
                 } finally {
                     this.setBookingSubmitLoading(false, isZh);
                 }

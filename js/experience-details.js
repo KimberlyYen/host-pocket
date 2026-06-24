@@ -948,6 +948,7 @@
             availability,
             title: exp.title || (isZh ? '在地體驗' : 'Experience'),
             hostName: host.name || (isZh ? '體驗達人' : 'Host'),
+            hostEmail: host.email || options.hostEmail || global.HOST_POCKET_BOOKING_EMAIL || '',
             hostAvatar: host.avatar || '',
             duration: formatDurationLabel(minutes, isZh),
             durationMinutes: minutes,

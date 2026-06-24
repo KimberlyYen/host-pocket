@@ -60,9 +60,66 @@
         return data;
     }
 
+    async function isEmailApiConfigured() {
+        try {
+            const health = await checkHealth();
+            return Boolean(health.smtpConfigured || health.bookingConfigured);
+        } catch {
+            return false;
+        }
+    }
+
+    function buildBookingMailtoUrl(booking) {
+        const isZh = booking.locale !== 'en';
+        const subject = isZh
+            ? `【Host Pocket】${booking.title} — 預定確認`
+            : `[Host Pocket] ${booking.title} — booking confirmed`;
+        const lines = isZh
+            ? [
+                '以下為體驗預定資訊：',
+                '',
+                `體驗：${booking.title}`,
+                `主持人：${booking.hostName}`,
+                `日期：${booking.dateLabel}`,
+                `時間：${booking.timeLabel} (${booking.timezone})`,
+                `地點：${booking.location}`,
+                `旅客 Email：${booking.guestEmail}`,
+                '',
+                '— 由 host-pocket 送出'
+            ]
+            : [
+                'Experience booking details:',
+                '',
+                `Experience: ${booking.title}`,
+                `Host: ${booking.hostName}`,
+                `Date: ${booking.dateLabel}`,
+                `Time: ${booking.timeLabel} (${booking.timezone})`,
+                `Location: ${booking.location}`,
+                `Guest email: ${booking.guestEmail}`,
+                '',
+                '— Sent via host-pocket'
+            ];
+        const params = new URLSearchParams();
+        params.set('subject', subject);
+        params.set('body', lines.join('\n'));
+        if (booking.guestEmail) {
+            params.set('cc', booking.guestEmail);
+        }
+        const to = String(booking.hostEmail || '').trim();
+        return to ? `mailto:${to}?${params}` : `mailto:?${params}`;
+    }
+
+    function openBookingMailto(booking) {
+        global.location.href = buildBookingMailtoUrl(booking);
+        return { ok: true, method: 'mailto' };
+    }
+
     global.BookingAPI = {
         getApiBase,
         checkHealth,
-        createBooking
+        createBooking,
+        isEmailApiConfigured,
+        buildBookingMailtoUrl,
+        openBookingMailto
     };
 })(window);
