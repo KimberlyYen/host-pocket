@@ -305,29 +305,57 @@
 
             <!-- 畫面 2：指南主頁 -->
             <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 pt-[max(2.5rem,env(safe-area-inset-top))]">
+                    <!-- Top Nav Tabs -->
+                    <nav class="shrink-0 z-10 px-5 pt-[max(2.5rem,env(safe-area-inset-top))] pb-3 bg-hp-bgLight/95 backdrop-blur-md border-b border-hp-border">
+                        <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
+                            <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
+                                    class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
+                                <i class="fa-solid fa-house text-hp-coral text-xs"></i>
+                                <span data-global-lang="zh">房屋指南</span>
+                                <span data-global-lang="en" class="hidden">House Stay</span>
+                            </button>
+                            <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
+                                    class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
+                                <i class="fa-solid fa-compass text-xs"></i>
+                                <span data-global-lang="zh">在地探索</span>
+                                <span data-global-lang="en" class="hidden">Explore</span>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
                         
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
                                 <!-- Room Image Cover -->
-                                <div class="h-36 relative overflow-hidden">
-                                    <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                                <div data-dashboard-target="roomHero" class="h-36 relative overflow-hidden">
+                                    <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
+
+                                    <button type="button" data-action="click->dashboard#prevRoomPhoto" aria-label="Previous photo"
+                                            class="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition active:scale-95">
+                                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                                    </button>
+                                    <button type="button" data-action="click->dashboard#nextRoomPhoto" aria-label="Next photo"
+                                            class="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition active:scale-95">
+                                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                                    </button>
+                                    <div data-dashboard-target="roomPhotoDots" class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none"></div>
                                     
-                                    <span class="absolute top-3 left-3 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                    <span class="absolute top-3 left-3 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm z-10">
                                         <i class="fa-solid fa-house-circle-check"></i> 
                                         <span data-global-lang="zh">已出租房源實景</span>
                                         <span data-global-lang="en" class="hidden">Rented Out Listing</span>
                                     </span>
                                     
                                     <!-- Can Share Button -->
-                                    <button data-action="click->dashboard#shareExperience" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
+                                    <button data-action="click->dashboard#shareExperience" class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
                                         <i class="fa-solid fa-arrow-up-from-bracket text-xs text-hp-coral"></i>
                                     </button>
 
                                     <!-- Bottom Info Text inside Room Photo -->
-                                    <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+                                    <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end z-10 pointer-events-none">
                                         <div>
                                             <p data-dashboard-target="roomTitle" class="text-xs font-bold text-white drop-shadow-md">西陣町家織屋 · 百年包棟古民家</p>
                                             <p data-dashboard-target="hostLocation" class="text-xs text-[#FAF8F5]/80 drop-shadow-sm">京都, 日本 - 3 晚預訂</p>
@@ -339,7 +367,8 @@
                                 <div class="p-4 bg-white space-y-3">
                                     <div class="flex justify-between items-center">
                                         <div>
-                                            <span class="text-xs uppercase font-bold tracking-widest text-hp-muted">Active Host Experience Guide</span>
+                                            <span class="text-xs uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">房東體驗指南</span>
+                                            <span class="text-xs uppercase font-bold tracking-widest text-hp-muted hidden" data-global-lang="en">Active Host Guide</span>
                                             <h3 data-dashboard-target="hostTitle" class="text-xs font-black tracking-tight text-hp-dark mt-0.5">
                                                 Sarah 的京都西陣織屋
                                             </h3>
@@ -356,7 +385,7 @@
                                             <span data-global-lang="zh">返回房源主頁</span>
                                             <span data-global-lang="en" class="hidden">Back to Room</span>
                                         </button>
-                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">TAIPEI-CITY</span>
+                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">台北·大安</span>
                                     </div>
                                 </div>
                             </div>
@@ -366,11 +395,14 @@
                         <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
                             <div class="px-5 flex justify-between items-center mb-3">
                                 <div>
-                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Local Experiences</h4>
+                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
+                                        <span data-global-lang="zh">在地體驗</span>
+                                        <span data-global-lang="en" class="hidden">Local Experiences</span>
+                                    </h4>
                                     <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh"><span data-dashboard-target="hostRecLabelZh">Mia 的精選私藏行程</span></p>
                                     <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en"><span data-dashboard-target="hostRecLabelEn">Mia's Handpicked Escapes</span></p>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片開啟該行程的地圖導航</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card to open its map route</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片查看 Airbnb 體驗詳情，或點地圖導航</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap for Experience Details API view, or map for route</p>
                                 </div>
                             </div>
 
@@ -378,82 +410,81 @@
                             <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
                                 
                                 <!-- Card 1 -->
-                                <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="1"
-                                        class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="1"
+                                            class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                         <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🌟 <span data-global-lang="zh">歷史茶器</span><span data-global-lang="en" class="hidden">Chado Art</span>
+                                            🌟 <span data-dashboard-target="recBadge1"></span>
                                         </span>
+                                        <span data-dashboard-target="recRating1" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
                                     <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
-                                            西陣百年大德寺抹茶體驗
-                                        </h5>
-                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">步行 7 分鐘可達</p>
-                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">7 mins walk away</p>
+                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist1" class="text-xs text-[#8C807A] mt-0.5"></p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-xs text-hp-coral font-bold">1,800 JPY / 起</p>
-                                            <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
-                                                <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                                <span data-global-lang="zh">地圖</span>
-                                                <span data-global-lang="en" class="hidden">Map</span>
-                                            </span>
+                                            <p data-dashboard-target="recPrice1" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                </button>
+                                    </button>
+                                    <div class="px-3 pb-3 -mt-1">
+                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="1"
+                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
+                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
+                                            <span data-global-lang="zh">地圖導航</span>
+                                            <span data-global-lang="en" class="hidden">Map route</span>
+                                        </button>
+                                    </div>
+                                </div>
 
                                 <!-- Card 2 -->
-                                <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="2"
-                                        class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition active:scale-[0.98]">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="2"
+                                            class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
                                         <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                         <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🏮 <span data-global-lang="zh">職人秘境</span><span data-global-lang="en" class="hidden">Hidden Spot</span>
+                                            🏮 <span data-dashboard-target="recBadge2"></span>
                                         </span>
+                                        <span data-dashboard-target="recRating2" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
                                     <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug">
-                                            船岡溫泉與復古喫茶館
-                                        </h5>
-                                        <p class="text-xs text-[#8C807A] mt-0.5" data-global-lang="zh">騎行單車 5 分鐘</p>
-                                        <p class="text-xs text-[#8C807A] mt-0.5 hidden" data-global-lang="en">5 mins bike ride</p>
+                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist2" class="text-xs text-[#8C807A] mt-0.5"></p>
                                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p class="text-xs text-hp-coral font-bold">450 JPY / 起</p>
-                                            <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5 group-hover:underline">
-                                                <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                                <span data-global-lang="zh">地圖</span>
-                                                <span data-global-lang="en" class="hidden">Map</span>
-                                            </span>
+                                            <p data-dashboard-target="recPrice2" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Navigation Tabs (Replicated and adapted from Mockup 1) -->
-                        <div class="px-5 mb-4">
-                            <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
-                                <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
-                                    <i class="fa-solid fa-house text-hp-coral text-xs"></i>
-                                    <span data-global-lang="zh">房屋指南</span>
-                                    <span data-global-lang="en" class="hidden">House Stay</span>
-                                </button>
-                                <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
-                                    <i class="fa-solid fa-compass text-xs"></i>
-                                    <span data-global-lang="zh">在地探索</span>
-                                    <span data-global-lang="en" class="hidden">Explore</span>
-                                </button>
+                                    </button>
+                                    <div class="px-3 pb-3 -mt-1">
+                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="2"
+                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
+                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
+                                            <span data-global-lang="zh">地圖導航</span>
+                                            <span data-global-lang="en" class="hidden">Map route</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Stay Guides Section (Wi-Fi, Keys) -->
                         <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300">
                             <div class="flex justify-between items-center">
-                                <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">Essential Stays</h4>
-                                <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5"><i class="fa-solid fa-shield-check"></i> Verified</span>
+                                <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
+                                    <span data-global-lang="zh">入住必備</span>
+                                    <span data-global-lang="en" class="hidden">Essential Stays</span>
+                                </h4>
+                                <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5">
+                                    <i class="fa-solid fa-shield-check"></i>
+                                    <span data-global-lang="zh">已驗證</span>
+                                    <span data-global-lang="en" class="hidden">Verified</span>
+                                </span>
                             </div>
                             
                             <!-- Wifi Card (Stimulus Clipboard Trigger) -->
@@ -516,11 +547,23 @@
 
                         <!-- Scrollable Detail Contents of Room -->
                         <div class="flex-grow overflow-y-auto hide-scrollbar pb-24">
-                            <div class="h-48 relative">
-                                <img data-dashboard-target="overlayHero" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent"></div>
-                                <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-                                    ★ Superhost
+                            <div data-dashboard-target="overlayHero" class="h-48 relative overflow-hidden">
+                                <img data-dashboard-target="overlayHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent pointer-events-none"></div>
+
+                                <button type="button" data-action="click->dashboard#prevRoomPhoto" aria-label="Previous photo"
+                                        class="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition active:scale-95">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button type="button" data-action="click->dashboard#nextRoomPhoto" aria-label="Next photo"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition active:scale-95">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                                <div data-dashboard-target="overlayPhotoDots" class="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none"></div>
+
+                                <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow z-10">
+                                    <span data-global-lang="zh">★ 超讚房東</span>
+                                    <span data-global-lang="en" class="hidden">★ Superhost</span>
                                 </span>
                             </div>
 
@@ -532,7 +575,8 @@
                                     </div>
                                     <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                                        已出租 stay active
+                                        <span data-global-lang="zh">已連結出租中</span>
+                                        <span data-global-lang="en" class="hidden">Listing linked</span>
                                     </span>
                                 </div>
 
@@ -542,10 +586,13 @@
                                         HP
                                     </div>
                                     <div>
-                                        <h4 class="text-xs font-bold text-hp-dark flex items-center gap-1">
-                                            <span data-dashboard-target="overlayHost">Sarah</span> 的房源主頁
+                                        <h4 class="text-xs font-bold text-hp-dark">
+                                            <span data-dashboard-target="overlayHostLine"></span>
                                         </h4>
-                                        <p class="text-xs text-[#8C807A]">入住期間：2026年6月24日 - 3晚預訂</p>
+                                        <p class="text-xs text-[#8C807A]">
+                                            <span data-global-lang="zh">入住期間：2026年6月24日 · 3 晚</span>
+                                            <span data-global-lang="en" class="hidden">Stay: Jun 24, 2026 · 3 nights</span>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -587,13 +634,40 @@
                         <!-- Sticky Bottom Call to Action of Overlay -->
                         <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-hp-border p-4 flex justify-between items-center z-10 shadow-[0_-8px_24px_rgba(31,26,24,0.05)]">
                             <div>
-                                <p class="text-xs text-[#8C807A] uppercase font-bold tracking-wider">Airbnb Companion</p>
-                                <p class="text-xs font-bold text-hp-dark">與此在地指南連結中</p>
+                                <p class="text-xs text-[#8C807A] uppercase font-bold tracking-wider">
+                                    <span data-global-lang="zh">房東私藏伴侶</span>
+                                    <span data-global-lang="en" class="hidden">Host Companion</span>
+                                </p>
+                                <p class="text-xs font-bold text-hp-dark">
+                                    <span data-global-lang="zh">與此在地指南連結中</span>
+                                    <span data-global-lang="en" class="hidden">Connected to this local guide</span>
+                                </p>
                             </div>
                             <button data-action="click->dashboard#closeRoomOverlay" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition duration-200 shadow-md">
-                                返回體驗指南
+                                <span data-global-lang="zh">返回體驗指南</span>
+                                <span data-global-lang="en" class="hidden">Back to Guide</span>
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Experience Details Overlay (Airbnb Experience Details API) -->
+                    <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
+                        <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
+                            <button data-action="click->dashboard#closeExperienceDetail" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                            <span class="text-xs font-black tracking-widest text-hp-dark uppercase flex items-center gap-1">
+                                <i class="fa-brands fa-airbnb text-hp-coral text-base"></i>
+                                <span data-global-lang="zh">體驗詳情</span>
+                                <span data-global-lang="en" class="hidden">Experience</span>
+                            </span>
+                            <button type="button" data-action="click->dashboard#openExpDetailMap" data-dashboard-target="expDetailMapBtn"
+                                    class="text-xs font-bold text-hp-coral px-2 py-1 rounded-lg bg-hp-coral/10 border border-hp-coral/20">
+                                <span data-global-lang="zh">地圖</span>
+                                <span data-global-lang="en" class="hidden">Map</span>
+                            </button>
+                        </div>
+                        <div data-dashboard-target="expDetailBody" class="flex-grow overflow-y-auto hide-scrollbar pb-8"></div>
                     </div>
 
                     <!-- Bottom Nav -->
@@ -722,18 +796,21 @@
             </div>
 
             <!-- 畫面 3：實境探索 -->
-            <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <div class="flex-grow flex flex-col overflow-hidden pt-[max(0.5rem,env(safe-area-inset-top))]">
-                        
-                        <!-- Map View Simulator (SVG Based layout with target pins) -->
-                        <div data-explorer-target="mapContainer" class="h-64 bg-[#EADCC9] relative border-b border-hp-border overflow-hidden shrink-0">
+            <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-[#EADCC9] text-hp-dark overflow-hidden">
+                    <div class="relative flex-grow min-h-0 overflow-hidden">
+
+                        <!-- Map View - full bleed background -->
+                        <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
+                            <div data-explorer-target="mapLayer" class="absolute inset-0 origin-center transition-transform duration-300 ease-out will-change-transform">
                             
                             <!-- Simulated street lines -->
-                            <svg class="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="absolute inset-0 w-full h-full opacity-40 pointer-events-none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
                                 <line x1="0" y1="50" x2="375" y2="120" stroke="#8C807A" stroke-width="6"/>
                                 <line x1="80" y1="0" x2="110" y2="256" stroke="#8C807A" stroke-width="4"/>
                                 <line x1="280" y1="0" x2="250" y2="256" stroke="#8C807A" stroke-width="5"/>
                                 <line x1="0" y1="180" x2="375" y2="180" stroke="#8C807A" stroke-width="5"/>
+                                <line x1="0" y1="320" x2="375" y2="280" stroke="#8C807A" stroke-width="5"/>
+                                <line x1="120" y1="200" x2="200" y2="400" stroke="#8C807A" stroke-width="4"/>
                             </svg>
 
                             <!-- Route Line (endpoints synced to pin dots via JS) -->
@@ -742,16 +819,22 @@
                             </svg>
 
                             <!-- Start Pin -->
-                            <div class="absolute top-12 left-20 flex flex-col items-center z-20">
-                                <div class="bg-hp-dark text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">My Room</div>
+                            <div class="absolute top-[28%] left-[22%] flex flex-col items-center z-20 pointer-events-none">
+                                <div class="bg-hp-dark text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">
+                                    <span data-global-lang="zh">我的房源</span>
+                                    <span data-global-lang="en" class="hidden">My Room</span>
+                                </div>
                                 <div data-explorer-target="startPinDot" class="w-3.5 h-3.5 rounded-full bg-hp-dark border-2 border-white flex items-center justify-center shadow-md">
                                     <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
                                 </div>
                             </div>
 
                             <!-- Target Pin -->
-                            <div class="absolute top-32 right-24 flex flex-col items-center z-20">
-                                <div class="bg-hp-coral text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">Secret Spot</div>
+                            <div class="absolute top-[42%] right-[22%] flex flex-col items-center z-20 pointer-events-none">
+                                <div class="bg-hp-coral text-white text-xs font-extrabold px-1.5 py-0.5 rounded-md shadow mb-1">
+                                    <span data-global-lang="zh">私藏景點</span>
+                                    <span data-global-lang="en" class="hidden">Secret Spot</span>
+                                </div>
                                 <div class="relative flex items-center justify-center">
                                     <span data-explorer-target="endPinPing" class="absolute w-4 h-4 rounded-full bg-hp-coral opacity-40 animate-ping"></span>
                                     <div data-explorer-target="endPinDot" class="relative w-4 h-4 rounded-full bg-hp-coral border-2 border-white flex items-center justify-center shadow-lg">
@@ -760,28 +843,36 @@
                                 </div>
                             </div>
 
-                            <!-- Floating Map Controls -->
-                            <div class="absolute bottom-3 right-3 flex flex-col gap-1.5">
-                                <button data-action="click->explorer#zoomMap" class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight">
-                                    <i class="fa-solid fa-plus text-xs"></i>
-                                </button>
-                                <button data-action="click->explorer#recenterMap" class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight">
-                                    <i class="fa-solid fa-location-crosshairs text-xs text-hp-coral"></i>
-                                </button>
                             </div>
                         </div>
 
-                        <!-- Details card sliding up -->
-                        <div class="flex-grow bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] border-t border-hp-border p-5 overflow-y-auto hide-scrollbar pb-24">
+                        <!-- Floating Map Controls (above bottom sheet) -->
+                        <div class="absolute right-3 top-[38%] z-30 flex flex-col gap-1.5 pointer-events-auto">
+                            <button type="button" data-action="click->explorer#zoomMap" aria-label="Zoom in"
+                                    class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                            <button type="button" data-action="click->explorer#recenterMap" aria-label="Recenter map"
+                                    class="w-8 h-8 rounded-xl bg-white shadow-md border border-hp-border flex items-center justify-center text-hp-dark hover:bg-hp-bgLight active:scale-95 transition">
+                                <i class="fa-solid fa-location-crosshairs text-xs text-hp-coral"></i>
+                            </button>
+                        </div>
+
+                        <!-- Details card - bottom sheet over map -->
+                        <div class="absolute inset-x-0 bottom-14 z-10 max-h-[52%] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4">
                             
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <span class="text-xs uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">NAVIGATION ACTIVE</span>
+                                    <span class="text-xs uppercase font-bold tracking-widest text-hp-accentTeal bg-hp-accentTeal/10 px-2 py-0.5 rounded-md">
+                                        <span data-global-lang="zh">導航進行中</span>
+                                        <span data-global-lang="en" class="hidden">Navigation Active</span>
+                                    </span>
                                     <h4 data-explorer-target="targetTitle" class="text-sm font-black text-hp-dark mt-1.5 leading-snug">
                                         船岡溫泉：傳承百年的大正木雕湯屋
                                     </h4>
                                     <p class="text-xs text-[#8C807A] mt-0.5 flex items-center gap-1">
-                                        <i class="fa-solid fa-bicycle text-hp-coral"></i> <span>單車 4 分鐘 (1.2公里)</span>
+                                        <i class="fa-solid fa-bicycle text-hp-coral"></i>
+                                        <span data-explorer-target="routeDist"></span>
                                     </p>
                                 </div>
                                 <span class="bg-hp-coral text-white text-xs font-black px-2.5 py-1 rounded-xl shrink-0">950m</span>
@@ -793,16 +884,18 @@
                                     「這座湯屋是京都大正時期的代表，更衣室裡的雕刻講述著鞍馬山的故事。推薦在晚上7點前往，避開當地人晚餐潮，門口有提供房客的免費自行車架。」
                                 </p>
                                 <div class="flex justify-between items-center text-xs font-bold text-hp-muted pt-2 border-t border-hp-border">
-                                    <span data-global-lang="zh">預估花費: 450 JPY</span>
-                                    <span data-global-lang="en" class="hidden">Est: 450 JPY</span>
-                                    <span class="text-hp-coral" data-global-lang="zh">房東推薦 ★★★裝修裝潢</span>
+                                    <span data-explorer-target="routeEst"></span>
+                                    <span class="text-hp-coral" data-global-lang="zh">房東推薦 ★★★★★</span>
                                     <span class="text-hp-coral hidden" data-global-lang="en">Host Favorite ★★★★★</span>
                                 </div>
                             </div>
 
                             <!-- Interactive Task buttons representing "Host instructions" -->
                             <div class="mt-4 space-y-2">
-                                <h5 class="text-xs uppercase font-bold tracking-wider text-[#8C807A]">房務自動化快捷動作</h5>
+                                <h5 class="text-xs uppercase font-bold tracking-wider text-[#8C807A]">
+                                    <span data-global-lang="zh">房務自動化快捷動作</span>
+                                    <span data-global-lang="en" class="hidden">Host Automation Shortcuts</span>
+                                </h5>
                                 
                                 <div class="grid grid-cols-2 gap-2">
                                     <button data-action="click->explorer#requestWifiReset" class="bg-hp-bgLight hover:bg-hp-coral/10 border border-hp-border hover:border-hp-coral rounded-xl p-3 text-left transition duration-200">
@@ -833,17 +926,13 @@
                             <span data-global-lang="zh">實境探索</span>
                             <span data-global-lang="en" class="hidden">Map Guide</span>
                         </button>
-                        <button data-action="click->explorer#triggerEmergency" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
-                            <i class="fa-solid fa-circle-question text-base"></i>
-                            <span data-global-lang="zh">緊急聯絡</span>
-                            <span data-global-lang="en" class="hidden">Help</span>
-                        </button>
                     </div>
             </div>
 
     </div>
 
     <!-- Simulated Backend Database within Hotwire Client -->
+    <script src="js/experience-details.js"></script>
     <script>
         const IMAGE_FALLBACKS = {
             room: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
@@ -862,7 +951,11 @@
                     titleZh: data.recTitle1Zh,
                     titleEn: data.recTitle1En,
                     descZh: data.desc1Zh || data.recTitle1Zh,
-                    descEn: data.desc1En || data.recTitle1En
+                    descEn: data.desc1En || data.recTitle1En,
+                    distZh: data.recExplorerDist1Zh || data.recDist1Zh || '',
+                    distEn: data.recExplorerDist1En || data.recDist1En || '',
+                    estZh: data.recExplorerEst1Zh || (data.recPrice1Zh ? `預估花費：${data.recPrice1Zh}` : ''),
+                    estEn: data.recExplorerEst1En || (data.recPrice1En ? `Est: ${data.recPrice1En}` : '')
                 };
             }
             if (recIndex === 2) {
@@ -870,29 +963,70 @@
                     titleZh: data.recTitle2Zh,
                     titleEn: data.recTitle2En,
                     descZh: data.desc2Zh || data.descZh,
-                    descEn: data.desc2En || data.descEn
+                    descEn: data.desc2En || data.descEn,
+                    distZh: data.recExplorerDist2Zh || data.recDist2Zh || '',
+                    distEn: data.recExplorerDist2En || data.recDist2En || '',
+                    estZh: data.recExplorerEst2Zh || (data.recPrice2Zh ? `預估花費：${data.recPrice2Zh}` : ''),
+                    estEn: data.recExplorerEst2En || (data.recPrice2En ? `Est: ${data.recPrice2En}` : '')
                 };
             }
             return {
                 titleZh: data.targetTitleZh,
                 titleEn: data.targetTitleEn,
                 descZh: data.descZh,
-                descEn: data.descEn
+                descEn: data.descEn,
+                distZh: data.explorerDistZh || '',
+                distEn: data.explorerDistEn || '',
+                estZh: data.explorerEstZh || '',
+                estEn: data.explorerEstEn || ''
             };
         }
 
         const guidesDb = {
             'UK-LONDON': {
+                recExperienceId1: '5829101',
+                recExperienceId2: '5829102',
                 roomImg: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+                roomGallery: [
+                    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1480072618760-64360a658a43?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1512918728675-ebd0bcb0b4e8?auto=format&fit=crop&w=600&q=80"
+                ],
                 roomTitleZh: "肖爾迪奇 · 倫敦時尚公寓",
                 roomTitleEn: "Shoreditch · London Designer Flat",
                 hostNameZh: "Emma 的倫敦肖爾迪奇公寓",
                 hostNameEn: "Emma's Shoreditch London Flat",
                 locationZh: "倫敦, 英國 - 4 晚預訂",
                 locationEn: "London, UK - 4 Nights Stay",
+                listingLabelZh: "英國·倫敦",
+                listingLabelEn: "UK · London",
+                recBadge1Zh: "週末市集",
+                recBadge1En: "Weekend Market",
+                recBadge2Zh: "河畔秘境",
+                recBadge2En: "Riverside Gem",
+                recDist1Zh: "步行 7 分鐘可達",
+                recDist1En: "7 mins on foot",
+                recDist2Zh: "步行 15 分鐘可達",
+                recDist2En: "15 mins on foot",
+                recPrice1Zh: "£18 起",
+                recPrice1En: "From £18",
+                recPrice2Zh: "免費",
+                recPrice2En: "Free",
+                recExplorerDist1Zh: "步行 7 分鐘（約 550 公尺）",
+                recExplorerDist1En: "7 mins walk (~550 m)",
+                recExplorerEst1Zh: "預估花費：£18 起",
+                recExplorerEst1En: "Est: From £18",
+                recExplorerDist2Zh: "步行 15 分鐘（約 1.2 公里）",
+                recExplorerDist2En: "15 mins walk (~1.2 km)",
+                recExplorerEst2Zh: "預估花費：免費",
+                recExplorerEst2En: "Est: Free",
+                explorerDistZh: "步行 15 分鐘（約 1.2 公里）",
+                explorerDistEn: "15 mins walk (~1.2 km)",
+                explorerEstZh: "預估花費：免費",
+                explorerEstEn: "Est: Free",
                 wifi: "LondonShoreditch_5G / pass: britannia24",
                 lock: "智慧門鎖輸入 #2468#，綠燈亮起後推門進入",
-                recImg1: "https://images.unsplash.com/photo-1511739001487-6b10f8037908?auto=format&fit=crop&w=300&q=80",
+                recImg1: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=300&q=80",
                 recTitle1Zh: "博羅市場週末早午餐",
                 recTitle1En: "Borough Market Weekend Brunch",
                 desc1Zh: "「Emma 推薦週六上午 10 點前往博羅市場，品嚐現烤酸種麵包與英式起司，是倫敦最經典的在地早餐路線。」",
@@ -908,13 +1042,46 @@
                 descEn: "Emma's tip: start at Tower Bridge around 6 PM for a riverside walk—sunset on the Thames is London's classic free hidden gem."
             },
             'TAIPEI-CITY': {
+                recExperienceId1: '3310245',
+                recExperienceId2: '3310246',
                 roomImg: "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=600&q=80",
+                roomGallery: [
+                    "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80"
+                ],
                 roomTitleZh: "大安區設計感 Loft 公寓",
                 roomTitleEn: "Da'an District Designer Loft",
                 hostNameZh: "Mia 的大安設計感 Loft",
                 hostNameEn: "Mia's Da'an Designer Loft",
                 locationZh: "台北, 台灣 - 3 晚預訂",
                 locationEn: "Taipei, Taiwan - 3 Nights Stay",
+                listingLabelZh: "台北·大安",
+                listingLabelEn: "Taipei · Da'an",
+                recBadge1Zh: "傳統早餐",
+                recBadge1En: "Classic Breakfast",
+                recBadge2Zh: "夕陽秘境",
+                recBadge2En: "Sunset View",
+                recDist1Zh: "步行 5 分鐘可達",
+                recDist1En: "5 mins on foot",
+                recDist2Zh: "步行 20 分鐘可達",
+                recDist2En: "20 mins on foot",
+                recPrice1Zh: "NT$120 起",
+                recPrice1En: "From NT$120",
+                recPrice2Zh: "免費",
+                recPrice2En: "Free",
+                recExplorerDist1Zh: "步行 5 分鐘（約 400 公尺）",
+                recExplorerDist1En: "5 mins walk (~400 m)",
+                recExplorerEst1Zh: "預估花費：NT$120 起",
+                recExplorerEst1En: "Est: From NT$120",
+                recExplorerDist2Zh: "步行 20 分鐘（約 1.2 公里）",
+                recExplorerDist2En: "20 mins walk (~1.2 km)",
+                recExplorerEst2Zh: "預估花費：免費",
+                recExplorerEst2En: "Est: Free",
+                explorerDistZh: "步行 20 分鐘（約 1.2 公里）",
+                explorerDistEn: "20 mins walk (~1.2 km)",
+                explorerEstZh: "預估花費：免費",
+                explorerEstEn: "Est: Free",
                 wifi: "TaipeiDaan_5G / pass: nightmarket88",
                 lock: "電子門鎖輸入 #2024#，聽到滴聲後推門進入",
                 recImg1: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80",
@@ -933,13 +1100,46 @@
                 descEn: "Mia's Insider Tip: Start at Xiangshan Trail around 5 PM—a 20-minute hike rewards you with Taipei 101 glowing at sunset, the city's classic free hidden gem."
             },
             'VILNIUS-OLDTOWN': {
+                recExperienceId1: '4410201',
+                recExperienceId2: '4410202',
                 roomImg: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
+                roomGallery: [
+                    "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1551882547-ff40c63d5e7f?auto=format&fit=crop&w=600&q=80"
+                ],
                 roomTitleZh: "維爾紐斯舊城 · 巴洛克閣樓公寓",
                 roomTitleEn: "Vilnius Old Town · Baroque Loft",
                 hostNameZh: "Mindaugas 的維爾紐斯舊城閣樓",
                 hostNameEn: "Mindaugas's Vilnius Old Town Loft",
                 locationZh: "維爾紐斯, 立陶宛 - 4 晚預訂",
                 locationEn: "Vilnius, Lithuania - 4 Nights Stay",
+                listingLabelZh: "立陶宛·維爾紐斯",
+                listingLabelEn: "Lithuania · Vilnius",
+                recBadge1Zh: "湖上秘境",
+                recBadge1En: "Lake Escape",
+                recBadge2Zh: "工藝體驗",
+                recBadge2En: "Craft Workshop",
+                recDist1Zh: "車程 30 分鐘",
+                recDist1En: "30 mins by car",
+                recDist2Zh: "步行 10 分鐘可達",
+                recDist2En: "10 mins on foot",
+                recPrice1Zh: "€35 起",
+                recPrice1En: "From €35",
+                recPrice2Zh: "€25 起",
+                recPrice2En: "From €25",
+                recExplorerDist1Zh: "車程 30 分鐘（約 28 公里）",
+                recExplorerDist1En: "30 mins drive (~28 km)",
+                recExplorerEst1Zh: "預估花費：€35 起",
+                recExplorerEst1En: "Est: From €35",
+                recExplorerDist2Zh: "步行 10 分鐘（約 750 公尺）",
+                recExplorerDist2En: "10 mins walk (~750 m)",
+                recExplorerEst2Zh: "預估花費：€25 起",
+                recExplorerEst2En: "Est: From €25",
+                explorerDistZh: "步行 12 分鐘（約 900 公尺）",
+                explorerDistEn: "12 mins walk (~900 m)",
+                explorerEstZh: "預估花費：免費",
+                explorerEstEn: "Est: Free",
                 wifi: "VilniusOldTown_Guest / pass: amber2024",
                 lock: "感應鑰匙卡輕觸門把，綠燈亮起後推門進入",
                 recImg1: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80",
@@ -958,13 +1158,46 @@
                 descEn: "Mindaugas recommends the castle hill path at 6 PM—the red rooftops glow like amber at sunset, Vilnius's classic free hidden gem."
             },
             'RIO-COPACABANA': {
+                recExperienceId1: '5510301',
+                recExperienceId2: '5510302',
                 roomImg: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=600&q=80",
+                roomGallery: [
+                    "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1483728642387-8fd3a1a3a7f6?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1548919973-8162e84749af?auto=format&fit=crop&w=600&q=80"
+                ],
                 roomTitleZh: "科帕卡巴納 · 海景陽台工作室",
                 roomTitleEn: "Copacabana · Ocean-view Studio",
                 hostNameZh: "Carlos 的科帕卡巴納海景房",
                 hostNameEn: "Carlos's Copacabana Beach Studio",
                 locationZh: "里約熱內盧, 巴西 - 5 晚預訂",
                 locationEn: "Rio de Janeiro, Brazil - 5 Nights Stay",
+                listingLabelZh: "巴西·里約",
+                listingLabelEn: "Brazil · Rio",
+                recBadge1Zh: "夜生活",
+                recBadge1En: "Nightlife",
+                recBadge2Zh: "日出健行",
+                recBadge2En: "Sunrise Hike",
+                recDist1Zh: "Uber 15 分鐘",
+                recDist1En: "15 mins by Uber",
+                recDist2Zh: "纜車 8 分鐘可達",
+                recDist2En: "8 mins by cable car",
+                recPrice1Zh: "R$80 起",
+                recPrice1En: "From R$80",
+                recPrice2Zh: "R$120 起",
+                recPrice2En: "From R$120",
+                recExplorerDist1Zh: "Uber 15 分鐘（約 6 公里）",
+                recExplorerDist1En: "15 mins Uber (~6 km)",
+                recExplorerEst1Zh: "預估花費：R$80 起",
+                recExplorerEst1En: "Est: From R$80",
+                recExplorerDist2Zh: "纜車 8 分鐘（約 2 公里）",
+                recExplorerDist2En: "8 mins cable car (~2 km)",
+                recExplorerEst2Zh: "預估花費：R$120 起",
+                recExplorerEst2En: "Est: From R$120",
+                explorerDistZh: "Uber 25 分鐘（約 12 公里）",
+                explorerDistEn: "25 mins Uber (~12 km)",
+                explorerEstZh: "預估花費：R$150 起",
+                explorerEstEn: "Est: From R$150",
                 wifi: "CopaBeach_5G / pass: samba1234",
                 lock: "電子鎖輸入 #8420# 後轉動把手開門",
                 recImg1: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
@@ -1105,6 +1338,24 @@
                         hostNameEn: `Host's Custom Property (${targetId})`,
                         locationZh: "台灣, 本地 - 歡迎入住",
                         locationEn: "Local Stay - Warm Welcome",
+                        listingLabelZh: targetId.replace(/-/g, '·'),
+                        listingLabelEn: targetId.replace(/-/g, ' · '),
+                        recBadge1Zh: "在地體驗",
+                        recBadge1En: "Local Pick",
+                        recBadge2Zh: "夜景秘境",
+                        recBadge2En: "Hidden View",
+                        recDist1Zh: "步行 10 分鐘可達",
+                        recDist1En: "10 mins on foot",
+                        recDist2Zh: "步行 15 分鐘可達",
+                        recDist2En: "15 mins on foot",
+                        recPrice1Zh: "依現場為準",
+                        recPrice1En: "Varies",
+                        recPrice2Zh: "免費",
+                        recPrice2En: "Free",
+                        explorerDistZh: "步行 15 分鐘（約 1 公里）",
+                        explorerDistEn: "15 mins walk (~1 km)",
+                        explorerEstZh: "預估花費：免費",
+                        explorerEstEn: "Est: Free",
                         wifi: `MyWifi_${targetId} / pass: welcome123456`,
                         lock: "點選下方電子鎖按鈕並取得臨時動態密碼 8820",
                         recImg1: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80",
@@ -1267,12 +1518,14 @@
         stimulusApp.register("dashboard", class extends Controller {
             static targets = [
                 "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", 
-                "wifiValue", "lockValue", "recImg1", "recTitle1", 
-                "recImg2", "recTitle2", "stayGuides", "localRecs",
+                "roomHero", "roomPhotoDots",
+                "wifiValue", "lockValue", "recImg1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
+                "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
+                "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "bottomNavBtn",
-                "roomOverlay", "helpOverlay", "lockOverlay", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expDetailMapBtn", "helpHostName",
                 "lockCode", "lockDetail",
-                "overlayHero", "overlayTitle", "overlayLocation", "overlayHost",
+                "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
             ]
 
@@ -1280,30 +1533,129 @@
                 // Listen to global model updates (Like Hotwire Frame events)
                 this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
+                this.bindRoomHeroSwipe();
+                this.bindOverlayHeroSwipe();
+                this.currentListingId = 'TAIPEI-CITY';
                 
                 // Initialize default view
-                this.renderDashboard(guidesDb['TAIPEI-CITY']);
+                this.renderDashboard(guidesDb['TAIPEI-CITY'], 'TAIPEI-CITY');
             }
 
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
             }
 
-            onExperienceUpdated(event) {
-                const { id, data } = event.detail;
-                this.activeIdTarget.innerText = id;
-                this.renderDashboard(data);
+            bindRoomHeroSwipe() {
+                if (!this.hasRoomHeroTarget) return;
+                if (this.roomHeroTarget.dataset.swipeBound) return;
+                this.roomHeroTarget.dataset.swipeBound = "true";
+                let startX = 0;
+                this.roomHeroTarget.addEventListener("touchstart", (e) => {
+                    startX = e.touches[0].clientX;
+                }, { passive: true });
+                this.roomHeroTarget.addEventListener("touchend", (e) => {
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(dx) < 40) return;
+                    if (dx > 0) this.prevRoomPhoto();
+                    else this.nextRoomPhoto();
+                }, { passive: true });
             }
 
-            renderDashboard(data) {
+            bindOverlayHeroSwipe() {
+                if (!this.hasOverlayHeroTarget) return;
+                if (this.overlayHeroTarget.dataset.swipeBound) return;
+                this.overlayHeroTarget.dataset.swipeBound = "true";
+                let startX = 0;
+                this.overlayHeroTarget.addEventListener("touchstart", (e) => {
+                    startX = e.touches[0].clientX;
+                }, { passive: true });
+                this.overlayHeroTarget.addEventListener("touchend", (e) => {
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(dx) < 40) return;
+                    if (dx > 0) this.prevRoomPhoto();
+                    else this.nextRoomPhoto();
+                }, { passive: true });
+            }
+
+            setRoomGallery(data) {
+                this.currentRoomGallery = (data.roomGallery && data.roomGallery.length)
+                    ? data.roomGallery
+                    : [data.roomImg];
+                this.roomPhotoIndex = 0;
+                this.updateRoomHeroPhoto();
+            }
+
+            updateRoomHeroPhoto() {
+                const gallery = this.currentRoomGallery || [];
+                if (!gallery.length) return;
+                const idx = this.roomPhotoIndex || 0;
+                const src = gallery[idx];
+                const dotsHtml = gallery.map((_, i) =>
+                    `<span class="w-1.5 h-1.5 rounded-full transition ${i === idx ? "bg-white" : "bg-white/40"}"></span>`
+                ).join("");
+
+                if (this.hasRoomHeroImgTarget) {
+                    setImgWithFallback(this.roomHeroImgTarget, src, IMAGE_FALLBACKS.room);
+                }
+                if (this.hasOverlayHeroImgTarget) {
+                    setImgWithFallback(this.overlayHeroImgTarget, src, IMAGE_FALLBACKS.room);
+                }
+                if (this.hasRoomPhotoDotsTarget) {
+                    this.roomPhotoDotsTarget.innerHTML = dotsHtml;
+                }
+                if (this.hasOverlayPhotoDotsTarget) {
+                    this.overlayPhotoDotsTarget.innerHTML = dotsHtml;
+                }
+            }
+
+            prevRoomPhoto(event) {
+                event?.stopPropagation();
+                const len = this.currentRoomGallery?.length || 0;
+                if (len <= 1) return;
+                this.roomPhotoIndex = (this.roomPhotoIndex - 1 + len) % len;
+                this.updateRoomHeroPhoto();
+            }
+
+            nextRoomPhoto(event) {
+                event?.stopPropagation();
+                const len = this.currentRoomGallery?.length || 0;
+                if (len <= 1) return;
+                this.roomPhotoIndex = (this.roomPhotoIndex + 1) % len;
+                this.updateRoomHeroPhoto();
+            }
+
+            onExperienceUpdated(event) {
+                const { id, data } = event.detail;
+                this.currentListingId = id;
+                this.renderDashboard(data, id);
+                if (this.hasExpDetailOverlayTarget
+                    && !this.expDetailOverlayTarget.classList.contains('translate-y-full')
+                    && this.currentExpRecIndex
+                    && window.ExperienceDetailsAPI) {
+                    const expId = ExperienceDetailsAPI.getExperienceIdForRec(guidesDb, id, this.currentExpRecIndex);
+                    if (expId) {
+                        ExperienceDetailsAPI.fetchDetails(expId).then(payload => {
+                            this.renderExperienceDetail(payload, this.currentExpRecIndex);
+                        });
+                    }
+                }
+            }
+
+            renderDashboard(data, listingId) {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const id = listingId || this.currentListingId || 'TAIPEI-CITY';
                 
                 // Update Room photo and Room title targets dynamically (Fulfills User Story details)
-                setImgWithFallback(this.roomHeroImgTarget, data.roomImg, IMAGE_FALLBACKS.room);
+                this.setRoomGallery(data);
                 this.roomTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
 
                 this.hostTitleTarget.innerText = isZh ? data.hostNameZh : data.hostNameEn;
                 this.hostLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
+                if (this.hasActiveIdTarget) {
+                    this.activeIdTarget.innerText = isZh
+                        ? (data.listingLabelZh || id)
+                        : (data.listingLabelEn || id);
+                }
                 this.wifiValueTarget.innerText = data.wifi;
                 this.lockValueTarget.innerText = data.lock;
                 if (this.hasLockCodeTarget) {
@@ -1316,20 +1668,30 @@
 
                 setImgWithFallback(this.recImg1Target, data.recImg1, IMAGE_FALLBACKS.rec);
                 this.recTitle1Target.innerText = isZh ? data.recTitle1Zh : data.recTitle1En;
+                if (this.hasRecBadge1Target) this.recBadge1Target.innerText = isZh ? data.recBadge1Zh : data.recBadge1En;
+                if (this.hasRecDist1Target) this.recDist1Target.innerText = isZh ? data.recDist1Zh : data.recDist1En;
+                if (this.hasRecPrice1Target) this.recPrice1Target.innerText = isZh ? data.recPrice1Zh : data.recPrice1En;
                 setImgWithFallback(this.recImg2Target, data.recImg2, IMAGE_FALLBACKS.rec);
                 this.recTitle2Target.innerText = isZh ? data.recTitle2Zh : data.recTitle2En;
+                if (this.hasRecBadge2Target) this.recBadge2Target.innerText = isZh ? data.recBadge2Zh : data.recBadge2En;
+                if (this.hasRecDist2Target) this.recDist2Target.innerText = isZh ? data.recDist2Zh : data.recDist2En;
+                if (this.hasRecPrice2Target) this.recPrice2Target.innerText = isZh ? data.recPrice2Zh : data.recPrice2En;
+                this.syncRecCardRatings(id);
 
                 // Also sync targets of the hidden/connectable Airbnb room details overlay!
-                setImgWithFallback(this.overlayHeroTarget, data.roomImg, IMAGE_FALLBACKS.room);
+                this.updateRoomHeroPhoto();
                 this.overlayTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
                 this.overlayLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
-                this.overlayHostTarget.innerText = isZh ? (data.hostNameZh.split(' ')[0]) : (data.hostNameEn.split("'")[0]);
+                const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
+                if (this.hasOverlayHostLineTarget) {
+                    this.overlayHostLineTarget.innerText = isZh
+                        ? `${hostFirst} 的房源主頁`
+                        : `${hostFirst}'s Listing`;
+                }
                 if (this.hasHelpHostNameTarget) {
-                    const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
-                    this.helpHostNameTarget.innerText = `${hostFirst} · Superhost`;
+                    this.helpHostNameTarget.innerText = `${hostFirst} · ${isZh ? '超讚房東' : 'Superhost'}`;
                 }
                 if (this.hasHostRecLabelZhTarget && this.hasHostRecLabelEnTarget) {
-                    const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
                     this.hostRecLabelZhTarget.innerText = `${hostFirst} 的精選私藏行程`;
                     this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
@@ -1367,9 +1729,70 @@
                 }
             }
 
-            openRecOnMap(event) {
+            syncRecCardRatings(listingId) {
+                if (!window.ExperienceDetailsAPI) return;
+                [1, 2].forEach(recIndex => {
+                    const expId = ExperienceDetailsAPI.getExperienceIdForRec(guidesDb, listingId, recIndex);
+                    const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
+                    const target = recIndex === 1 ? this.recRating1Target : this.recRating2Target;
+                    const hasTarget = recIndex === 1 ? this.hasRecRating1Target : this.hasRecRating2Target;
+                    if (!hasTarget || !fixture?.experience) return;
+                    const { rating, reviews } = fixture.experience;
+                    target.innerText = `★ ${rating}`;
+                    target.title = `${reviews} reviews`;
+                });
+            }
+
+            async openExperienceDetail(event) {
                 const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
-                const id = this.activeIdTarget.innerText.trim().toUpperCase();
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const expId = window.ExperienceDetailsAPI?.getExperienceIdForRec(guidesDb, listingId, recIndex);
+                if (!expId || !this.hasExpDetailOverlayTarget) return;
+
+                this.currentExpRecIndex = recIndex;
+                this.expDetailOverlayTarget.classList.remove('translate-y-full');
+                if (this.hasExpDetailBodyTarget) {
+                    const isZh = (window.currentLanguage || 'zh') === 'zh';
+                    this.expDetailBodyTarget.innerHTML = `<p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
+                }
+
+                const payload = await ExperienceDetailsAPI.fetchDetails(expId);
+                this.renderExperienceDetail(payload, recIndex);
+            }
+
+            renderExperienceDetail(payload, recIndex) {
+                if (!payload || !this.hasExpDetailBodyTarget) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                this.currentExpRecIndex = recIndex;
+                this.expDetailBodyTarget.innerHTML = ExperienceDetailsAPI.renderPanel(payload, { isZh });
+            }
+
+            closeExperienceDetail() {
+                if (this.hasExpDetailOverlayTarget) {
+                    this.expDetailOverlayTarget.classList.add('translate-y-full');
+                }
+            }
+
+            openSimilarExperience(event) {
+                const expId = event.currentTarget.dataset.experienceId;
+                if (!expId) return;
+                ExperienceDetailsAPI.fetchDetails(expId).then(payload => {
+                    this.renderExperienceDetail(payload, this.currentExpRecIndex || 1);
+                });
+            }
+
+            openExpDetailMap() {
+                if (!this.currentExpRecIndex) return;
+                this.closeExperienceDetail();
+                const fakeEvent = { currentTarget: { dataset: { rec: String(this.currentExpRecIndex) } } };
+                setTimeout(() => this.openRecOnMap(fakeEvent), 300);
+            }
+
+            openRecOnMap(event) {
+                event?.stopPropagation?.();
+                event?.preventDefault?.();
+                const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
+                const id = this.currentListingId || 'TAIPEI-CITY';
                 const data = guidesDb[id];
                 if (!data) return;
 
@@ -1447,14 +1870,14 @@
             // THIS NOW SLIDES UP A FULL BEAUTIFUL AIRBNB LISTING OVERLAY SCREEN DYNAMICALLY!
             connectBackToRoom() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const currentId = this.activeIdTarget.innerText;
+                const currentLabel = this.hasActiveIdTarget ? this.activeIdTarget.innerText : this.currentListingId;
                 
                 // Remove translate-y-full class to trigger a smooth bottom-to-top slide up transition
                 this.roomOverlayTarget.classList.remove('translate-y-full');
 
                 this.triggerToast(
                     isZh ? "返回原始房源主頁" : "Connected back to Room detail",
-                    isZh ? `已為您模擬一鍵導航回 Airbnb 房源編號: ${currentId}` : `Successfully pulled up native Airbnb Room listing screen for ID: ${currentId}.`,
+                    isZh ? `已為您模擬一鍵導航回 Airbnb 房源：${currentLabel}` : `Successfully pulled up native Airbnb Room listing for ${currentLabel}.`,
                     'success'
                 );
             }
@@ -1467,10 +1890,10 @@
             // Airbnb user story - "Can share" Action
             shareExperience() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const currentId = this.activeIdTarget.innerText;
+                const shareId = this.currentListingId || 'TAIPEI-CITY';
 
                 // Simulate Copy share link (Clipboard copy with fallback)
-                const shareText = `https://host-pocket.example.com/share/${currentId}`;
+                const shareText = `https://host-pocket.example.com/share/${shareId}`;
                 const temp = document.createElement('textarea');
                 temp.value = shareText;
                 document.body.appendChild(temp);
@@ -1604,9 +2027,12 @@
 
         // 4. PHONE 3 EXPLORER & TASK RUNNER CONTROLLER
         stimulusApp.register("explorer", class extends Controller {
-            static targets = ["targetTitle", "targetDesc", "mapContainer", "startPinDot", "endPinDot", "endPinPing", "routePath"]
+            static targets = ["targetTitle", "targetDesc", "routeDist", "routeEst", "mapContainer", "mapLayer", "startPinDot", "endPinDot", "endPinPing", "routePath"]
 
             connect() {
+                this.mapScale = 1;
+                this.mapPanX = 0;
+                this.mapPanY = 0;
                 this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
                 this.onSelectRec = this.onSelectRec.bind(this);
                 this.updateRouteLine = this.updateRouteLine.bind(this);
@@ -1666,6 +2092,12 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 this.targetTitleTarget.innerText = isZh ? detail.titleZh : detail.titleEn;
                 this.targetDescTarget.innerText = isZh ? detail.descZh : detail.descEn;
+                if (this.hasRouteDistTarget) {
+                    this.routeDistTarget.innerText = isZh ? detail.distZh : detail.distEn;
+                }
+                if (this.hasRouteEstTarget) {
+                    this.routeEstTarget.innerText = isZh ? detail.estZh : detail.estEn;
+                }
             }
 
             // Interactive Micro actions (simulating background job triggers)
@@ -1693,13 +2125,26 @@
                 );
             }
 
-            zoomMap() {
-                this.triggerToast('Map Zoom', 'Simulated SVG Map container scaled up (+15%)', 'info');
+            applyMapTransform() {
+                if (!this.hasMapLayerTarget) return;
+                this.mapLayerTarget.style.transform = `translate(${this.mapPanX}px, ${this.mapPanY}px) scale(${this.mapScale})`;
+            }
+
+            zoomMap(event) {
+                event?.stopPropagation();
+                event?.preventDefault();
+                this.mapScale = Math.min(2, +(this.mapScale + 0.2).toFixed(2));
+                this.applyMapTransform();
                 requestAnimationFrame(() => this.updateRouteLine());
             }
 
-            recenterMap() {
-                this.triggerToast('GPS Sync', 'Re-synchronized simulated guest location to Room Center.', 'success');
+            recenterMap(event) {
+                event?.stopPropagation();
+                event?.preventDefault();
+                this.mapScale = 1;
+                this.mapPanX = 0;
+                this.mapPanY = 0;
+                this.applyMapTransform();
                 requestAnimationFrame(() => this.updateRouteLine());
             }
 
