@@ -199,7 +199,14 @@
 
     function merge(base, overrides) {
         if (!overrides) return { ...base };
-        const merged = { ...base, ...overrides };
+        const merged = { ...base };
+        Object.keys(overrides).forEach((key) => {
+            const val = overrides[key];
+            if (val === undefined || val === null) return;
+            if (typeof val === 'string' && val.trim() === '') return;
+            if (Array.isArray(val) && val.length === 0) return;
+            merged[key] = val;
+        });
         if (overrides.roomGallery?.length) {
             merged.roomGallery = [...overrides.roomGallery];
         }

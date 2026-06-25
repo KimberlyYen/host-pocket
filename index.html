@@ -404,8 +404,8 @@
 
             <!-- 畫面 2：指南主頁 -->
             <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
-                    <div class="shrink-0 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 bg-hp-bgLight flex items-center justify-between relative z-20">
-                        <button type="button" data-action="click->dashboard#goBackToPairing" aria-label="返回上一步"
+                    <div data-dashboard-target="headerBar" class="shrink-0 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 bg-hp-bgLight flex items-center justify-between relative z-20">
+                        <button type="button" data-action="click->dashboard#goBackToPairing" data-dashboard-target="backBtn" aria-label="返回上一步"
                                 class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
                             <i class="fa-solid fa-arrow-left text-lg"></i>
                         </button>
@@ -1180,6 +1180,10 @@
                 if (hasDeepLink) {
                     document.documentElement.classList.add('hp-boot-dashboard');
                 }
+
+                const dashEl = this.screenTargets.find(el => el.dataset.screen === 'dashboard');
+                const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
+                dashCtrl?.bootFromDeepLink?.();
             }
 
             show(name) {
@@ -1473,7 +1477,7 @@
                 "recImg3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
-                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "shareLink",
+                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "shareLink", "backBtn", "headerBar",
                 "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
@@ -1484,6 +1488,8 @@
                 // Listen to global model updates (Like Hotwire Frame events)
                 this.onExperienceUpdated = this.onExperienceUpdated.bind(this);
                 window.addEventListener("experience:updated", this.onExperienceUpdated);
+                this.onPageShow = this.onPageShow.bind(this);
+                window.addEventListener('pageshow', this.onPageShow);
                 this.bindRoomHeroSwipe();
                 this.bindOverlayHeroSwipe();
                 this.bindScrollContainer();
@@ -1494,34 +1500,16 @@
                 this.bookingTimezoneIsOther = false;
                 this.bookingCustomTimezone = '';
 
-                const deep = window.__hostPocketDeepLink;
-                const params = new URLSearchParams(location.search);
-                const urlListing = (deep?.listing || params.get('listing') || params.get('id') || '').trim().toUpperCase();
-                const urlExperience = (deep?.experience || params.get('experience') || '').trim();
-                const resolvedListing = urlListing
-                    || GuideDefaults.findListingForExperience(urlExperience)
-                    || 'TAIPEI-CITY';
-                this.currentListingId = resolvedListing;
-                const hasDeepLink = Boolean(urlListing || urlExperience);
-                const bootListingId = resolvedListing;
+                this.bootFromDeepLink();
 
-                if (hasDeepLink) {
-                    window.appNavigate?.('dashboard');
-                    const pairingInput = document.querySelector('[data-pairing-target="input"]');
-                    if (pairingInput) pairingInput.value = resolvedListing;
-                    this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
-                    if (urlExperience) {
-                        void this.openExperienceFromShareLink(resolvedListing, urlExperience);
-                    } else {
-                        this.syncGuideBrowserUrl();
-                    }
-                }
+                const { listingId: bootListingId, hasDeepLink, experienceId: urlExperience } = this.resolveDeepLinkContext();
 
                 HostGuideSettings.ensureLoaded(bootListingId).then(() => {
                     if (this.currentListingId !== bootListingId) return;
                     const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
                     if (hasDeepLink) {
                         global?.syncControllers(bootListingId);
+                        this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
                         if (!urlExperience) this.syncGuideBrowserUrl();
                     } else {
                         this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
@@ -1536,6 +1524,7 @@
 
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
+                window.removeEventListener('pageshow', this.onPageShow);
                 if (this.hasScrollContainerTarget && this.onScrollContainerScroll) {
                     this.scrollContainerTarget.removeEventListener('scroll', this.onScrollContainerScroll);
                 }
@@ -1630,6 +1619,7 @@
                 const { id, data } = event.detail;
                 this.currentListingId = id;
                 this.renderDashboard(data, id);
+                this.updateDeepLinkChrome(this.resolveDeepLinkContext().hasDeepLink);
                 if (this.hasExpDetailOverlayTarget
                     && !this.expDetailOverlayTarget.classList.contains('translate-y-full')
                     && this.currentExpRecIndex
@@ -1641,6 +1631,59 @@
                         });
                     }
                 }
+            }
+
+            resolveDeepLinkContext() {
+                const deep = ExperienceDetailsAPI.parseDeepLinkFromLocation()
+                    || window.__hostPocketDeepLink;
+                const params = new URLSearchParams(location.search);
+                const htmlListing = (document.documentElement.dataset.hpListing || '').trim().toUpperCase();
+                const urlListing = (deep?.listing || params.get('listing') || params.get('id') || htmlListing || '').trim().toUpperCase();
+                const urlExperience = (deep?.experience || params.get('experience') || '').trim();
+                const resolvedListing = urlListing
+                    || GuideDefaults.findListingForExperience(urlExperience)
+                    || 'TAIPEI-CITY';
+                const hasDeepLink = Boolean(urlListing || urlExperience);
+                return { listingId: resolvedListing, experienceId: urlExperience, hasDeepLink };
+            }
+
+            updateDeepLinkChrome(hasDeepLink) {
+                if (this.hasBackBtnTarget) {
+                    this.backBtnTarget.classList.toggle('hidden', hasDeepLink);
+                }
+                if (this.hasHeaderBarTarget) {
+                    this.headerBarTarget.classList.toggle('justify-end', hasDeepLink);
+                    this.headerBarTarget.classList.toggle('justify-between', !hasDeepLink);
+                }
+            }
+
+            bootFromDeepLink() {
+                const { listingId, experienceId, hasDeepLink } = this.resolveDeepLinkContext();
+                window.__hostPocketDeepLink = ExperienceDetailsAPI.parseDeepLinkFromLocation()
+                    || window.__hostPocketDeepLink;
+                this.currentListingId = listingId;
+                this.updateDeepLinkChrome(hasDeepLink);
+
+                if (!hasDeepLink) return;
+
+                window.appNavigate?.('dashboard');
+                document.documentElement.classList.add('hp-boot-dashboard');
+
+                const pairingInput = document.querySelector('[data-pairing-target="input"]');
+                if (pairingInput) pairingInput.value = listingId;
+
+                this.renderDashboard(getResolvedListing(listingId), listingId);
+
+                if (experienceId) {
+                    void this.openExperienceFromShareLink(listingId, experienceId);
+                } else {
+                    this.syncGuideBrowserUrl();
+                }
+            }
+
+            onPageShow(event) {
+                if (!event.persisted) return;
+                this.bootFromDeepLink();
             }
 
             renderDashboard(data, listingId) {
