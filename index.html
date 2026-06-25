@@ -666,7 +666,7 @@
                     <div data-dashboard-target="roomOverlay" class="absolute inset-0 bg-[#FAF8F5] z-40 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <!-- Scrollable Detail Contents of Room -->
                         <div class="flex-grow overflow-y-auto hide-scrollbar pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-                            <div data-dashboard-target="overlayHero" class="hp-image-swipe h-48 relative overflow-hidden">
+                            <div data-dashboard-target="overlayHero" class="hp-image-swipe h-[calc(100dvh*2/3)] shrink-0 relative overflow-hidden">
                                 <img data-dashboard-target="overlayHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent pointer-events-none"></div>
 
@@ -683,7 +683,7 @@
                                         class="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition active:scale-95">
                                     <i class="fa-solid fa-chevron-right text-xs"></i>
                                 </button>
-                                <div data-dashboard-target="overlayPhotoDots" class="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none"></div>
+                                <div data-dashboard-target="overlayPhotoDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none"></div>
 
                                 <span class="absolute bottom-3 left-4 bg-hp-coral text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow z-10">
                                     <span data-global-lang="zh">★ 超讚房東</span>
@@ -909,15 +909,6 @@
                                     <p class="text-xs text-hp-muted hidden" data-global-lang="en">Usually replies within 10 min</p>
                                 </div>
                             </div>
-                            <button data-action="click->dashboard#sendHostMessage" class="w-full bg-white border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3 shadow-sm">
-                                <div class="w-10 h-10 rounded-xl bg-hp-coral/10 text-hp-coral flex items-center justify-center"><i class="fa-solid fa-comment-dots"></i></div>
-                                <div>
-                                    <div class="text-xs font-bold text-hp-dark" data-global-lang="zh">傳送訊息給房東</div>
-                                    <div class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Send Message to Host</div>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">Wi-Fi、入住、在地推薦問題</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Wi-Fi, check-in, local tips</p>
-                                </div>
-                            </button>
                             <button data-action="click->dashboard#scrollToSectionFromHelp" data-section="stayGuides" class="w-full bg-hp-bgLight border border-hp-border hover:border-hp-coral rounded-2xl p-4 text-left transition flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-white text-hp-dark flex items-center justify-center border border-hp-border"><i class="fa-solid fa-wifi"></i></div>
                                 <div>
@@ -2637,15 +2628,6 @@
             scrollToSectionFromHelp(event) {
                 this.closeHelpOverlay();
                 setTimeout(() => this.scrollToSection(event), 350);
-            }
-
-            sendHostMessage() {
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                this.triggerToast(
-                    isZh ? '訊息已送出' : 'Message Sent',
-                    isZh ? 'Sarah 已收到您的訊息，將盡快回覆！' : 'Sarah received your message and will reply soon!',
-                    'success'
-                );
             }
 
             setActiveBottomNav(activeBtn) {
