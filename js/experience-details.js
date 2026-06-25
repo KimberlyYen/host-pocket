@@ -854,6 +854,18 @@
     }
 
     const GUIDE_PAGE = 'index.html';
+    const STATIC_DEV_PORTS = new Set(['5500', '5501', '8080', '8000', '5173']);
+
+    function isStaticDevServer() {
+        if (typeof window === 'undefined') return false;
+        const { protocol, port, hostname } = window.location;
+        if (protocol === 'file:') return true;
+        if (hostname === '127.0.0.1' || hostname === 'localhost') {
+            const p = port || (protocol === 'https:' ? '443' : '80');
+            if (STATIC_DEV_PORTS.has(p)) return true;
+        }
+        return false;
+    }
 
     function buildGuideShareUrl(_exp, options = {}) {
         const origin = typeof window !== 'undefined' ? window.location.origin : 'https://host-pocket.vercel.app';
@@ -866,6 +878,20 @@
         if (experienceId && !options.guideOnly) params.set('experience', experienceId);
         const qs = params.toString();
         return qs ? `${base}?${qs}` : base;
+    }
+
+    function buildGuideBrowserUrl(options = {}) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://host-pocket.vercel.app';
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
+        const experienceId = options.experienceId ? String(options.experienceId).trim() : '';
+
+        if (listingId && !isStaticDevServer()) {
+            if (experienceId && !options.guideOnly) {
+                return `${origin}/guide/${encodeURIComponent(listingId)}/experience/${encodeURIComponent(experienceId)}`;
+            }
+            return `${origin}/guide/${encodeURIComponent(listingId)}`;
+        }
+        return buildGuideShareUrl(null, options);
     }
 
     const SHARE_PICKS_DEFAULT_NUM = 3;
@@ -1512,6 +1538,7 @@
         getBookingMeta,
         buildShareContext,
         buildGuideShareUrl,
+        buildGuideBrowserUrl,
         parseDeepLinkFromLocation,
         renderShareSheet,
         initMediaPlayer,

@@ -77,6 +77,22 @@
             transform: translateX(12px);
             pointer-events: none;
         }
+        /* 深連結：在 Stimulus 載入前先顯示指南主頁，避免手機上短暫看到配對首頁 */
+        html.hp-boot-dashboard .app-screen[data-screen="pairing"] {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        html.hp-boot-dashboard .app-screen[data-screen="dashboard"] {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateX(0) !important;
+            pointer-events: auto !important;
+            z-index: 10 !important;
+        }
+        html.hp-boot-dashboard [data-global-target="langBar"] {
+            display: none !important;
+        }
         .partner-bar {
             background: linear-gradient(180deg, #2E2421 0%, #231C19 100%);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -177,6 +193,23 @@
             touch-action: pan-y;
         }
     </style>
+    <script>
+        (function () {
+            try {
+                var params = new URLSearchParams(location.search || '');
+                var listing = (params.get('listing') || params.get('id') || '').trim();
+                var experience = (params.get('experience') || '').trim();
+                var pathMatch = String(location.pathname || '').match(/\/guide\/([^/]+)(?:\/experience\/([^/]+))?\/?$/i);
+                if (pathMatch) {
+                    listing = decodeURIComponent(pathMatch[1]).trim();
+                    if (pathMatch[2]) experience = decodeURIComponent(pathMatch[2]).trim();
+                }
+                if (!listing && !experience) return;
+                document.documentElement.classList.add('hp-boot-dashboard');
+                if (listing) document.documentElement.dataset.hpListing = listing.toUpperCase();
+            } catch (_) { /* ignore */ }
+        })();
+    </script>
 </head>
 <body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
@@ -1139,9 +1172,14 @@
 
             connect() {
                 window.appNavigate = (name) => this.show(name);
-                const deep = window.__hostPocketDeepLink;
+                const deep = ExperienceDetailsAPI.parseDeepLinkFromLocation()
+                    || window.__hostPocketDeepLink;
+                window.__hostPocketDeepLink = deep;
                 const hasDeepLink = Boolean(deep?.listing || deep?.experience);
                 this.show(hasDeepLink ? 'dashboard' : this.currentValue);
+                if (hasDeepLink) {
+                    document.documentElement.classList.add('hp-boot-dashboard');
+                }
             }
 
             show(name) {
@@ -1726,7 +1764,7 @@
             syncExperienceBrowserUrl() {
                 const { listingId, experienceId } = this.getShareLinkOptions();
                 if (!listingId || !experienceId) return;
-                const url = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, experienceId });
+                const url = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, experienceId });
                 if (window.location.href.split('#')[0] !== url) {
                     history.replaceState({ hp: 'experience', listingId, experienceId }, '', url);
                 }
@@ -1734,12 +1772,13 @@
 
             syncGuideBrowserUrl() {
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const url = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true });
+                const shareUrl = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true });
+                const browserUrl = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, guideOnly: true });
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.href = url;
+                    this.shareLinkTarget.href = shareUrl;
                 }
-                if (window.location.href.split('#')[0] !== url) {
-                    history.replaceState({ hp: 'guide', listingId }, '', url);
+                if (window.location.href.split('#')[0] !== browserUrl) {
+                    history.replaceState({ hp: 'guide', listingId }, '', browserUrl);
                 }
             }
 
