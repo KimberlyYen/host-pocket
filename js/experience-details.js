@@ -1038,13 +1038,41 @@
         };
     }
 
+    const FIXTURES_STORAGE_KEY = 'host-pocket-experience-fixtures';
+
+    function seedFixturesToLocalStorage(options = {}) {
+        const force = options.force === true;
+        try {
+            if (!force && global.localStorage?.getItem(FIXTURES_STORAGE_KEY)) return;
+            global.localStorage?.setItem(FIXTURES_STORAGE_KEY, JSON.stringify(FIXTURES));
+        } catch (error) {
+            console.warn('[ExperienceDetails] fixture localStorage seed failed', error);
+        }
+    }
+
+    function loadFixtureFromLocalStorage(experienceId) {
+        const id = String(experienceId || '').trim();
+        if (!id) return null;
+        try {
+            const raw = global.localStorage?.getItem(FIXTURES_STORAGE_KEY);
+            if (!raw) return null;
+            const all = JSON.parse(raw);
+            return all[id] || null;
+        } catch {
+            return null;
+        }
+    }
+
     async function fetchDetails(experienceId, options = {}) {
         const id = String(experienceId || '').trim();
         if (!id) return null;
 
         if (global.HP_MOCK_DATA !== false) {
-            return FIXTURES[id]
-                ? { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } }
+            seedFixturesToLocalStorage();
+            const localFixture = loadFixtureFromLocalStorage(id);
+            const fixture = localFixture || FIXTURES[id];
+            return fixture
+                ? { ...fixture, search_parameters: { engine: 'airbnb_experience_details', experience_id: id } }
                 : null;
         }
 
@@ -1623,6 +1651,9 @@
 
     global.ExperienceDetailsAPI = {
         FIXTURES,
+        FIXTURES_STORAGE_KEY,
+        seedFixturesToLocalStorage,
+        loadFixtureFromLocalStorage,
         BOOKING_TIMEZONE_OTHER,
         SHARE_PICKS_DEFAULT_NUM,
         fetchDetails,

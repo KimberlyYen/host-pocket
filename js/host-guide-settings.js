@@ -9,7 +9,7 @@
         'roomTitleZh', 'roomTitleEn',
         'locationZh', 'locationEn',
         'listingLabelZh', 'listingLabelEn',
-        'wifi', 'lockZh', 'lockEn', 'hostEmail',
+        'wifi', 'lockCode', 'lockZh', 'lockEn', 'hostEmail',
         'roomImg',
         'recExperienceId1', 'recTitle1Zh', 'recTitle1En', 'recImg1',
         'recBadge1Zh', 'recBadge1En', 'recDist1Zh', 'recDist1En',
@@ -217,6 +217,29 @@
         return merged;
     }
 
+    function seedDemoListing(listingId, options = {}) {
+        const id = normalizeListingId(listingId);
+        const demoIds = global.GuideDefaults?.DEMO_LISTING_IDS || [];
+        if (!demoIds.includes(id)) return getMerged(id);
+
+        const base = getBase(id);
+        const force = options.force === true;
+        const existing = loadLocal(id);
+        if (!force && existing?.recTitle1Zh && existing?.wifi) {
+            setCacheEntry(id, existing);
+            return merge(base, existing);
+        }
+
+        const saved = saveLocal(id, base);
+        setCacheEntry(id, saved);
+        return merge(base, saved);
+    }
+
+    function seedAllDemoListings(options = {}) {
+        const demoIds = global.GuideDefaults?.DEMO_LISTING_IDS || [];
+        return demoIds.map((id) => seedDemoListing(id, options));
+    }
+
     function getMerged(listingId) {
         const base = getBase(listingId);
         const overrides = load(listingId);
@@ -257,6 +280,8 @@
         ensureLoaded,
         getMerged,
         getMergedAsync,
+        seedDemoListing,
+        seedAllDemoListings,
         getBase,
         merge,
         pickEditable,
