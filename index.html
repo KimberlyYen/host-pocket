@@ -232,6 +232,11 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+        .hp-secret-blurred {
+            filter: blur(6px);
+            -webkit-user-select: none;
+            user-select: none;
+        }
     </style>
     <script>
         (function () {
@@ -663,7 +668,7 @@
                                     <div>
                                         <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">Wi-Fi 機密與連接</h5>
                                         <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Wi-Fi Settings</h5>
-                                        <p data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5">KyotoNishijin_5G / 1029384756</p>
+                                        <p data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5"></p>
                                     </div>
                                 </div>
                                 <button data-action="click->dashboard#copyWifi" class="w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition">
@@ -873,8 +878,8 @@
                                                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
                                     </div>
                                     <p class="mt-1.5 text-[10px] text-hp-muted leading-relaxed">
-                                        <span data-global-lang="zh">確認後寄送預定確認信；若無法自動寄信，將開啟郵件 app</span>
-                                        <span data-global-lang="en" class="hidden">We'll send a confirmation email, or open your mail app if auto-send isn't available</span>
+                                        <span data-global-lang="zh">確認後將開啟郵件 app，請寄出預定確認信</span>
+                                        <span data-global-lang="en" class="hidden">Confirming opens your mail app — review and send the booking email</span>
                                     </p>
                                 </div>
                                 <p data-dashboard-target="expBookingConfirmFeedback" class="hidden text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5"></p>
@@ -1219,6 +1224,80 @@
                 .toUpperCase();
         }
 
+        function hpParseWifiSecret(wifi) {
+            const raw = String(wifi || '').trim();
+            const passMatch = raw.match(/^(.+?)\s*\/\s*pass:\s*(.+)$/i);
+            if (passMatch) {
+                return {
+                    full: raw,
+                    label: `${passMatch[1].trim()} / pass:`,
+                    password: passMatch[2].trim(),
+                    hasSecret: true
+                };
+            }
+            const slashMatch = raw.match(/^(.+?)\s*\/\s*(.+)$/);
+            if (slashMatch) {
+                return {
+                    full: raw,
+                    label: `${slashMatch[1].trim()} / `,
+                    password: slashMatch[2].trim(),
+                    hasSecret: true
+                };
+            }
+            return { full: raw, label: raw, password: '', hasSecret: false };
+        }
+
+        function hpApplyWifiDisplay(container, wifi, visible = false) {
+            if (!container) return;
+            const parsed = hpParseWifiSecret(wifi);
+            container.dataset.wifiFull = parsed.full;
+            container.dataset.wifiRevealed = visible ? 'true' : 'false';
+
+            let labelEl = container.querySelector('[data-hp-wifi-label]');
+            let passEl = container.querySelector('[data-hp-wifi-password]');
+            let toggleEl = container.querySelector('[data-hp-wifi-toggle]');
+
+            if (!labelEl) {
+                container.innerHTML = `
+                    <span class="inline-flex items-center gap-1.5 flex-wrap">
+                        <span data-hp-wifi-label></span>
+                        <span data-hp-wifi-password class="font-bold"></span>
+                        <button type="button" data-hp-wifi-toggle data-action="click->dashboard#toggleWifiPassword"
+                                class="w-6 h-6 rounded-md bg-hp-bgLight hover:bg-hp-coral/10 inline-flex items-center justify-center shrink-0 transition active:scale-95"
+                                aria-pressed="false">
+                            <i class="fa-regular fa-eye text-[10px] text-[#8C807A]"></i>
+                        </button>
+                    </span>`;
+                labelEl = container.querySelector('[data-hp-wifi-label]');
+                passEl = container.querySelector('[data-hp-wifi-password]');
+                toggleEl = container.querySelector('[data-hp-wifi-toggle]');
+            }
+
+            const isZh = (window.currentLanguage || 'zh') === 'zh';
+            if (!parsed.hasSecret) {
+                labelEl.textContent = parsed.full;
+                passEl.textContent = '';
+                passEl.classList.add('hidden');
+                toggleEl.classList.add('hidden');
+                return;
+            }
+
+            labelEl.textContent = parsed.label;
+            passEl.textContent = parsed.password;
+            passEl.classList.remove('hidden');
+            passEl.classList.toggle('hp-secret-blurred', !visible);
+            toggleEl.classList.remove('hidden');
+            toggleEl.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            toggleEl.setAttribute(
+                'aria-label',
+                visible ? (isZh ? '隱藏密碼' : 'Hide password') : (isZh ? '顯示密碼' : 'Show password')
+            );
+            const icon = toggleEl.querySelector('i');
+            if (icon) {
+                icon.className = `fa-regular ${visible ? 'fa-eye-slash' : 'fa-eye'} text-[10px] text-[#8C807A]`;
+            }
+        }
+
         function hpHydrateGuestGuideDashboard(listingId) {
             const id = listingId || hpResolveGuestListingId();
             if (!id) return false;
@@ -1240,7 +1319,8 @@
             setText('hostTitle', data.hostNameZh, data.hostNameEn);
             setText('hostLocation', data.locationZh, data.locationEn);
             setText('activeId', data.listingLabelZh || id, data.listingLabelEn || id);
-            setText('wifiValue', data.wifi, data.wifi);
+            const wifiEl = root.querySelector('[data-dashboard-target="wifiValue"]');
+            if (wifiEl) hpApplyWifiDisplay(wifiEl, data.wifi, false);
             const lockText = text(data.lockZh || data.lock, data.lockEn || data.lock);
             setText('lockValue', lockText, lockText);
 
@@ -1410,6 +1490,19 @@
                         data.wifi,
                         'success'
                     );
+                    return;
+                }
+
+                const wifiToggle = event.target.closest('[data-hp-wifi-toggle]');
+                if (wifiToggle) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const container = wifiToggle.closest('[data-dashboard-target="wifiValue"]');
+                    if (container) {
+                        const wifi = container.dataset.wifiFull || data?.wifi || '';
+                        const revealed = container.dataset.wifiRevealed === 'true';
+                        hpApplyWifiDisplay(container, wifi, !revealed);
+                    }
                     return;
                 }
 
@@ -2013,7 +2106,9 @@
                         ? (data.listingLabelZh || id)
                         : (data.listingLabelEn || id);
                 }
-                this.wifiValueTarget.innerText = data.wifi;
+                if (this.hasWifiValueTarget) {
+                    hpApplyWifiDisplay(this.wifiValueTarget, data.wifi, false);
+                }
                 const lockText = isZh ? (data.lockZh || data.lock) : (data.lockEn || data.lock);
                 this.lockValueTarget.innerText = lockText;
                 if (this.hasLockCodeTarget) {
@@ -2474,7 +2569,7 @@
                     this.expBookingConfirmSubmitLabelTargets.forEach((el) => {
                         const lang = el.dataset.globalLang;
                         if (loading) {
-                            el.textContent = lang === 'en' ? 'Sending…' : '寄送中…';
+                            el.textContent = lang === 'en' ? 'Opening…' : '開啟中…';
                         } else {
                             el.textContent = lang === 'en' ? 'Confirm' : '確認預定';
                         }
@@ -2534,7 +2629,7 @@
                 this.closeExpBookingConfirm();
             }
 
-            async finalizeExpBooking() {
+            finalizeExpBooking() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const email = this.hasExpBookingConfirmEmailTarget
                     ? this.expBookingConfirmEmailTarget.value.trim()
@@ -2542,7 +2637,7 @@
                 if (!email || !this.isValidBookingEmail(email)) {
                     this.triggerToast(
                         isZh ? '請輸入有效的電子郵件' : 'Enter a valid email',
-                        isZh ? '我們會將預定確認信寄至此信箱' : 'We\'ll send a booking confirmation to this address.',
+                        isZh ? '確認後將以此 Email 開啟郵件 app' : 'Your mail app will open with this address.',
                         'info'
                     );
                     if (this.hasExpBookingConfirmEmailTarget) {
@@ -2558,10 +2653,10 @@
                     );
                     return;
                 }
-                if (!window.BookingAPI) {
+                if (!window.BookingAPI?.openBookingMailto) {
                     this.triggerToast(
                         isZh ? '預定服務未載入' : 'Booking service unavailable',
-                        isZh ? '請確認已執行 npm start' : 'Make sure the server is running (npm start).',
+                        isZh ? '請重新整理頁面後再試' : 'Please refresh the page and try again.',
                         'info'
                     );
                     return;
@@ -2593,33 +2688,6 @@
 
                 this.setBookingSubmitLoading(true, isZh);
 
-                let apiAvailable = false;
-                try {
-                    apiAvailable = await BookingAPI.isEmailApiConfigured();
-                } catch {
-                    apiAvailable = false;
-                }
-
-                if (apiAvailable) {
-                    this.setBookingConfirmFeedback('loading', isZh ? '寄送中，請稍候…' : 'Sending, please wait…');
-                    try {
-                        await BookingAPI.createBooking(bookingPayload);
-                        const emailNote = isZh ? `✓ 確認信已寄至 ${email}` : `✓ Confirmation email sent to ${email}`;
-                        this.setBookingConfirmFeedback('success', emailNote);
-                        this.triggerToast(
-                            isZh ? '預定成功' : 'Booking confirmed',
-                            `${dateLabel} · ${timeLabel}\n${emailNote.replace(/^✓\s?/, '')}`,
-                            'success'
-                        );
-                        await new Promise((resolve) => setTimeout(resolve, 1400));
-                        this.closeExpBookingConfirm(false);
-                        this.closeExpBookingCalendar();
-                        return;
-                    } catch (error) {
-                        console.warn('[Host Pocket] API booking failed, falling back to mailto', error);
-                    }
-                }
-
                 try {
                     BookingAPI.openBookingMailto(bookingPayload);
                     const mailtoNote = isZh
@@ -2631,9 +2699,11 @@
                         `${dateLabel} · ${timeLabel}\n${mailtoNote}`,
                         'success'
                     );
-                    await new Promise((resolve) => setTimeout(resolve, 1400));
-                    this.closeExpBookingConfirm(false);
-                    this.closeExpBookingCalendar();
+                    setTimeout(() => {
+                        this.closeExpBookingConfirm(false);
+                        this.closeExpBookingCalendar();
+                        this.setBookingSubmitLoading(false, isZh);
+                    }, 800);
                 } catch (error) {
                     console.error('[Host Pocket] mailto booking failed', error);
                     const errMsg = isZh
@@ -2641,7 +2711,6 @@
                         : 'Could not open your mail app. Please try again or contact your host.';
                     this.setBookingConfirmFeedback('error', errMsg);
                     this.triggerToast(isZh ? '預定失敗' : 'Booking failed', errMsg, 'error');
-                } finally {
                     this.setBookingSubmitLoading(false, isZh);
                 }
             }
@@ -2798,7 +2867,8 @@
 
             // Clipboard Action Helper for Wifi
             copyWifi() {
-                const text = this.wifiValueTarget.innerText;
+                const text = this.wifiValueTarget.dataset.wifiFull
+                    || this.wifiValueTarget.innerText;
                 const temp = document.createElement('textarea');
                 temp.value = text;
                 document.body.appendChild(temp);
@@ -2811,6 +2881,15 @@
                     window.currentLanguage === 'en' ? 'Wi-Fi credentials saved.' : '已將客房 Wi-Fi 機密複製至剪貼簿！', 
                     'success'
                 );
+            }
+
+            toggleWifiPassword(event) {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                if (!this.hasWifiValueTarget) return;
+                const wifi = this.wifiValueTarget.dataset.wifiFull || '';
+                const visible = this.wifiValueTarget.dataset.wifiRevealed === 'true';
+                hpApplyWifiDisplay(this.wifiValueTarget, wifi, !visible);
             }
 
             showLockGuide() {
