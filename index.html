@@ -245,8 +245,13 @@
                     if (pathMatch[2]) experience = decodeURIComponent(pathMatch[2]).trim();
                 }
                 if (!listing && !experience) return;
+                window.__hostPocketDeepLink = {
+                    listing: listing ? listing.toUpperCase() : null,
+                    experience: experience || null
+                };
                 document.documentElement.classList.add('hp-boot-dashboard');
                 if (listing) document.documentElement.dataset.hpListing = listing.toUpperCase();
+                if (experience) document.documentElement.dataset.hpExperience = experience;
                 document.addEventListener('DOMContentLoaded', function () {
                     var pairing = document.querySelector('[data-screen="pairing"]');
                     var explorer = document.querySelector('[data-screen="explorer"]');
@@ -1264,17 +1269,83 @@
             return true;
         }
 
+        function hpResolveGuestExperienceId() {
+            const deep = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
+                || window.__hostPocketDeepLink;
+            const params = new URLSearchParams(location.search);
+            const htmlExperience = document.documentElement.dataset.hpExperience || '';
+            return (deep?.experience || params.get('experience') || htmlExperience || '').trim();
+        }
+
+        async function hpHydrateGuestExperienceDetail(listingId, experienceId) {
+            const listing = (listingId || hpResolveGuestListingId() || '').trim().toUpperCase();
+            const expId = String(experienceId || hpResolveGuestExperienceId() || '').trim();
+            if (!listing || !expId || !window.ExperienceDetailsAPI) return false;
+
+            const root = document.querySelector('[data-screen="dashboard"]');
+            const overlay = root?.querySelector('[data-dashboard-target="expDetailOverlay"]');
+            const body = root?.querySelector('[data-dashboard-target="expDetailBody"]');
+            if (!overlay || !body) return false;
+
+            const payload = await ExperienceDetailsAPI.fetchDetails(expId);
+            if (!payload) return false;
+
+            const isZh = (window.currentLanguage || 'zh') !== 'en';
+            const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
+                isZh,
+                listingId: listing
+            });
+            body.innerHTML = mediaHtml + contentHtml + bookingHtml;
+            body.scrollTop = 0;
+            ExperienceDetailsAPI.initMediaPlayer(body);
+
+            overlay.classList.remove('translate-y-full', 'pointer-events-none');
+            overlay.classList.add('pointer-events-auto');
+            document.documentElement.classList.add('hp-boot-experience');
+            return true;
+        }
+
+        function hpScheduleGuestExperienceHydration() {
+            const listingId = hpResolveGuestListingId();
+            const experienceId = hpResolveGuestExperienceId();
+            if (!listingId || !experienceId) return;
+            void hpHydrateGuestExperienceDetail(listingId, experienceId);
+        }
+
+        window.hpHydrateGuestExperienceDetail = hpHydrateGuestExperienceDetail;
+
         function hpScheduleGuestGuideHydration() {
             const id = hpResolveGuestListingId();
             if (!id) return;
             hpHydrateGuestGuideDashboard(id);
             HostGuideSettings?.ensureLoaded(id).then(() => {
                 hpHydrateGuestGuideDashboard(id);
+                hpScheduleGuestExperienceHydration();
             }).catch(() => {
                 hpHydrateGuestGuideDashboard(id);
+                hpScheduleGuestExperienceHydration();
             });
         }
 
+        function hpGetGuideHomeUrl(listingId) {
+            const id = (listingId || hpResolveGuestListingId() || 'TAIPEI-CITY').trim().toUpperCase();
+            return ExperienceDetailsAPI?.getGuideShareHref?.(id) || window.location.href;
+        }
+
+        function hpNavigateToGuideHome(listingId, delayMs = 450) {
+            const homeUrl = hpGetGuideHomeUrl(listingId);
+            const deep = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
+                || window.__hostPocketDeepLink;
+            const onExperienceRoute = Boolean(deep?.experience);
+            const current = window.location.href.split('#')[0];
+            window.setTimeout(() => {
+                if (onExperienceRoute || current !== homeUrl) {
+                    window.location.href = homeUrl;
+                }
+            }, delayMs);
+        }
+
+        window.hpNavigateToGuideHome = hpNavigateToGuideHome;
         window.hpHydrateGuestGuideDashboard = hpHydrateGuestGuideDashboard;
 
         function hpActivateGuestDashboardScreen() {
@@ -1336,6 +1407,9 @@
                     void window.hpCopyText?.(shareUrl).then((ok) => {
                         if (ok !== false) {
                             window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', actionEl);
+                            if (actionEl.dataset.shareStay !== 'true') {
+                                hpNavigateToGuideHome(listingId);
+                            }
                         }
                     });
                     return;
@@ -1348,7 +1422,10 @@
         window.addEventListener('load', hpActivateGuestDashboardScreen);
         document.addEventListener('DOMContentLoaded', hpScheduleGuestGuideHydration);
         window.addEventListener('load', hpScheduleGuestGuideHydration);
+        document.addEventListener('DOMContentLoaded', hpScheduleGuestExperienceHydration);
+        window.addEventListener('load', hpScheduleGuestExperienceHydration);
         setTimeout(hpScheduleGuestGuideHydration, 0);
+        setTimeout(hpScheduleGuestExperienceHydration, 0);
 
         // --- STIMULUS CONTROLLER REGISTRATIONS ---
         if (typeof Stimulus === 'undefined') {
@@ -1705,14 +1782,23 @@
                     if (hasDeepLink) {
                         global?.syncControllers(bootListingId);
                         this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
-                        if (!urlExperience) this.syncGuideBrowserUrl();
+                        if (urlExperience) {
+                            void this.openExperienceFromShareLink(bootListingId, urlExperience);
+                        } else {
+                            this.syncGuideBrowserUrl();
+                        }
                     } else {
                         this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
                     }
                 }).catch((error) => {
                     console.warn('[dashboard] settings preload failed', error);
-                    if (!hasDeepLink && this.currentListingId === bootListingId) {
-                        this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
+                    if (this.currentListingId !== bootListingId) return;
+                    this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
+                    window.hpHydrateGuestGuideDashboard?.(bootListingId);
+                    if (urlExperience) {
+                        void this.openExperienceFromShareLink(bootListingId, urlExperience);
+                    } else if (hasDeepLink) {
+                        this.syncGuideBrowserUrl();
                     }
                 });
             }
@@ -2086,6 +2172,8 @@
                 if (payload) {
                     this.renderExperienceDetail(payload, recIndex);
                     this.syncExperienceBrowserUrl();
+                } else {
+                    window.hpHydrateGuestExperienceDetail?.(id, expIdNorm);
                 }
             }
 
@@ -2690,14 +2778,21 @@
                 event?.preventDefault?.();
                 const el = event?.currentTarget;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const listingId = this.currentListingId || hpResolveGuestListingId() || 'TAIPEI-CITY';
                 const shareUrl = el?.dataset?.shareUrl
                     || (this.hasShareLinkTarget ? this.shareLinkTarget.dataset.shareUrl : '')
-                    || ExperienceDetailsAPI.getGuideShareHref(this.currentListingId || 'TAIPEI-CITY');
+                    || ExperienceDetailsAPI.getGuideShareHref(listingId);
 
                 try {
                     const ok = await window.hpCopyText?.(shareUrl);
                     if (ok === false) throw new Error('copy failed');
                     window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', el || this.shareLinkTarget);
+                    if (el?.dataset?.shareStay === 'true') return;
+                    if (this.hasExpDetailOverlayTarget
+                        && !this.expDetailOverlayTarget.classList.contains('translate-y-full')) {
+                        this.closeExperienceDetail();
+                    }
+                    window.hpNavigateToGuideHome?.(listingId);
                 } catch (error) {
                     console.warn('[Host Pocket] copy guide share link failed', error);
                 }

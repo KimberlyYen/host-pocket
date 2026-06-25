@@ -325,17 +325,86 @@
             hostAbout: 'Sunday afternoons in Užupis never disappoint.', hostAboutZh: '週日下午的烏祖皮斯總有驚喜。',
             locationEn: 'Užupis, Vilnius', locationZh: '維爾紐斯，烏祖皮斯'
         }),
-        '4410204': makeRecFixture({
-            id: '4410204', hostName: 'Mindaugas',
-            title: 'Old Town Vault Café', titleZh: '舊城地下室咖啡秘境',
-            description: 'Vaulted café perfect for rainy-day reading.', descriptionZh: '拱門巷內地下室咖啡館，適合雨天閱讀。',
-            category: 'Food & Drink', categoryZh: '美食與飲品',
-            rating: 4.82, reviews: 198,
-            cover: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?auto=format&fit=crop&w=800&q=80',
-            priceLabel: 'From €8, per guest', priceLabelZh: '每位 €8 起', extractedPrice: 8,
-            hostAbout: 'My hideaway when the Old Town gets crowded.', hostAboutZh: '舊城人潮多時我會來這裡。',
-            locationEn: 'Old Town, Vilnius', locationZh: '維爾紐斯，舊城'
-        }),
+        '4410204': {
+            experience: {
+                id: '4410204',
+                title: 'Old Town Vault Café',
+                description: 'A vaulted basement café hidden behind an archway — perfect for rainy-day reading, postcards, and slow coffee.',
+                link: 'https://www.airbnb.com/experiences/4410204',
+                category: 'Food & Drink',
+                rating: 4.82,
+                reviews: 198,
+                language: 'Hosted in English and Lithuanian.',
+                meeting_point: 'Gate of Dawn archway, Vilnius Old Town',
+                cover_image: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?auto=format&fit=crop&w=800&q=80',
+                media: [
+                    { type: 'image', url: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?auto=format&fit=crop&w=800&q=80' },
+                    { type: 'image', url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80' },
+                    { type: 'image', url: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80' }
+                ],
+                highlights: [
+                    { type: 'PROFILE', name: 'Hosted by Mindaugas', description: 'My hideaway when the Old Town gets crowded.' },
+                    { type: 'BADGE', name: 'Rainy-day pick', description: 'Covered courtyard entrance' }
+                ],
+                agenda_preamble: 'Best on weekday afternoons before 4 PM when seats by the vault wall open up.',
+                agenda: [
+                    { position: 1, title: 'Meet at the archway', description: '6-minute walk from the loft — look for the blue door.' },
+                    { position: 2, title: 'Vault tasting flight', description: 'Two local roasts plus a honey cake pairing.' }
+                ],
+                location: { display_label: 'Old Town, Vilnius', locality: 'Vilnius', country: 'Lithuania' },
+                price: { price_label: 'From €8, per guest', extracted_price: 8, qualifier: '/ guest' },
+                availability: [
+                    { day: 'Mon–Fri', duration: '2:00 – 5:00 pm', availability_description: '12 spots', is_available: true },
+                    { day: 'Sat', duration: '10:00 am – 1:00 pm', availability_description: '8 spots', is_available: true }
+                ],
+                guest_requirements: { min_age: 12, is_children_allowed: true },
+                accessibility_features: [{ type: 'STAIRS', name: 'Basement stairs — not wheelchair accessible' }],
+                cancellation_policy: { name: 'Flexible', description: 'Up to 12 hours before' }
+            },
+            host: {
+                name: 'Mindaugas',
+                about: 'My hideaway when the Old Town gets crowded — I send every guest here on rainy days.',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80'
+            },
+            reviews: [
+                { review_id: 'r-v4-1', text: 'The vaulted ceiling and coffee were unforgettable.', rating: 5, user: { name: 'Elena', location: 'Tallinn' } },
+                { review_id: 'r-v4-2', text: 'Perfect quiet spot to write postcards.', rating: 5, user: { name: 'Jonas', location: 'Kaunas' } }
+            ],
+            similar_experiences: [
+                { id: '4410203', title: 'Užupis Street Art Walk', rating: 4.84, extracted_price: 0, images: ['https://images.unsplash.com/photo-1523906834659-5e2920f4a7f0?auto=format&fit=crop&w=400&q=80'] },
+                { id: '4410202', title: 'Amber Workshop', rating: 4.90, extracted_price: 25, images: ['https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=400&q=80'] }
+            ],
+            i18n: {
+                zh: {
+                    title: '舊城地下室咖啡秘境',
+                    description: '拱門巷內的地下室咖啡館，適合雨天閱讀、寫明信片與慢慢喝咖啡。',
+                    language: '體驗語言：英文、立陶宛文',
+                    category: '美食與飲品',
+                    agenda_preamble: '建議平日午後 4 點前前往，靠拱頂牆邊的座位最搶手。',
+                    highlights: [
+                        { type: 'PROFILE', name: 'Mindaugas 帶隊', description: '舊城人潮多時我會來這裡。' },
+                        { type: 'BADGE', name: '雨天首選', description: '有遮蓋的庭院入口' }
+                    ],
+                    agenda: [
+                        { position: 1, title: '拱門口集合', description: '從閣樓公寓步行 6 分鐘，找藍色木門。' },
+                        { position: 2, title: '地下室品飲', description: '兩款在地烘焙豆搭配蜂蜜蛋糕。' }
+                    ],
+                    location: { display_label: '維爾紐斯，舊城' },
+                    price: { price_label: '每位 €8 起' },
+                    availability: [
+                        { day: '週一至週五', duration: '14:00 – 17:00', availability_description: '尚餘 12 位', is_available: true },
+                        { day: '週六', duration: '10:00 – 13:00', availability_description: '尚餘 8 位', is_available: true }
+                    ],
+                    accessibility_features: [{ name: '地下室階梯，輪椅無法進入' }],
+                    cancellation_policy: { name: '彈性取消', description: '開始 12 小時前可取消' },
+                    host: { about: '舊城人潮多時的藏身之處，雨天我一定推薦給房客。', tagline: '咖啡秘境・房東' },
+                    reviews: [
+                        { review_id: 'r-v4-1', text: '拱頂天花與咖啡令人難忘。', rating: 5, user: { name: 'Elena', location: '愛沙尼亞塔林' } },
+                        { review_id: 'r-v4-2', text: '寫明信片的完美安靜角落。', rating: 5, user: { name: 'Jonas', location: '立陶宛考納斯' } }
+                    ]
+                }
+            }
+        },
         '5510303': makeRecFixture({
             id: '5510303', hostName: 'Carlos',
             title: 'Ipanema Beach Morning Run', titleZh: '伊帕內瑪海灘清晨慢跑',
@@ -718,6 +787,7 @@
                 <div class="relative">
                     <button type="button"
                             data-action="click->dashboard#copyGuideShareLink"
+                            data-share-stay="true"
                             data-share-url="${escapeHtml(shareHref)}"
                             class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
                         <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
