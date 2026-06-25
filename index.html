@@ -1142,6 +1142,18 @@
     <script src="js/booking-api.js"></script>
     <script src="js/experience-details.js"></script>
     <script>
+        window.__hostPocketDeepLink = (() => {
+            try {
+                const params = new URLSearchParams(location.search);
+                const listing = (params.get('listing') || params.get('id') || '').trim().toUpperCase();
+                const experience = (params.get('experience') || '').trim();
+                if (!listing && !experience) return null;
+                return { listing: listing || null, experience: experience || null };
+            } catch {
+                return null;
+            }
+        })();
+
         const IMAGE_FALLBACKS = {
             room: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
             rec: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80"
@@ -1210,7 +1222,8 @@
 
             connect() {
                 window.appNavigate = (name) => this.show(name);
-                this.show(this.currentValue);
+                const deep = window.__hostPocketDeepLink;
+                this.show(deep ? 'dashboard' : this.currentValue);
             }
 
             show(name) {
@@ -1512,35 +1525,36 @@
                 this.bookingTimezoneIsOther = false;
                 this.bookingCustomTimezone = '';
 
+                const deep = window.__hostPocketDeepLink;
                 const params = new URLSearchParams(location.search);
-                const urlListing = (params.get('listing') || params.get('id') || '').trim().toUpperCase();
-                const urlExperience = params.get('experience');
+                const urlListing = (deep?.listing || params.get('listing') || params.get('id') || '').trim().toUpperCase();
+                const urlExperience = (deep?.experience || params.get('experience') || '').trim();
                 const resolvedListing = urlListing
                     || GuideDefaults.findListingForExperience(urlExperience)
                     || 'TAIPEI-CITY';
                 this.currentListingId = resolvedListing;
-                this._pendingExperienceId = urlExperience;
+                const hasDeepLink = Boolean(urlListing || urlExperience);
 
-                HostGuideSettings.ensureLoaded(resolvedListing).then(async () => {
+                if (hasDeepLink) {
+                    window.appNavigate?.('dashboard');
+                    const pairingInput = document.querySelector('[data-pairing-target="input"]');
+                    if (pairingInput && urlListing) pairingInput.value = resolvedListing;
+                    if (urlExperience) {
+                        void this.openExperienceFromShareLink(resolvedListing, urlExperience);
+                    }
+                }
+
+                HostGuideSettings.ensureLoaded(resolvedListing).then(() => {
                     const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
-                    if (urlListing || urlExperience) {
-                        window.appNavigate?.('dashboard');
-                        const pairingInput = document.querySelector('[data-pairing-target="input"]');
-                        if (pairingInput && urlListing) pairingInput.value = resolvedListing;
+                    if (hasDeepLink) {
                         global?.syncControllers(resolvedListing);
                     } else {
                         this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
                     }
-                    if (this._pendingExperienceId) {
-                        await this.openExperienceFromShareLink(resolvedListing, this._pendingExperienceId);
-                        this._pendingExperienceId = null;
-                    }
-                }).catch(async (error) => {
+                }).catch((error) => {
                     console.warn('[dashboard] settings preload failed', error);
-                    this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
-                    if (this._pendingExperienceId) {
-                        await this.openExperienceFromShareLink(resolvedListing, this._pendingExperienceId);
-                        this._pendingExperienceId = null;
+                    if (!hasDeepLink) {
+                        this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
                     }
                 });
             }
@@ -1780,11 +1794,16 @@
             }
 
             async openExperienceFromShareLink(listingId, experienceId) {
-                if (!experienceId || !this.hasExpDetailOverlayTarget) return;
-                const id = GuideDefaults.ensureListing(listingId || GuideDefaults.findListingForExperience(experienceId) || 'TAIPEI-CITY');
+                const expIdNorm = String(experienceId || '').trim();
+                if (!expIdNorm || !this.hasExpDetailOverlayTarget) return;
+                const id = GuideDefaults.ensureListing(listingId || GuideDefaults.findListingForExperience(expIdNorm) || 'TAIPEI-CITY');
                 this.currentListingId = id;
-                let recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === experienceId);
+
+                window.appNavigate?.('dashboard');
+
+                let recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === expIdNorm);
                 if (!recIndex) recIndex = 1;
+                this.currentExpRecIndex = recIndex;
 
                 this.expDetailOverlayTarget.classList.remove('translate-y-full');
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
@@ -1793,8 +1812,15 @@
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
-                const payload = await ExperienceDetailsAPI.fetchDetails(experienceId);
+                const payload = await ExperienceDetailsAPI.fetchDetails(expIdNorm);
                 if (payload) this.renderExperienceDetail(payload, recIndex);
+            }
+
+            getShareLinkOptions() {
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const experienceId = this.currentExpPayload?.experience?.id
+                    || getExperienceIdForRec(listingId, this.currentExpRecIndex);
+                return { listingId, experienceId };
             }
 
             async openExperienceDetail(event) {
@@ -1845,7 +1871,10 @@
                 if (!this.currentExpPayload || !this.hasExpShareOverlayTarget) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (this.hasExpShareBodyTarget) {
-                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, { isZh });
+                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
+                        isZh,
+                        ...this.getShareLinkOptions()
+                    });
                 }
                 this.expShareOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
                 requestAnimationFrame(() => {
@@ -1872,11 +1901,11 @@
             }
 
             getExpShareUrl() {
-                if (!this.currentExpPayload) return '';
-                return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
-                    isZh: (window.currentLanguage || 'zh') === 'zh',
-                    listingId: this.currentListingId || 'TAIPEI-CITY'
-                }).shareUrl;
+                const { listingId, experienceId } = this.getShareLinkOptions();
+                return ExperienceDetailsAPI.buildGuideShareUrl(
+                    experienceId ? { id: experienceId } : {},
+                    { listingId, experienceId }
+                );
             }
 
             copyExpShareLink() {
@@ -1901,7 +1930,7 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
                     isZh,
-                    listingId: this.currentListingId || 'TAIPEI-CITY'
+                    ...this.getShareLinkOptions()
                 });
                 if (navigator.share) {
                     navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});

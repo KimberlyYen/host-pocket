@@ -846,13 +846,15 @@
 
     function buildGuideShareUrl(exp, options = {}) {
         const base = typeof window !== 'undefined'
-            ? `${window.location.origin}${window.location.pathname}`
+            ? `${window.location.origin}${window.location.pathname}`.split('?')[0]
             : 'https://host-pocket.vercel.app/';
         const params = new URLSearchParams();
-        if (options.listingId) params.set('listing', options.listingId);
-        if (exp?.id) params.set('experience', exp.id);
+        const listingId = options.listingId;
+        const experienceId = options.experienceId || exp?.id;
+        if (listingId) params.set('listing', listingId);
+        if (experienceId) params.set('experience', experienceId);
         const qs = params.toString();
-        return qs ? `${base.split('?')[0]}?${qs}` : base;
+        return qs ? `${base}?${qs}` : base;
     }
 
     function buildShareContext(payload, options = {}) {
@@ -906,7 +908,9 @@
                 <div class="bg-hp-bgLight border border-hp-border rounded-2xl p-3">
                     <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${labels.link}</p>
                     <div class="flex gap-2 items-stretch">
-                        <div class="flex-1 min-w-0 bg-white border border-hp-border rounded-xl px-3 py-2.5 text-xs text-hp-dark truncate font-mono">${escapeHtml(shareUrl)}</div>
+                        <div class="flex-1 min-w-0 bg-white border border-hp-border rounded-xl px-3 py-2.5 text-xs text-hp-dark truncate font-mono">
+                            <a href="${escapeHtml(shareUrl)}" target="_blank" rel="noopener noreferrer" class="text-hp-coral hover:underline">${escapeHtml(shareUrl)}</a>
+                        </div>
                         <button type="button" data-action="click->dashboard#copyExpShareLink"
                                 class="shrink-0 px-3 py-2.5 rounded-xl bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold transition active:scale-95">
                             ${labels.copy}
