@@ -1,18 +1,18 @@
 # 房東私藏 host-pocket
 
 If you are
-- Airbnb HOST 
+- Airbnb HOST 🏠
     - [Host Guide (EN)](#host-guide-en)
     - [房東使用指南](#房東使用指南)
 
-- Programmer 
+- Programmer 🧑‍💻
     - [English](#english)
     - [繁體中文](#繁體中文)
     
     [Design system](https://www.figma.com/design/dgIfgAkZvpINvpzznta9XA/host-pocket?node-id=0-1&t=s4yI820zRJ2lL9v7-1)
 
-- volunteering  
-   [Sheet](https://forms.gle/Deo5HpTECjG8rYB57)
+- volunteering 🙋   
+   - [Sheet](https://forms.gle/Deo5HpTECjG8rYB57)
 
 ---
 
