@@ -568,7 +568,7 @@
         return [{ type: 'video', url: videoUrl, poster }, ...items];
     }
 
-    function renderMediaHero(media, category, isZh) {
+    function renderMediaHero(media) {
         if (!media.length) {
             return `<div class="exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
         }
@@ -602,8 +602,6 @@
                 ${slides}
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-[15]"></div>
                 ${nav}
-                <span class="absolute bottom-3 left-4 z-20 bg-white/90 text-hp-dark text-xs font-bold px-2 py-0.5 rounded-md">${escapeHtml(category || (isZh ? '體驗' : 'Experience'))}</span>
-                ${media.some(m => m.type === 'video') ? `<span class="absolute top-3 right-4 z-20 bg-black/45 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">${isZh ? '預覽影片' : 'Preview'}</span>` : ''}
             </div>`;
     }
 
@@ -717,7 +715,15 @@
         return `
             <div class="p-5 space-y-4">
                 <div>
-                    <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
+                    ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
+                    <div class="flex items-start justify-between gap-3">
+                        <h2 class="text-md font-extrabold text-hp-dark leading-snug flex-1 min-w-0">${escapeHtml(exp.title)}</h2>
+                        <button type="button" data-action="click->dashboard#openExpShareSheet"
+                                class="inline-flex items-center text-xs font-bold text-hp-dark px-2.5 py-1.5 rounded-lg bg-hp-bgLight border border-hp-border hover:border-hp-coral/40 whitespace-nowrap shrink-0 transition">
+                            <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
+                            ${isZh ? '分享' : 'Share'}
+                        </button>
+                    </div>
                     <div class="flex flex-wrap items-center gap-2 mt-1.5">
                         <span class="text-xs font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
                         <span class="text-xs text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()} ${labels.reviewsCount})</span>
@@ -825,16 +831,6 @@
                     class="w-full bg-hp-coral hover:bg-hp-coral/90 text-white text-sm font-bold py-3 rounded-xl transition active:scale-[0.98] shadow-md">
                 <i class="fa-regular fa-calendar-check mr-1.5"></i>
                 ${isZh ? '預定' : 'Book'}
-            </button>
-        </div>`;
-    }
-
-    function renderMapBar(isZh) {
-        return `<div class="px-4 py-2.5 border-b border-hp-border bg-white shrink-0 flex items-center gap-2">
-            <button type="button" data-action="click->dashboard#openExpShareSheet"
-                    class="inline-flex items-center text-xs font-bold text-hp-dark px-2.5 py-1.5 rounded-lg bg-hp-bgLight border border-hp-border hover:border-hp-coral/40 whitespace-nowrap transition">
-                <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
-                ${isZh ? '分享' : 'Share'}
             </button>
         </div>`;
     }
@@ -1294,8 +1290,7 @@
     function renderPanelParts(payload, options = {}) {
         const ctx = preparePanelContext(payload, options);
         return {
-            mediaHtml: renderMediaHero(ctx.media, ctx.exp.category, ctx.isZh),
-            mapHtml: renderMapBar(ctx.isZh),
+            mediaHtml: renderMediaHero(ctx.media),
             contentHtml: renderDetailContent(ctx),
             bookingHtml: renderBookingBar(ctx.isZh)
         };
@@ -1303,7 +1298,7 @@
 
     function renderPanel(payload, options = {}) {
         const parts = renderPanelParts(payload, options);
-        return parts.mediaHtml + parts.mapHtml + parts.contentHtml + parts.bookingHtml;
+        return parts.mediaHtml + parts.contentHtml + parts.bookingHtml;
     }
 
     async function fetchDetails(experienceId, options = {}) {

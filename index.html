@@ -1862,8 +1862,8 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 this.currentExpRecIndex = recIndex;
                 this.currentExpPayload = payload;
-                const { mediaHtml, mapHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
-                this.expDetailBodyTarget.innerHTML = mediaHtml + mapHtml + contentHtml + bookingHtml;
+                const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
+                this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml + bookingHtml;
                 this.expDetailBodyTarget.scrollTop = 0;
                 ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
             }
