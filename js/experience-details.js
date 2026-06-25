@@ -853,24 +853,19 @@
         return { listing: listing || null, experience: experience || null };
     }
 
-    function buildGuideShareUrl(exp, options = {}) {
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://host-pocket.vercel.app';
-        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
-        const experienceId = (options.experienceId || exp?.id) ? String(options.experienceId || exp.id).trim() : '';
+    const GUIDE_PAGE = 'index.html';
 
-        if (listingId && experienceId) {
-            return `${origin}/guide/${encodeURIComponent(listingId)}/experience/${encodeURIComponent(experienceId)}`;
-        }
-        if (listingId) {
-            return `${origin}/guide/${encodeURIComponent(listingId)}`;
-        }
-        if (experienceId) {
-            const found = global.GuideDefaults?.findListingForExperience?.(experienceId);
-            if (found) {
-                return `${origin}/guide/${encodeURIComponent(found)}/experience/${encodeURIComponent(experienceId)}`;
-            }
-        }
-        return `${origin}/`;
+    function buildGuideShareUrl(_exp, options = {}) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://host-pocket.vercel.app';
+        const base = `${origin}/${GUIDE_PAGE}`;
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
+        const experienceId = options.experienceId ? String(options.experienceId).trim() : '';
+
+        const params = new URLSearchParams();
+        if (listingId) params.set('listing', listingId);
+        if (experienceId && !options.guideOnly) params.set('experience', experienceId);
+        const qs = params.toString();
+        return qs ? `${base}?${qs}` : base;
     }
 
     const SHARE_PICKS_DEFAULT_NUM = 3;
@@ -1040,13 +1035,17 @@
             : `https://www.google.com/maps/search/?api=1&query=${query}`;
         const airbnbUrl = exp.link || null;
         const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
-        const experienceId = (options.experienceId || exp?.id) ? String(options.experienceId || exp.id).trim() : '';
-        const shareUrl = listingId && experienceId
-            ? buildGuideShareUrl(exp, { listingId, experienceId })
-            : buildGuideShareUrl({}, { listingId });
+        const experienceId = options.guideOnly
+            ? ''
+            : ((options.experienceId || exp?.id) ? String(options.experienceId || exp.id).trim() : '');
+        const shareUrl = options.guideOnly
+            ? buildGuideShareUrl(null, { listingId, guideOnly: true })
+            : (listingId && experienceId
+                ? buildGuideShareUrl(null, { listingId, experienceId })
+                : buildGuideShareUrl(null, { listingId, guideOnly: true }));
         const shareText = isZh
-            ? `我在 host-pocket 發現這個在地體驗：${displayTitle}${loc.display_label ? ` · ${loc.display_label}` : ''}`
-            : `Check out this experience on host-pocket: ${displayTitle}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
+            ? `查看房東為你準備的入住指南${loc.display_label ? ` · ${loc.display_label}` : ''}`
+            : `View your host's stay guide${loc.display_label ? ` · ${loc.display_label}` : ''}`;
         const cover = normalizeMedia(exp)[0]?.url || exp.cover_image || IMAGE_FALLBACK;
 
         return { isZh, exp, loc, displayTitle, shareUrl, airbnbUrl, mapsUrl, shareText, cover };
@@ -1061,7 +1060,7 @@
         const ctx = buildShareContext(payload, {
             ...options,
             listingId,
-            experienceId: primaryExperienceId
+            guideOnly: true
         });
         const { isZh, exp, loc, displayTitle, shareUrl, mapsUrl, shareText, cover } = ctx;
         const labels = isZh ? {
@@ -1078,8 +1077,8 @@
                 <div class="bg-white border border-hp-border rounded-2xl p-3 space-y-2">
                     <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A]">${labels.searchPicks}</p>
                     ${searchResults.map(item => {
-                        const deepUrl = listingId && item.id
-                            ? buildGuideShareUrl({}, { listingId, experienceId: item.id })
+                        const deepUrl = listingId
+                            ? buildGuideShareUrl(null, { listingId, guideOnly: true })
                             : (item.link || '#');
                         return `
                         <a href="${escapeHtml(deepUrl)}" target="_blank" rel="noopener noreferrer"

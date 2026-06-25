@@ -376,10 +376,11 @@
                                 class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
                             <i class="fa-solid fa-arrow-left text-lg"></i>
                         </button>
-                        <button type="button" data-action="click->dashboard#shareExperience" aria-label="Share guide"
-                                class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
+                        <a data-dashboard-target="shareLink" href="index.html?listing=TAIPEI-CITY"
+                           data-action="click->dashboard#shareExperience" aria-label="Share guide"
+                           class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
-                        </button>
+                        </a>
                     </div>
                     <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
                         <!-- Room Hero & Connection Card -->
@@ -1434,7 +1435,7 @@
                 "recImg3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
-                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn",
+                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "shareLink",
                 "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
@@ -1672,6 +1673,9 @@
                     this.hostRecLabelZhTarget.innerText = `${hostFirst} 的精選私藏行程`;
                     this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
+                if (this.hasShareLinkTarget) {
+                    this.shareLinkTarget.href = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId: id, guideOnly: true });
+                }
             }
 
             // --- Bottom Nav Actions ---
@@ -1722,7 +1726,7 @@
             syncExperienceBrowserUrl() {
                 const { listingId, experienceId } = this.getShareLinkOptions();
                 if (!listingId || !experienceId) return;
-                const url = ExperienceDetailsAPI.buildGuideShareUrl({ id: experienceId }, { listingId, experienceId });
+                const url = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, experienceId });
                 if (window.location.href.split('#')[0] !== url) {
                     history.replaceState({ hp: 'experience', listingId, experienceId }, '', url);
                 }
@@ -1730,7 +1734,10 @@
 
             syncGuideBrowserUrl() {
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const url = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId });
+                const url = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true });
+                if (this.hasShareLinkTarget) {
+                    this.shareLinkTarget.href = url;
+                }
                 if (window.location.href.split('#')[0] !== url) {
                     history.replaceState({ hp: 'guide', listingId }, '', url);
                 }
@@ -1866,11 +1873,7 @@
 
             getExpShareUrl() {
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const experienceId = this.sharePrimaryExperienceId || this.getShareLinkOptions().experienceId;
-                return ExperienceDetailsAPI.buildGuideShareUrl(
-                    experienceId ? { id: experienceId } : {},
-                    { listingId, experienceId }
-                );
+                return ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true });
             }
 
             copyExpShareLink() {
@@ -1914,8 +1917,7 @@
                 return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
                     isZh,
                     listingId: this.currentListingId || 'TAIPEI-CITY',
-                    experienceId: this.sharePrimaryExperienceId || this.getShareLinkOptions().experienceId,
-                    primaryExperienceId: this.sharePrimaryExperienceId
+                    guideOnly: true
                 });
             }
 
@@ -1939,7 +1941,6 @@
                 if (navigator.share) {
                     navigator.share({
                         title: ctx.displayTitle || ctx.exp.title,
-                        text: ctx.shareText,
                         url: ctx.shareUrl
                     }).then(() => {
                         this.returnToGuideAfterShare();
@@ -2371,18 +2372,26 @@
                 this.setSlideOverlay(this.roomOverlayTarget, false);
             }
 
-            async shareExperience() {
+            async shareExperience(event) {
+                event?.preventDefault?.();
+                this.closeExperienceDetail();
+                this.syncGuideBrowserUrl();
+
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const shareId = this.currentListingId || 'TAIPEI-CITY';
-                const shareUrl = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId: shareId });
-                const shareTitle = isZh ? '入住指南' : 'Stay guide';
-                const shareBody = isZh
-                    ? `查看 ${shareTitle}：${shareUrl}`
-                    : `View ${shareTitle}: ${shareUrl}`;
+                const shareUrl = this.hasShareLinkTarget
+                    ? this.shareLinkTarget.href
+                    : ExperienceDetailsAPI.buildGuideShareUrl(null, {
+                        listingId: this.currentListingId || 'TAIPEI-CITY',
+                        guideOnly: true
+                    });
+                const guideLabel = this.hasHostTitleTarget
+                    ? this.hostTitleTarget.innerText.trim()
+                    : (isZh ? '入住指南' : 'Stay guide');
+                const shareTitle = isZh ? `${guideLabel} · 入住指南` : `${guideLabel} · Stay guide`;
 
                 try {
                     if (navigator.share) {
-                        await navigator.share({ title: shareTitle, text: shareBody, url: shareUrl });
+                        await navigator.share({ title: shareTitle, url: shareUrl });
                         return;
                     }
                     if (navigator.clipboard?.writeText) {
