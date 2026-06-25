@@ -462,11 +462,11 @@
                                 class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
                             <i class="fa-solid fa-arrow-left text-lg"></i>
                         </button>
-                        <button type="button" data-dashboard-target="shareLink"
+                        <button type="button" data-hp-share-button data-dashboard-target="shareLink"
                                 data-action="click->dashboard#copyGuideShareLink"
                                 data-share-url="index.html?listing=TAIPEI-CITY"
                                 aria-label="Share guide"
-                                class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
+                                class="hp-share-btn hp-share-btn--icon inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
                         </button>
                     </div>
@@ -1141,6 +1141,7 @@
 
     <!-- Simulated Backend Database within Hotwire Client -->
     <script src="js/toast.js"></script>
+    <script src="js/share-button.js"></script>
     <script src="js/image-swipe.js"></script>
     <script src="js/guide-defaults.js"></script>
     <script src="js/mock-mode.js"></script>
@@ -1314,9 +1315,21 @@
 
         window.hpHydrateGuestExperienceDetail = hpHydrateGuestExperienceDetail;
 
+        function hpCloseExperienceOverlayIfNoDeepLink() {
+            if (hpResolveGuestExperienceId()) return;
+            const overlay = document.querySelector('[data-dashboard-target="expDetailOverlay"]');
+            if (!overlay) return;
+            overlay.classList.add('translate-y-full', 'pointer-events-none');
+            overlay.classList.remove('pointer-events-auto');
+            const body = document.querySelector('[data-dashboard-target="expDetailBody"]');
+            if (body) body.innerHTML = '';
+            document.documentElement.classList.remove('hp-boot-experience');
+        }
+
         function hpScheduleGuestGuideHydration() {
             const id = hpResolveGuestListingId();
             if (!id) return;
+            hpCloseExperienceOverlayIfNoDeepLink();
             hpHydrateGuestGuideDashboard(id);
             HostGuideSettings?.ensureLoaded(id).then(() => {
                 hpHydrateGuestGuideDashboard(id);
@@ -1400,20 +1413,6 @@
                     return;
                 }
 
-                if (action.includes('copyGuideShareLink') || action.includes('shareExperience')) {
-                    event.preventDefault();
-                    const shareUrl = actionEl.dataset.shareUrl
-                        || (listingId ? ExperienceDetailsAPI.getGuideShareHref(listingId) : location.href);
-                    void window.hpCopyText?.(shareUrl).then((ok) => {
-                        if (ok !== false) {
-                            window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', actionEl);
-                            if (actionEl.dataset.shareStay !== 'true') {
-                                hpNavigateToGuideHome(listingId);
-                            }
-                        }
-                    });
-                    return;
-                }
             }, true);
         }
 
@@ -1982,6 +1981,7 @@
                 if (experienceId) {
                     void this.openExperienceFromShareLink(listingId, experienceId);
                 } else {
+                    this.closeExperienceDetail();
                     this.syncGuideBrowserUrl();
                 }
             }
@@ -2077,7 +2077,10 @@
                     this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.dataset.shareUrl = ExperienceDetailsAPI.getGuideShareHref(id);
+                    HostPocketShareButton.setUrl(
+                        this.shareLinkTarget,
+                        ExperienceDetailsAPI.getGuideShareHref(id)
+                    );
                 }
                 this.updateDeepLinkChrome(this.isGuestGuideRoute());
                 window.hpHydrateGuestGuideDashboard?.(id);
@@ -2142,7 +2145,7 @@
                 const shareUrl = ExperienceDetailsAPI.getGuideShareHref(listingId);
                 const browserUrl = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, guideOnly: true });
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.dataset.shareUrl = shareUrl;
+                    HostPocketShareButton.setUrl(this.shareLinkTarget, shareUrl);
                 }
                 if (window.location.href.split('#')[0] !== browserUrl) {
                     history.replaceState({ hp: 'guide', listingId }, '', browserUrl);
@@ -2199,15 +2202,20 @@
             renderExperienceDetail(payload, recIndex) {
                 if (!payload || !this.hasExpDetailBodyTarget) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                this.currentExpRecIndex = recIndex;
-                this.currentExpPayload = payload;
-                const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
-                    isZh,
-                    listingId: this.currentListingId || 'TAIPEI-CITY'
-                });
-                this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml + bookingHtml;
-                this.expDetailBodyTarget.scrollTop = 0;
-                ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
+                try {
+                    this.currentExpRecIndex = recIndex;
+                    this.currentExpPayload = payload;
+                    const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
+                        isZh,
+                        listingId: this.currentListingId || 'TAIPEI-CITY'
+                    });
+                    this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml + bookingHtml;
+                    this.expDetailBodyTarget.scrollTop = 0;
+                    ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
+                } catch (error) {
+                    console.error('[dashboard] renderExperienceDetail failed', error);
+                    this.expDetailBodyTarget.innerHTML = `<p class="p-5 text-center text-xs text-hp-muted">${isZh ? '無法載入體驗詳情，請稍後再試。' : 'Could not load experience details.'}</p>`;
+                }
             }
 
             closeExperienceDetail() {
@@ -2776,26 +2784,16 @@
 
             async copyGuideShareLink(event) {
                 event?.preventDefault?.();
-                const el = event?.currentTarget;
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const listingId = this.currentListingId || hpResolveGuestListingId() || 'TAIPEI-CITY';
-                const shareUrl = el?.dataset?.shareUrl
-                    || (this.hasShareLinkTarget ? this.shareLinkTarget.dataset.shareUrl : '')
-                    || ExperienceDetailsAPI.getGuideShareHref(listingId);
-
-                try {
-                    const ok = await window.hpCopyText?.(shareUrl);
-                    if (ok === false) throw new Error('copy failed');
-                    window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', el || this.shareLinkTarget);
-                    if (el?.dataset?.shareStay === 'true') return;
-                    if (this.hasExpDetailOverlayTarget
-                        && !this.expDetailOverlayTarget.classList.contains('translate-y-full')) {
-                        this.closeExperienceDetail();
+                await HostPocketShareButton.handleClick(event.currentTarget, {
+                    listingId: this.currentListingId || hpResolveGuestListingId() || 'TAIPEI-CITY',
+                    fallbackUrl: this.hasShareLinkTarget ? this.shareLinkTarget.dataset.shareUrl : '',
+                    onBeforeNavigate: () => {
+                        if (this.hasExpDetailOverlayTarget
+                            && !this.expDetailOverlayTarget.classList.contains('translate-y-full')) {
+                            this.closeExperienceDetail();
+                        }
                     }
-                    window.hpNavigateToGuideHome?.(listingId);
-                } catch (error) {
-                    console.warn('[Host Pocket] copy guide share link failed', error);
-                }
+                });
             }
 
             // Clipboard Action Helper for Wifi

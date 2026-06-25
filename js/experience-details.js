@@ -775,24 +775,28 @@
         return {
             isZh, exp, host, price, loc, cancel, media, highlights, agenda,
             availability, reviews, similar, a11y, labels, guestReqText,
+            listingId: options.listingId,
             shareHref: getGuideShareHref(options.listingId, { experienceId: exp.id })
         };
     }
 
     function renderDetailContent(ctx) {
-        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText, shareHref } = ctx;
+        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText, shareHref, listingId } = ctx;
+
+        const shareBtnHtml = global.HostPocketShareButton
+            ? global.HostPocketShareButton.render({
+                variant: 'pill',
+                shareUrl: shareHref,
+                stay: true,
+                listingId,
+                positionClass: 'absolute top-0 right-0 z-10'
+            })
+            : `<button type="button" data-hp-share-button data-action="click->dashboard#copyGuideShareLink" data-share-stay="true" data-share-url="${escapeHtml(shareHref)}" class="hp-share-btn hp-share-btn--pill absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm"><i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>${isZh ? '分享' : 'Share'}</button>`;
 
         return `
             <div class="p-5 space-y-4">
                 <div class="relative">
-                    <button type="button"
-                            data-action="click->dashboard#copyGuideShareLink"
-                            data-share-stay="true"
-                            data-share-url="${escapeHtml(shareHref)}"
-                            class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
-                        <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
-                        ${isZh ? '分享' : 'Share'}
-                    </button>
+                    ${shareBtnHtml}
                     <div class="pr-[4.75rem]">
                         ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
                         <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
