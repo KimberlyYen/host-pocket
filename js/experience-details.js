@@ -831,17 +831,28 @@
 
     function renderMapBar(isZh) {
         return `<div class="px-4 py-2.5 border-b border-hp-border bg-white shrink-0 flex items-center gap-2">
-            <button type="button" data-action="click->dashboard#openExpDetailMap"
-                    class="inline-flex items-center text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
-                <i class="fa-solid fa-map-location-dot mr-1"></i>
-                ${isZh ? '地圖' : 'Map'}
-            </button>
             <button type="button" data-action="click->dashboard#openExpShareSheet"
                     class="inline-flex items-center text-xs font-bold text-hp-dark px-2.5 py-1.5 rounded-lg bg-hp-bgLight border border-hp-border hover:border-hp-coral/40 whitespace-nowrap transition">
                 <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
                 ${isZh ? '分享' : 'Share'}
             </button>
+            <button type="button" data-action="click->dashboard#openExpDetailMap"
+                    class="inline-flex items-center text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
+                <i class="fa-solid fa-map-location-dot mr-1"></i>
+                ${isZh ? '地圖' : 'Map'}
+            </button>
         </div>`;
+    }
+
+    function buildGuideShareUrl(exp, options = {}) {
+        const base = typeof window !== 'undefined'
+            ? `${window.location.origin}${window.location.pathname}`
+            : 'https://host-pocket.vercel.app/';
+        const params = new URLSearchParams();
+        if (options.listingId) params.set('listing', options.listingId);
+        if (exp?.id) params.set('experience', exp.id);
+        const qs = params.toString();
+        return qs ? `${base.split('?')[0]}?${qs}` : base;
     }
 
     function buildShareContext(payload, options = {}) {
@@ -855,13 +866,14 @@
         const mapsUrl = lat != null && lng != null
             ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
             : `https://www.google.com/maps/search/?api=1&query=${query}`;
-        const shareUrl = exp.link || mapsUrl;
+        const airbnbUrl = exp.link || null;
+        const shareUrl = buildGuideShareUrl(exp, options);
         const shareText = isZh
             ? `我在 host-pocket 發現這個在地體驗：${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`
             : `Check out this experience on host-pocket: ${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
         const cover = normalizeMedia(exp)[0]?.url || exp.cover_image || IMAGE_FALLBACK;
 
-        return { isZh, exp, loc, shareUrl, mapsUrl, shareText, cover };
+        return { isZh, exp, loc, shareUrl, airbnbUrl, mapsUrl, shareText, cover };
     }
 
     function renderShareSheet(payload, options = {}) {
@@ -1305,6 +1317,7 @@
         renderBookingCalendar,
         getBookingMeta,
         buildShareContext,
+        buildGuideShareUrl,
         renderShareSheet,
         initMediaPlayer,
         pauseMediaPlayer,

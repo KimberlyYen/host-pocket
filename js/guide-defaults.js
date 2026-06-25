@@ -460,12 +460,23 @@
         return guidesDb[targetId];
     }
 
+    function findListingForExperience(expId) {
+        if (!expId) return null;
+        for (const listingId of Object.keys(guidesDb)) {
+            for (let i = 1; i <= 4; i += 1) {
+                if (guidesDb[listingId][`recExperienceId${i}`] === expId) return listingId;
+            }
+        }
+        return null;
+    }
+
     global.GuideDefaults = {
         guidesDb,
         generateFallbackListing,
         normalizeListingId,
         ensureListing,
         getBase,
+        findListingForExperience,
         DEMO_LISTING_IDS: ['TAIPEI-CITY', 'UK-LONDON', 'VILNIUS-OLDTOWN', 'RIO-COPACABANA']
     };
 })(window);

@@ -182,24 +182,24 @@
       data-controller="global"
       data-global-lang-value="zh">
 
-    <!-- 語言切換（僅 Step 1 配對畫面顯示） -->
-    <div data-global-target="langBar" class="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
-        <button data-global-target="zhBtn"
-                data-action="click->global#switchLanguage"
-                data-lang="zh"
-                class="px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm">
-            繁中
-        </button>
-        <button data-global-target="enBtn"
-                data-action="click->global#switchLanguage"
-                data-lang="en"
-                class="px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white">
-            EN
-        </button>
-    </div>
-
     <!-- App Shell：三支畫面切換，全螢幕可操作 -->
     <div id="app-root" data-controller="app" class="h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
+
+            <!-- 語言切換（配對畫面；absolute 置於 app 框內，桌面版不跑版） -->
+            <div data-global-target="langBar" class="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
+                <button data-global-target="zhBtn"
+                        data-action="click->global#switchLanguage"
+                        data-lang="zh"
+                        class="px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm">
+                    繁中
+                </button>
+                <button data-global-target="enBtn"
+                        data-action="click->global#switchLanguage"
+                        data-lang="en"
+                        class="px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white">
+                    EN
+                </button>
+            </div>
 
             <!-- 畫面 1：房源連結 -->
             <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
@@ -1505,7 +1505,6 @@
                 this.bindRoomHeroSwipe();
                 this.bindOverlayHeroSwipe();
                 this.bindScrollContainer();
-                this.currentListingId = 'TAIPEI-CITY';
                 this.bookingViewDate = new Date(2026, 5, 1);
                 this.selectedBookingDate = null;
                 this.bookingTimeFormat = '24';
@@ -1513,11 +1512,36 @@
                 this.bookingTimezoneIsOther = false;
                 this.bookingCustomTimezone = '';
 
-                HostGuideSettings.ensureLoaded('TAIPEI-CITY').then(() => {
-                    this.renderDashboard(getResolvedListing('TAIPEI-CITY'), 'TAIPEI-CITY');
-                }).catch((error) => {
+                const params = new URLSearchParams(location.search);
+                const urlListing = (params.get('listing') || params.get('id') || '').trim().toUpperCase();
+                const urlExperience = params.get('experience');
+                const resolvedListing = urlListing
+                    || GuideDefaults.findListingForExperience(urlExperience)
+                    || 'TAIPEI-CITY';
+                this.currentListingId = resolvedListing;
+                this._pendingExperienceId = urlExperience;
+
+                HostGuideSettings.ensureLoaded(resolvedListing).then(async () => {
+                    const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
+                    if (urlListing || urlExperience) {
+                        window.appNavigate?.('dashboard');
+                        const pairingInput = document.querySelector('[data-pairing-target="input"]');
+                        if (pairingInput && urlListing) pairingInput.value = resolvedListing;
+                        global?.syncControllers(resolvedListing);
+                    } else {
+                        this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
+                    }
+                    if (this._pendingExperienceId) {
+                        await this.openExperienceFromShareLink(resolvedListing, this._pendingExperienceId);
+                        this._pendingExperienceId = null;
+                    }
+                }).catch(async (error) => {
                     console.warn('[dashboard] settings preload failed', error);
-                    this.renderDashboard(getResolvedListing('TAIPEI-CITY'), 'TAIPEI-CITY');
+                    this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
+                    if (this._pendingExperienceId) {
+                        await this.openExperienceFromShareLink(resolvedListing, this._pendingExperienceId);
+                        this._pendingExperienceId = null;
+                    }
                 });
             }
 
@@ -1755,6 +1779,24 @@
                 });
             }
 
+            async openExperienceFromShareLink(listingId, experienceId) {
+                if (!experienceId || !this.hasExpDetailOverlayTarget) return;
+                const id = GuideDefaults.ensureListing(listingId || GuideDefaults.findListingForExperience(experienceId) || 'TAIPEI-CITY');
+                this.currentListingId = id;
+                let recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === experienceId);
+                if (!recIndex) recIndex = 1;
+
+                this.expDetailOverlayTarget.classList.remove('translate-y-full');
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                if (this.hasExpDetailBodyTarget) {
+                    this.expDetailBodyTarget.scrollTop = 0;
+                    this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
+                }
+
+                const payload = await ExperienceDetailsAPI.fetchDetails(experienceId);
+                if (payload) this.renderExperienceDetail(payload, recIndex);
+            }
+
             async openExperienceDetail(event) {
                 const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
@@ -1832,7 +1874,8 @@
             getExpShareUrl() {
                 if (!this.currentExpPayload) return '';
                 return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
-                    isZh: (window.currentLanguage || 'zh') === 'zh'
+                    isZh: (window.currentLanguage || 'zh') === 'zh',
+                    listingId: this.currentListingId || 'TAIPEI-CITY'
                 }).shareUrl;
             }
 
@@ -1856,7 +1899,10 @@
             shareExpNative() {
                 if (!this.currentExpPayload) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, { isZh });
+                const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
+                    isZh,
+                    listingId: this.currentListingId || 'TAIPEI-CITY'
+                });
                 if (navigator.share) {
                     navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});
                     return;
@@ -2323,9 +2369,7 @@
             shareExperience() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const shareId = this.currentListingId || 'TAIPEI-CITY';
-
-                // Simulate Copy share link (Clipboard copy with fallback)
-                const shareText = `https://host-pocket.example.com/share/${shareId}`;
+                const shareText = `${window.location.origin}${window.location.pathname.split('?')[0]}?listing=${encodeURIComponent(shareId)}`;
                 const temp = document.createElement('textarea');
                 temp.value = shareText;
                 document.body.appendChild(temp);
@@ -2637,29 +2681,6 @@
             }
         });
 
-
-        (function initFromUrlListing() {
-            const params = new URLSearchParams(location.search);
-            const raw = params.get('listing') || params.get('id');
-            if (!raw) return;
-            const id = raw.trim().toUpperCase();
-            const run = async () => {
-                const pairingInput = document.querySelector('[data-pairing-target="input"]');
-                if (pairingInput) pairingInput.value = id;
-                const pairingEl = document.querySelector('[data-controller="pairing"]');
-                const pairingCtrl = pairingEl && stimulusApp.getControllerForElementAndIdentifier(pairingEl, 'pairing');
-                pairingCtrl?.updateSettingsLink?.();
-                try {
-                    await HostGuideSettings.ensureLoaded(id);
-                } catch (error) {
-                    console.warn('[initFromUrlListing] settings preload failed', error);
-                }
-                const global = stimulusApp.getControllerForElementAndIdentifier(document.body, 'global');
-                global?.syncControllers(id);
-                window.appNavigate?.('dashboard');
-            };
-            requestAnimationFrame(() => { run(); });
-        })();
 
     </script>
 </body>
