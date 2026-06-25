@@ -540,6 +540,68 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <!-- Card 3 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="3"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg3" src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80" alt="Spot 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🍜 <span data-dashboard-target="recBadge3"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating3" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle3" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist3" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice3" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                    <div class="px-3 pb-3 -mt-1">
+                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="3"
+                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
+                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
+                                            <span data-global-lang="zh">地圖導航</span>
+                                            <span data-global-lang="en" class="hidden">Map route</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Card 4 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="4"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg4" src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=300&q=80" alt="Spot 4" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🍵 <span data-dashboard-target="recBadge4"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating4" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle4" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist4" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice4" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                    <div class="px-3 pb-3 -mt-1">
+                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="4"
+                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
+                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
+                                            <span data-global-lang="zh">地圖導航</span>
+                                            <span data-global-lang="en" class="hidden">Map route</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1091,29 +1153,22 @@
             img.src = src;
         }
 
+        const LOCAL_REC_COUNT = 4;
+
         function getRecExplorerDetail(data, recIndex) {
-            if (recIndex === 1) {
+            const num = Number(recIndex);
+            if (num >= 1 && num <= LOCAL_REC_COUNT) {
+                const descZh = data[`desc${num}Zh`] || (num === 2 ? data.descZh : null) || data[`recTitle${num}Zh`];
+                const descEn = data[`desc${num}En`] || (num === 2 ? data.descEn : null) || data[`recTitle${num}En`];
                 return {
-                    titleZh: data.recTitle1Zh,
-                    titleEn: data.recTitle1En,
-                    descZh: data.desc1Zh || data.recTitle1Zh,
-                    descEn: data.desc1En || data.recTitle1En,
-                    distZh: data.recExplorerDist1Zh || data.recDist1Zh || '',
-                    distEn: data.recExplorerDist1En || data.recDist1En || '',
-                    estZh: data.recExplorerEst1Zh || (data.recPrice1Zh ? `預估花費：${data.recPrice1Zh}` : ''),
-                    estEn: data.recExplorerEst1En || (data.recPrice1En ? `Est: ${data.recPrice1En}` : '')
-                };
-            }
-            if (recIndex === 2) {
-                return {
-                    titleZh: data.recTitle2Zh,
-                    titleEn: data.recTitle2En,
-                    descZh: data.desc2Zh || data.descZh,
-                    descEn: data.desc2En || data.descEn,
-                    distZh: data.recExplorerDist2Zh || data.recDist2Zh || '',
-                    distEn: data.recExplorerDist2En || data.recDist2En || '',
-                    estZh: data.recExplorerEst2Zh || (data.recPrice2Zh ? `預估花費：${data.recPrice2Zh}` : ''),
-                    estEn: data.recExplorerEst2En || (data.recPrice2En ? `Est: ${data.recPrice2En}` : '')
+                    titleZh: data[`recTitle${num}Zh`],
+                    titleEn: data[`recTitle${num}En`],
+                    descZh,
+                    descEn,
+                    distZh: data[`recExplorerDist${num}Zh`] || data[`recDist${num}Zh`] || '',
+                    distEn: data[`recExplorerDist${num}En`] || data[`recDist${num}En`] || '',
+                    estZh: data[`recExplorerEst${num}Zh`] || (data[`recPrice${num}Zh`] ? `預估花費：${data[`recPrice${num}Zh`]}` : ''),
+                    estEn: data[`recExplorerEst${num}En`] || (data[`recPrice${num}En`] ? `Est: ${data[`recPrice${num}En`]}` : '')
                 };
             }
             return {
@@ -1141,7 +1196,7 @@
         function getExperienceIdForRec(listingId, recIndex) {
             const listing = getResolvedListing(listingId);
             if (!listing) return null;
-            return recIndex === 1 ? listing.recExperienceId1 : listing.recExperienceId2;
+            return listing[`recExperienceId${recIndex}`] || null;
         }
 
         // --- STIMULUS CONTROLLER REGISTRATIONS ---
@@ -1433,6 +1488,8 @@
                 "roomHero", "roomPhotoDots",
                 "wifiValue", "lockValue", "recImg1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
+                "recImg3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
+                "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn",
                 "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
@@ -1609,6 +1666,19 @@
                 if (this.hasRecBadge2Target) this.recBadge2Target.innerText = isZh ? data.recBadge2Zh : data.recBadge2En;
                 if (this.hasRecDist2Target) this.recDist2Target.innerText = isZh ? data.recDist2Zh : data.recDist2En;
                 if (this.hasRecPrice2Target) this.recPrice2Target.innerText = isZh ? data.recPrice2Zh : data.recPrice2En;
+                [3, 4].forEach((recIndex) => {
+                    const imgTarget = this[`recImg${recIndex}Target`];
+                    if (!imgTarget) return;
+                    setImgWithFallback(imgTarget, data[`recImg${recIndex}`], IMAGE_FALLBACKS.rec);
+                    const titleTarget = this[`recTitle${recIndex}Target`];
+                    if (titleTarget) titleTarget.innerText = isZh ? data[`recTitle${recIndex}Zh`] : data[`recTitle${recIndex}En`];
+                    const badgeTarget = this[`recBadge${recIndex}Target`];
+                    if (this[`hasRecBadge${recIndex}Target`]) badgeTarget.innerText = isZh ? data[`recBadge${recIndex}Zh`] : data[`recBadge${recIndex}En`];
+                    const distTarget = this[`recDist${recIndex}Target`];
+                    if (this[`hasRecDist${recIndex}Target`]) distTarget.innerText = isZh ? data[`recDist${recIndex}Zh`] : data[`recDist${recIndex}En`];
+                    const priceTarget = this[`recPrice${recIndex}Target`];
+                    if (this[`hasRecPrice${recIndex}Target`]) priceTarget.innerText = isZh ? data[`recPrice${recIndex}Zh`] : data[`recPrice${recIndex}En`];
+                });
                 this.syncRecCardRatings(id);
 
                 // Also sync targets of the hidden/connectable Airbnb room details overlay!
@@ -1669,12 +1739,16 @@
 
             syncRecCardRatings(listingId) {
                 if (!window.ExperienceDetailsAPI) return;
-                [1, 2].forEach(recIndex => {
+                [1, 2, 3, 4].forEach(recIndex => {
                     const expId = getExperienceIdForRec(listingId, recIndex);
                     const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
-                    const target = recIndex === 1 ? this.recRating1Target : this.recRating2Target;
-                    const hasTarget = recIndex === 1 ? this.hasRecRating1Target : this.hasRecRating2Target;
-                    if (!hasTarget || !fixture?.experience) return;
+                    const target = this[`recRating${recIndex}Target`];
+                    const hasTarget = this[`hasRecRating${recIndex}Target`];
+                    if (!hasTarget || !target) return;
+                    if (!fixture?.experience) {
+                        target.innerText = '';
+                        return;
+                    }
                     const { rating, reviews } = fixture.experience;
                     target.innerText = `★ ${rating}`;
                     target.title = `${reviews} reviews`;

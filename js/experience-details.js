@@ -18,6 +18,53 @@
         default: 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4'
     };
 
+    function makeRecFixture(spec) {
+        const {
+            id, title, titleZh, description, descriptionZh, category, categoryZh,
+            rating, reviews, cover, priceLabel, priceLabelZh, extractedPrice = 0,
+            hostName, hostAbout, hostAboutZh, locationEn, locationZh
+        } = spec;
+        return {
+            experience: {
+                id,
+                title,
+                description,
+                link: `https://www.airbnb.com/experiences/${id}`,
+                category,
+                rating,
+                reviews,
+                cover_image: cover,
+                media: [{ type: 'image', url: cover }],
+                highlights: [{ type: 'PROFILE', name: `Hosted by ${hostName}`, description: hostAbout }],
+                agenda: [{ position: 1, title, description }],
+                location: { display_label: locationEn, locality: locationEn, country: '' },
+                price: { price_label: priceLabel, extracted_price: extractedPrice },
+                availability: [{ day: 'Daily', duration: 'Flexible', availability_description: 'Book ahead', is_available: true }],
+                guest_requirements: { min_age: 6, is_children_allowed: true },
+                accessibility_features: [{ name: 'Street-level access' }],
+                cancellation_policy: { name: 'Free cancellation', description: 'Up to 12 hours before' }
+            },
+            host: { name: hostName, about: hostAbout, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80' },
+            reviews: [{ review_id: `r-${id}`, text: 'Great local pick.', rating: 5, user: { name: 'Guest', location: 'Local' } }],
+            similar_experiences: [],
+            i18n: {
+                zh: {
+                    title: titleZh,
+                    description: descriptionZh,
+                    category: categoryZh,
+                    language: '體驗語言：中文',
+                    highlights: [{ type: 'PROFILE', name: `${hostName} 帶隊`, description: hostAboutZh }],
+                    agenda: [{ position: 1, title: titleZh, description: descriptionZh }],
+                    location: { display_label: locationZh },
+                    price: { price_label: priceLabelZh },
+                    availability: [{ day: '每日', duration: '彈性', availability_description: '建議提前預約', is_available: true }],
+                    host: { about: hostAboutZh, tagline: '在地精選・房東' },
+                    reviews: [{ review_id: `r-${id}`, text: '非常道地的房東推薦。', rating: 5, user: { name: '房客', location: '本地' } }]
+                }
+            }
+        };
+    }
+
     const FIXTURES = {
         '5829101': {
             experience: {
@@ -223,6 +270,94 @@
                 }
             }
         },
+        '3310247': makeRecFixture({
+            id: '3310247', hostName: 'Mia',
+            title: 'Ningxia Night Market Street Food', titleZh: '寧夏夜市銅板小吃巡禮',
+            description: 'Classic Taipei night-market bites after 7 PM.', descriptionZh: '晚上 7 點後品嚐滷味、蚵仔煎與現切水果的銅板美食路線。',
+            category: 'Food & Drink', categoryZh: '美食與飲品',
+            rating: 4.88, reviews: 642,
+            cover: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From NT$150, per guest', priceLabelZh: '每位 NT$150 起', extractedPrice: 150,
+            hostAbout: 'My go-to night market route for every guest.', hostAboutZh: '每位房客我都會帶來這條夜市動線。',
+            locationEn: 'Datong, Taipei', locationZh: '台北，大同'
+        }),
+        '3310248': makeRecFixture({
+            id: '3310248', hostName: 'Mia',
+            title: 'Dihua Street Tea Culture Walk', titleZh: '大稻埕迪化街茶文化散步',
+            description: 'Sunday stroll through heritage tea shops and herb alleys.', descriptionZh: '週日下午沿百年茶行與中藥材巷弄散步，附試飲推薦。',
+            category: 'Culture', categoryZh: '文化體驗',
+            rating: 4.86, reviews: 418,
+            cover: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From NT$180, per guest', priceLabelZh: '每位 NT$180 起', extractedPrice: 180,
+            hostAbout: 'Two tea houses I always send guests to.', hostAboutZh: '我固定推薦兩家可試飲的高山茶行。',
+            locationEn: 'Dihua, Taipei', locationZh: '台北，大稻埕'
+        }),
+        '5829103': makeRecFixture({
+            id: '5829103', hostName: 'Emma',
+            title: 'Shoreditch Specialty Coffee Crawl', titleZh: '肖爾迪奇精品咖啡巡禮',
+            description: 'Three indie roasters on a weekend morning route.', descriptionZh: '週末上午走訪三家獨立烘焙坊，從 flat white 到手沖。',
+            category: 'Food & Drink', categoryZh: '美食與飲品',
+            rating: 4.89, reviews: 531,
+            cover: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From £12, per guest', priceLabelZh: '每位 £12 起', extractedPrice: 12,
+            hostAbout: 'My favourite coffee crawl near the flat.', hostAboutZh: '公寓附近我最愛的咖啡路線。',
+            locationEn: 'Shoreditch, London', locationZh: '倫敦，肖爾迪奇'
+        }),
+        '5829104': makeRecFixture({
+            id: '5829104', hostName: 'Emma',
+            title: "St Paul's Riverside Stroll", titleZh: '聖保羅大教堂周邊河畔散策',
+            description: 'Evening South Bank walk with dome and bridge views.', descriptionZh: '傍晚泰晤士河南岸步行，遠眺聖保羅圓頂與千禧橋。',
+            category: 'Outdoors', categoryZh: '戶外活動',
+            rating: 4.93, reviews: 890, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'A free classic London route at dusk.', hostAboutZh: '黃昏最經典的倫敦免費路線。',
+            locationEn: 'South Bank, London', locationZh: '倫敦，南岸'
+        }),
+        '4410203': makeRecFixture({
+            id: '4410203', hostName: 'Mindaugas',
+            title: 'Užupis Street Art Walk', titleZh: '烏祖皮斯街頭藝術散步',
+            description: 'Murals and tiny galleries in the republic district.', descriptionZh: '週日下午走訪塗鴉牆與小型畫廊。',
+            category: 'Art', categoryZh: '藝術體驗',
+            rating: 4.84, reviews: 276, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1523906834659-5e2920f4a7f0?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'Sunday afternoons in Užupis never disappoint.', hostAboutZh: '週日下午的烏祖皮斯總有驚喜。',
+            locationEn: 'Užupis, Vilnius', locationZh: '維爾紐斯，烏祖皮斯'
+        }),
+        '4410204': makeRecFixture({
+            id: '4410204', hostName: 'Mindaugas',
+            title: 'Old Town Vault Café', titleZh: '舊城地下室咖啡秘境',
+            description: 'Vaulted café perfect for rainy-day reading.', descriptionZh: '拱門巷內地下室咖啡館，適合雨天閱讀。',
+            category: 'Food & Drink', categoryZh: '美食與飲品',
+            rating: 4.82, reviews: 198,
+            cover: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From €8, per guest', priceLabelZh: '每位 €8 起', extractedPrice: 8,
+            hostAbout: 'My hideaway when the Old Town gets crowded.', hostAboutZh: '舊城人潮多時我會來這裡。',
+            locationEn: 'Old Town, Vilnius', locationZh: '維爾紐斯，舊城'
+        }),
+        '5510303': makeRecFixture({
+            id: '5510303', hostName: 'Carlos',
+            title: 'Ipanema Beach Morning Run', titleZh: '伊帕內瑪海灘清晨慢跑',
+            description: '6 AM walk from Copacabana to Ipanema.', descriptionZh: '清晨沿 Copacabana 走到 Ipanema，看衝浪與排球。',
+            category: 'Outdoors', categoryZh: '戶外活動',
+            rating: 4.90, reviews: 712, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'The best way to feel Rio before breakfast.', hostAboutZh: '早餐前感受里約的最佳方式。',
+            locationEn: 'Ipanema, Rio', locationZh: '里約，伊帕內瑪'
+        }),
+        '5510304': makeRecFixture({
+            id: '5510304', hostName: 'Carlos',
+            title: 'Selarón Steps Mosaic Art', titleZh: '塞拉隆階梯彩色瓷磚藝術',
+            description: "Rio's iconic tiled steps in Lapa.", descriptionZh: '拉帕區塞拉隆階梯，里約最經典彩色瓷磚背景。',
+            category: 'Art', categoryZh: '藝術體驗',
+            rating: 4.87, reviews: 965,
+            cover: 'https://images.unsplash.com/photo-1483728642387-8fd3a1a3a7f6?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From R$60, per guest', priceLabelZh: '每位 R$60 起', extractedPrice: 60,
+            hostAbout: 'Every guest wants a photo here.', hostAboutZh: '每位房客都想在這裡拍照。',
+            locationEn: 'Lapa, Rio', locationZh: '里約，拉帕'
+        }),
         '4410201': {
             experience: {
                 id: '4410201',
@@ -1157,7 +1292,7 @@
     function getExperienceIdForRec(guidesDb, listingId, recIndex) {
         const listing = guidesDb?.[listingId];
         if (!listing) return null;
-        return recIndex === 1 ? listing.recExperienceId1 : listing.recExperienceId2;
+        return listing[`recExperienceId${recIndex}`] || null;
     }
 
     global.ExperienceDetailsAPI = {

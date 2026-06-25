@@ -19,6 +19,14 @@
         'recBadge2Zh', 'recBadge2En', 'recDist2Zh', 'recDist2En',
         'recPrice2Zh', 'recPrice2En', 'desc2Zh', 'desc2En',
         'recExplorerDist2Zh', 'recExplorerDist2En', 'recExplorerEst2Zh', 'recExplorerEst2En',
+        'recExperienceId3', 'recTitle3Zh', 'recTitle3En', 'recImg3',
+        'recBadge3Zh', 'recBadge3En', 'recDist3Zh', 'recDist3En',
+        'recPrice3Zh', 'recPrice3En', 'desc3Zh', 'desc3En',
+        'recExplorerDist3Zh', 'recExplorerDist3En', 'recExplorerEst3Zh', 'recExplorerEst3En',
+        'recExperienceId4', 'recTitle4Zh', 'recTitle4En', 'recImg4',
+        'recBadge4Zh', 'recBadge4En', 'recDist4Zh', 'recDist4En',
+        'recPrice4Zh', 'recPrice4En', 'desc4Zh', 'desc4En',
+        'recExplorerDist4Zh', 'recExplorerDist4En', 'recExplorerEst4Zh', 'recExplorerEst4En',
         'targetTitleZh', 'targetTitleEn', 'descZh', 'descEn',
         'explorerDistZh', 'explorerDistEn', 'explorerEstZh', 'explorerEstEn'
     ];
