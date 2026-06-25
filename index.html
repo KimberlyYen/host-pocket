@@ -273,7 +273,7 @@
                             <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center" data-global-lang="zh">快速切換測試主題</p>
                             <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center hidden" data-global-lang="en">Quick Demo Themes</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <button data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                <button type="button" data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">台北</div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Taipei</div>
@@ -282,7 +282,7 @@
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
-                                <button data-action="click->pairing#quickPair" data-id="UK-LONDON" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                <button type="button" data-action="click->pairing#quickPair" data-id="UK-LONDON" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">英國</div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">UK</div>
@@ -291,7 +291,7 @@
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
-                                <button data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                <button type="button" data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">立陶宛</div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Lithuania</div>
@@ -300,7 +300,7 @@
                                     </div>
                                     <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
                                 </button>
-                                <button data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
+                                <button type="button" data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
                                     <div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">巴西</div>
                                         <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Brazil</div>
@@ -311,7 +311,7 @@
                                 </button>
                             </div>
                             <div class="text-center pt-1">
-                                <a href="host-settings.html"
+                                <a href="/host-settings.html"
                                    data-pairing-target="settingsLink"
                                    class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
                                     <i class="fa-solid fa-sliders"></i>
@@ -351,7 +351,7 @@
                                aria-label="SearchAPI on LinkedIn"
                                class="partner-bar-item partner-bar-link flex items-center justify-center gap-1.5 min-w-0 px-2 border-x border-white/10">
                                 <div class="partner-icon-slot shadow-sm">
-                                    <img src="searchapi-icon.png" alt="" aria-hidden="true">
+                                    <img src="/searchapi-icon.png" alt="" aria-hidden="true">
                                 </div>
                                 <span class="partner-bar-label partner-bar-label--partner font-semibold truncate">SearchAPI</span>
                             </a>
@@ -1429,8 +1429,8 @@
                 if (!this.hasSettingsLinkTarget) return;
                 const id = this.inputTarget.value.trim();
                 this.settingsLinkTarget.href = id
-                    ? `host-settings.html?listing=${encodeURIComponent(id)}`
-                    : 'host-settings.html';
+                    ? `/host-settings.html?listing=${encodeURIComponent(id)}`
+                    : '/host-settings.html';
             }
 
             async performPairing() {
@@ -1446,14 +1446,12 @@
                     return;
                 }
 
-                try {
-                    await HostGuideSettings.ensureLoaded(val);
-                } catch (error) {
-                    console.warn('[pairing] settings preload failed', error);
-                }
+                const dashEl = document.querySelector('[data-controller="dashboard"]');
+                const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
+                dashCtrl?.closeExperienceDetail?.();
 
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, "global");
-                globalController.syncControllers(val);
+                globalController?.syncControllers(val);
 
                 this.triggerToast(
                     isZh ? '連結成功' : 'Listing Linked',
@@ -1464,17 +1462,21 @@
                 if (window.appNavigate) {
                     window.appNavigate("dashboard");
                 } else if (window.matchMedia('(max-width: 1023px)').matches) {
-                    const phone2 = document.querySelector('[data-controller="dashboard"]');
-                    if (phone2) {
-                        phone2.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        phone2.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
-                        setTimeout(() => phone2.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
+                    if (dashEl) {
+                        dashEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        dashEl.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
+                        setTimeout(() => dashEl.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
                     }
                 }
 
-                const dashEl = document.querySelector('[data-controller="dashboard"]');
-                const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
                 dashCtrl?.syncGuideBrowserUrl?.();
+
+                try {
+                    await HostGuideSettings.ensureLoaded(val);
+                    globalController?.syncControllers(val);
+                } catch (error) {
+                    console.warn('[pairing] settings preload failed', error);
+                }
             }
 
             quickPair(event) {
@@ -1766,6 +1768,7 @@
             }
 
             goBackToPairing() {
+                this.closeExperienceDetail();
                 const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 if (global) global.navigateToPairing('switch');
             }
