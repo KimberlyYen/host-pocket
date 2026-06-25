@@ -26,6 +26,9 @@
     }
 
     async function checkHealth() {
+        if (global.HP_MOCK_DATA !== false) {
+            return { ok: true, mock: true, dbConfigured: false, bookingConfigured: false };
+        }
         const res = await fetch(`${getApiBase()}/api/health`);
         if (!res.ok) throw new Error('Health check failed');
         return res.json();
@@ -41,6 +44,7 @@
     }
 
     async function fetchSettings(listingId) {
+        if (global.HP_MOCK_DATA !== false) return null;
         const base = getApiBase();
         const id = encodeListingId(listingId);
         const res = await fetch(`${base}/api/listings/${id}/settings`);
@@ -53,6 +57,9 @@
     }
 
     async function saveSettings(listingId, payload) {
+        if (global.HP_MOCK_DATA !== false) {
+            throw new Error('Mock mode: listing settings API disabled');
+        }
         const base = getApiBase();
         const id = encodeListingId(listingId);
         const res = await fetch(`${base}/api/listings/${id}/settings`, {
@@ -68,6 +75,7 @@
     }
 
     async function deleteSettings(listingId) {
+        if (global.HP_MOCK_DATA !== false) return false;
         const base = getApiBase();
         const id = encodeListingId(listingId);
         const res = await fetch(`${base}/api/listings/${id}/settings`, {

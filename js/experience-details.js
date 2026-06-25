@@ -1,6 +1,6 @@
 /**
  * Airbnb Experience Details API layer (SearchAPI-compatible shape).
- * Set window.SEARCHAPI_KEY to fetch live data; otherwise uses local fixtures.
+ * Default mock mode (`HP_MOCK_DATA`) uses local fixtures only; set `window.HP_MOCK_DATA = false` to enable live API calls.
  */
 (function (global) {
     const IMAGE_FALLBACK = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
@@ -705,21 +705,22 @@
 
         return {
             isZh, exp, host, price, loc, cancel, media, highlights, agenda,
-            availability, reviews, similar, a11y, labels, guestReqText
+            availability, reviews, similar, a11y, labels, guestReqText,
+            shareHref: getGuideShareHref(options.listingId)
         };
     }
 
     function renderDetailContent(ctx) {
-        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText } = ctx;
+        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText, shareHref } = ctx;
 
         return `
             <div class="p-5 space-y-4">
                 <div class="relative">
-                    <button type="button" data-action="click->dashboard#openExpShareSheet"
-                            class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
+                    <a href="${escapeHtml(shareHref)}"
+                       class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
                         <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
                         ${isZh ? '分享' : 'Share'}
-                    </button>
+                    </a>
                     <div class="pr-[4.75rem]">
                         ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
                         <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
@@ -894,6 +895,22 @@
         return buildGuideShareUrl(null, options);
     }
 
+    function getGuideShareHref(listingId) {
+        const id = String(listingId || 'TAIPEI-CITY').trim().toUpperCase();
+        if (global.HP_MOCK_DATA !== false) {
+            if (isStaticDevServer()) {
+                const base = typeof window !== 'undefined'
+                    ? window.location.pathname.replace(/[^/]*$/, '')
+                    : '/';
+                return `${window.location.origin}${base}index.html?listing=${encodeURIComponent(id)}`;
+            }
+            const paths = global.HP_GUIDE_SHARE_PATHS || {};
+            const path = paths[id] || `/guide/${encodeURIComponent(id)}`;
+            return `${window.location.origin}${path}`;
+        }
+        return buildGuideBrowserUrl({ listingId: id, guideOnly: true });
+    }
+
     const SHARE_PICKS_DEFAULT_NUM = 3;
 
     function getApiBase() {
@@ -958,6 +975,12 @@
         const id = String(experienceId || '').trim();
         if (!id) return null;
 
+        if (global.HP_MOCK_DATA !== false) {
+            return FIXTURES[id]
+                ? { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } }
+                : null;
+        }
+
         const proxyBase = getApiBase();
         const endpoints = [`${proxyBase}/api/search/experience-details?experience_id=${encodeURIComponent(id)}`];
         const apiKey = options.apiKey || global.SEARCHAPI_KEY;
@@ -1014,6 +1037,15 @@
     async function fetchExperiencesSearch(options = {}) {
         const q = options.q || 'Tokyo cooking class';
         const num = options.num || SHARE_PICKS_DEFAULT_NUM;
+
+        if (global.HP_MOCK_DATA !== false) {
+            const experiences = Object.values(FIXTURES)
+                .map((fixture) => normalizeSearchExperience(fixture.experience))
+                .filter(Boolean)
+                .slice(0, num);
+            return { q, num, experiences, source: 'mock' };
+        }
+
         const params = new URLSearchParams({ q, num: String(num) });
 
         const proxyBase = getApiBase();
@@ -1539,6 +1571,7 @@
         buildShareContext,
         buildGuideShareUrl,
         buildGuideBrowserUrl,
+        getGuideShareHref,
         parseDeepLinkFromLocation,
         renderShareSheet,
         initMediaPlayer,

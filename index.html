@@ -437,7 +437,7 @@
                             <i class="fa-solid fa-arrow-left text-lg"></i>
                         </button>
                         <a data-dashboard-target="shareLink" href="index.html?listing=TAIPEI-CITY"
-                           data-action="click->dashboard#shareExperience" aria-label="Share guide"
+                           aria-label="Share guide"
                            class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
                         </a>
@@ -1115,6 +1115,7 @@
     <script src="js/toast.js"></script>
     <script src="js/image-swipe.js"></script>
     <script src="js/guide-defaults.js"></script>
+    <script src="js/mock-mode.js"></script>
     <script src="js/listing-settings-api.js"></script>
     <script src="js/host-guide-settings.js"></script>
     <script src="js/booking-api.js"></script>
@@ -1308,13 +1309,10 @@
                 if (action.includes('shareExperience')) {
                     event.preventDefault();
                     const shareUrl = listingId
-                        ? ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true })
+                        ? ExperienceDetailsAPI.getGuideShareHref(listingId)
                         : location.href;
-                    if (navigator.share) {
-                        navigator.share({ title: isZh ? '入住指南' : 'Stay guide', url: shareUrl });
-                    } else {
-                        navigator.clipboard?.writeText(shareUrl);
-                    }
+                    location.href = shareUrl;
+                    return;
                 }
             }, true);
         }
@@ -1967,7 +1965,7 @@
                     this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.href = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId: id, guideOnly: true });
+                    this.shareLinkTarget.href = ExperienceDetailsAPI.getGuideShareHref(id);
                 }
                 this.updateDeepLinkChrome(this.isGuestGuideRoute());
                 window.hpHydrateGuestGuideDashboard?.(id);
@@ -2029,7 +2027,7 @@
 
             syncGuideBrowserUrl() {
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const shareUrl = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true });
+                const shareUrl = ExperienceDetailsAPI.getGuideShareHref(listingId);
                 const browserUrl = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, guideOnly: true });
                 if (this.hasShareLinkTarget) {
                     this.shareLinkTarget.href = shareUrl;
@@ -2089,7 +2087,10 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 this.currentExpRecIndex = recIndex;
                 this.currentExpPayload = payload;
-                const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, { isZh });
+                const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
+                    isZh,
+                    listingId: this.currentListingId || 'TAIPEI-CITY'
+                });
                 this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml + bookingHtml;
                 this.expDetailBodyTarget.scrollTop = 0;
                 ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);

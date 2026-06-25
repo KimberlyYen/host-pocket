@@ -28,12 +28,19 @@
     }
 
     async function checkHealth() {
+        if (global.HP_MOCK_DATA !== false) {
+            return { ok: true, mock: true, bookingConfigured: true };
+        }
         const res = await fetch(`${getApiBase()}/api/health`);
         if (!res.ok) throw new Error('Health check failed');
         return res.json();
     }
 
     async function createBooking(payload) {
+        if (global.HP_MOCK_DATA !== false) {
+            await new Promise((resolve) => setTimeout(resolve, 450));
+            return { ok: true, mock: true, payload };
+        }
         const base = getApiBase();
         let res;
         try {
@@ -61,6 +68,7 @@
     }
 
     async function isEmailApiConfigured() {
+        if (global.HP_MOCK_DATA !== false) return true;
         try {
             const health = await checkHealth();
             return Boolean(health.smtpConfigured || health.bookingConfigured);

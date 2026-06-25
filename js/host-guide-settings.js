@@ -97,6 +97,10 @@
     }
 
     async function isDatabaseAvailable() {
+        if (global.HP_MOCK_DATA !== false) {
+            _dbAvailable = false;
+            return false;
+        }
         if (_dbAvailable !== null) return _dbAvailable;
         if (!global.ListingSettingsAPI) {
             _dbAvailable = false;
