@@ -1328,6 +1328,9 @@
 
                 if (window.appNavigate) {
                     window.appNavigate("pairing");
+                    if (typeof history !== 'undefined' && /^\/guide\//.test(location.pathname)) {
+                        history.replaceState({ hp: 'pairing' }, '', '/');
+                    }
                     this.dispatchNotification(copy.title, copy.msg, 'info');
                     return;
                 }
@@ -1453,6 +1456,8 @@
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 globalController?.syncControllers(val);
 
+                if (dashCtrl) dashCtrl.currentListingId = val;
+
                 this.triggerToast(
                     isZh ? '連結成功' : 'Listing Linked',
                     isZh ? `已連結 ${val}，指南建立完成` : `Linked ${val}. Your stay guide is ready.`,
@@ -1473,7 +1478,9 @@
 
                 try {
                     await HostGuideSettings.ensureLoaded(val);
-                    globalController?.syncControllers(val);
+                    if (dashCtrl && dashCtrl.currentListingId === val) {
+                        globalController?.syncControllers(val);
+                    }
                 } catch (error) {
                     console.warn('[pairing] settings preload failed', error);
                 }
@@ -1530,6 +1537,7 @@
                     || 'TAIPEI-CITY';
                 this.currentListingId = resolvedListing;
                 const hasDeepLink = Boolean(urlListing || urlExperience);
+                const bootListingId = resolvedListing;
 
                 if (hasDeepLink) {
                     window.appNavigate?.('dashboard');
@@ -1540,18 +1548,19 @@
                     }
                 }
 
-                HostGuideSettings.ensureLoaded(resolvedListing).then(() => {
+                HostGuideSettings.ensureLoaded(bootListingId).then(() => {
+                    if (this.currentListingId !== bootListingId) return;
                     const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
                     if (hasDeepLink) {
-                        global?.syncControllers(resolvedListing);
+                        global?.syncControllers(bootListingId);
                         if (!urlExperience) this.syncGuideBrowserUrl();
                     } else {
-                        this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
+                        this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
                     }
                 }).catch((error) => {
                     console.warn('[dashboard] settings preload failed', error);
-                    if (!hasDeepLink) {
-                        this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
+                    if (!hasDeepLink && this.currentListingId === bootListingId) {
+                        this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
                     }
                 });
             }
