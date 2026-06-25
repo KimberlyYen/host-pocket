@@ -1209,6 +1209,15 @@
             return hpLoadGuideSettingsData(listingId);
         }
 
+        function hpIsHostPreviewMode() {
+            try {
+                const params = new URLSearchParams(location.search || '');
+                return params.get('preview') === '1' || params.get('hostPreview') === '1';
+            } catch {
+                return false;
+            }
+        }
+
         function hpEnsureGuideSettingsStored(listingId) {
             const id = GuideDefaults.ensureListing(
                 (listingId || hpResolveGuestListingId() || 'TAIPEI-CITY').trim().toUpperCase()
@@ -1216,9 +1225,12 @@
             if (!window.HostGuideSettings || !GuideDefaults.DEMO_LISTING_IDS?.includes(id)) return id;
 
             try {
+                if (hpIsHostPreviewMode()) return id;
+
                 const stored = HostGuideSettings.load(id);
                 const guestBoot = document.documentElement.classList.contains('hp-boot-dashboard');
-                if (guestBoot || !stored?.recTitle1Zh || !stored?.wifi) {
+                const incomplete = !stored?.recTitle1Zh || !stored?.wifi;
+                if (incomplete) {
                     HostGuideSettings.seedDemoListing(id, { force: guestBoot || !stored?.recTitle1Zh });
                 }
             } catch (error) {
@@ -1331,6 +1343,8 @@
         }
 
         function hpSeedGuestDemoStorage(listingId) {
+            if (hpIsHostPreviewMode()) return false;
+
             const id = GuideDefaults.ensureListing(
                 (listingId || hpResolveGuestListingId() || '').trim().toUpperCase()
             );

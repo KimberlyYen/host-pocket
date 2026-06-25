@@ -97,6 +97,14 @@ app.post('/api/smtp-config', (req, res) => {
     }
 });
 
+app.get('/guide/:listing/experience/:experience', (_req, res) => {
+    res.sendFile(path.join(ROOT, 'index.html'));
+});
+
+app.get('/guide/:listing', (_req, res) => {
+    res.sendFile(path.join(ROOT, 'index.html'));
+});
+
 app.use(express.static(ROOT));
 
 app.use((_req, res) => {
