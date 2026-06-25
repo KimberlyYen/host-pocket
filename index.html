@@ -1893,7 +1893,7 @@
                 if (this.hasExpShareBodyTarget) {
                     this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
                         isZh,
-                        ...this.getShareLinkOptions()
+                        listingId: this.currentListingId || 'TAIPEI-CITY'
                     });
                 }
                 this.expShareOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
@@ -1921,11 +1921,8 @@
             }
 
             getExpShareUrl() {
-                const { listingId, experienceId } = this.getShareLinkOptions();
-                return ExperienceDetailsAPI.buildGuideShareUrl(
-                    experienceId ? { id: experienceId } : {},
-                    { listingId, experienceId }
-                );
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                return ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId });
             }
 
             copyExpShareLink() {
@@ -1950,7 +1947,7 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
                     isZh,
-                    ...this.getShareLinkOptions()
+                    listingId: this.currentListingId || 'TAIPEI-CITY'
                 });
                 if (navigator.share) {
                     navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});

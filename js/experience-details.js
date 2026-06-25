@@ -714,24 +714,24 @@
 
         return `
             <div class="p-5 space-y-4">
-                <div>
-                    ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
-                    <div class="flex items-start justify-between gap-3">
-                        <h2 class="text-md font-extrabold text-hp-dark leading-snug flex-1 min-w-0">${escapeHtml(exp.title)}</h2>
-                        <button type="button" data-action="click->dashboard#openExpShareSheet"
-                                class="inline-flex items-center text-xs font-bold text-hp-dark px-2.5 py-1.5 rounded-lg bg-hp-bgLight border border-hp-border hover:border-hp-coral/40 whitespace-nowrap shrink-0 transition">
-                            <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
-                            ${isZh ? '分享' : 'Share'}
-                        </button>
+                <div class="relative">
+                    <button type="button" data-action="click->dashboard#openExpShareSheet"
+                            class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
+                        <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
+                        ${isZh ? '分享' : 'Share'}
+                    </button>
+                    <div class="pr-[4.75rem]">
+                        ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
+                        <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
+                        <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span class="text-xs font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
+                            <span class="text-xs text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()} ${labels.reviewsCount})</span>
+                            <span class="text-xs font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
+                            ${price.extracted_price != null && !isZh ? `<span class="text-xs text-hp-muted font-mono">extracted_price: ${price.extracted_price}</span>` : ''}
+                        </div>
+                        <p class="text-xs text-hp-muted mt-2 leading-relaxed">${escapeHtml(exp.description)}</p>
+                        ${exp.link ? `<a href="${escapeHtml(exp.link)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-hp-coral mt-2 hover:underline"><i class="fa-brands fa-airbnb"></i> ${labels.openAirbnb}</a>` : ''}
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                        <span class="text-xs font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
-                        <span class="text-xs text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()} ${labels.reviewsCount})</span>
-                        <span class="text-xs font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
-                        ${price.extracted_price != null && !isZh ? `<span class="text-xs text-hp-muted font-mono">extracted_price: ${price.extracted_price}</span>` : ''}
-                    </div>
-                    <p class="text-xs text-hp-muted mt-2 leading-relaxed">${escapeHtml(exp.description)}</p>
-                    ${exp.link ? `<a href="${escapeHtml(exp.link)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-hp-coral mt-2 hover:underline"><i class="fa-brands fa-airbnb"></i> ${labels.openAirbnb}</a>` : ''}
                 </div>
 
                 ${highlights.length ? `
@@ -885,7 +885,9 @@
             ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
             : `https://www.google.com/maps/search/?api=1&query=${query}`;
         const airbnbUrl = exp.link || null;
-        const shareUrl = buildGuideShareUrl(exp, options);
+        const shareUrl = options.experienceId
+            ? buildGuideShareUrl(exp, options)
+            : buildGuideShareUrl({}, { listingId: options.listingId });
         const shareText = isZh
             ? `我在 host-pocket 發現這個在地體驗：${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`
             : `Check out this experience on host-pocket: ${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
