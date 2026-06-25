@@ -1073,8 +1073,6 @@
             openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options',
             searchPicks: 'Similar experiences', searchEmpty: 'No similar experiences found'
         };
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
-        const mailUrl = `mailto:?subject=${encodeURIComponent(exp.title || 'host-pocket')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}\n\n${mapsUrl}`)}`;
 
         const searchPicksHtml = searchResults.length ? `
                 <div class="bg-white border border-hp-border rounded-2xl p-3 space-y-2">
@@ -1137,16 +1135,16 @@
                         <span class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-brands fa-google"></i></span>
                         <span class="text-[10px] font-bold text-hp-dark text-center leading-tight">${labels.openMaps}</span>
                     </a>
-                    <a href="${escapeHtml(waUrl)}" target="_blank" rel="noopener noreferrer"
+                    <button type="button" data-action="click->dashboard#shareExpViaWhatsApp"
                        class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
                         <span class="w-11 h-11 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-600"><i class="fa-brands fa-whatsapp"></i></span>
                         <span class="text-[10px] font-bold text-hp-dark">${labels.whatsapp}</span>
-                    </a>
-                    <a href="${escapeHtml(mailUrl)}"
+                    </button>
+                    <button type="button" data-action="click->dashboard#shareExpViaEmail"
                        class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
                         <span class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><i class="fa-regular fa-envelope"></i></span>
                         <span class="text-[10px] font-bold text-hp-dark">${labels.email}</span>
-                    </a>
+                    </button>
                 </div>
 
                 <button type="button" data-action="click->dashboard#shareExpNative"

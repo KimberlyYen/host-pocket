@@ -379,23 +379,6 @@
                                 <i class="fa-solid fa-arrow-left text-lg"></i>
                             </button>
                         </div>
-                        <!-- Top Nav Tabs（隨內容捲動，非固定） -->
-                        <nav class="px-5 pt-1 pb-3 bg-hp-bgLight border-b border-hp-border">
-                            <div class="grid grid-cols-2 gap-2 bg-[#F3EFEA] p-1.5 rounded-2xl border border-hp-border">
-                                <button data-action="click->dashboard#scrollToSection" data-section="stayGuides" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl bg-white text-hp-dark text-xs font-extrabold shadow-sm flex flex-col items-center gap-1 transition">
-                                    <i class="fa-solid fa-house text-hp-coral text-xs"></i>
-                                    <span data-global-lang="zh">房屋指南</span>
-                                    <span data-global-lang="en" class="hidden">House Stay</span>
-                                </button>
-                                <button data-action="click->dashboard#scrollToSection" data-section="localRecs" data-dashboard-target="tabBtn"
-                                        class="py-2.5 rounded-xl text-[#8C807A] hover:text-hp-dark text-xs font-bold flex flex-col items-center gap-1 transition">
-                                    <i class="fa-solid fa-compass text-xs"></i>
-                                    <span data-global-lang="zh">在地探索</span>
-                                    <span data-global-lang="en" class="hidden">Explore</span>
-                                </button>
-                            </div>
-                        </nav>
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
@@ -833,7 +816,7 @@
                     </button>
 
                     <!-- Bottom Nav -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center items-center gap-16 text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
                                 class="flex flex-col items-center gap-1 text-hp-coral transition">
                             <i class="fa-solid fa-compass text-base"></i>
@@ -1907,19 +1890,62 @@
                     isZh ? '可貼到訊息或社群分享給旅伴' : 'Paste into messages or social apps to share.',
                     'success'
                 );
+                this.returnToGuideAfterShare();
             }
 
-            shareExpNative() {
-                if (!this.currentExpPayload) return;
+            shareExpViaWhatsApp() {
+                const ctx = this.getExpShareContext();
+                if (!ctx) return;
+                const waUrl = `https://wa.me/?text=${encodeURIComponent(`${ctx.shareText}\n${ctx.shareUrl}`)}`;
+                window.open(waUrl, '_blank', 'noopener,noreferrer');
+                this.returnToGuideAfterShare();
+            }
+
+            shareExpViaEmail() {
+                const ctx = this.getExpShareContext();
+                if (!ctx) return;
+                const title = ctx.displayTitle || ctx.exp?.title || 'host-pocket';
+                const mailUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${ctx.shareText}\n\n${ctx.shareUrl}\n\n${ctx.mapsUrl}`)}`;
+                window.location.href = mailUrl;
+                this.returnToGuideAfterShare();
+            }
+
+            getExpShareContext() {
+                if (!this.currentExpPayload) return null;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
+                return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
                     isZh,
                     listingId: this.currentListingId || 'TAIPEI-CITY',
                     experienceId: this.sharePrimaryExperienceId || this.getShareLinkOptions().experienceId,
                     primaryExperienceId: this.sharePrimaryExperienceId
                 });
+            }
+
+            returnToGuideAfterShare() {
+                this.closeExperienceDetail();
+                if (this.hasScrollContainerTarget) {
+                    this.scrollContainerTarget.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                if (this.hasTabBtnTarget) {
+                    this.setActiveTab(this.tabBtnTargets[0]);
+                }
+                if (this.hasBottomNavBtnTarget) {
+                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                }
+            }
+
+            shareExpNative() {
+                if (!this.currentExpPayload) return;
+                const ctx = this.getExpShareContext();
+                if (!ctx) return;
                 if (navigator.share) {
-                    navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});
+                    navigator.share({
+                        title: ctx.displayTitle || ctx.exp.title,
+                        text: ctx.shareText,
+                        url: ctx.shareUrl
+                    }).then(() => {
+                        this.returnToGuideAfterShare();
+                    }).catch(() => {});
                     return;
                 }
                 this.copyExpShareLink();
