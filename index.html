@@ -211,6 +211,27 @@
         .hp-image-swipe {
             touch-action: pan-y;
         }
+        .hp-copy-hint {
+            position: fixed;
+            z-index: 9999;
+            padding: 0.5rem 0.875rem;
+            background: rgba(31, 26, 24, 0.92);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            border-radius: 9999px;
+            box-shadow: 0 8px 24px rgba(31, 26, 24, 0.18);
+            opacity: 0;
+            transform: translateX(-50%) translateY(4px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .hp-copy-hint--show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
     <script>
         (function () {
@@ -436,11 +457,13 @@
                                 class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
                             <i class="fa-solid fa-arrow-left text-lg"></i>
                         </button>
-                        <a data-dashboard-target="shareLink" href="index.html?listing=TAIPEI-CITY"
-                           aria-label="Share guide"
-                           class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
+                        <button type="button" data-dashboard-target="shareLink"
+                                data-action="click->dashboard#copyGuideShareLink"
+                                data-share-url="index.html?listing=TAIPEI-CITY"
+                                aria-label="Share guide"
+                                class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
-                        </a>
+                        </button>
                     </div>
                     <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
                         <!-- Room Hero & Connection Card -->
@@ -1306,12 +1329,15 @@
                     return;
                 }
 
-                if (action.includes('shareExperience')) {
+                if (action.includes('copyGuideShareLink') || action.includes('shareExperience')) {
                     event.preventDefault();
-                    const shareUrl = listingId
-                        ? ExperienceDetailsAPI.getGuideShareHref(listingId)
-                        : location.href;
-                    location.href = shareUrl;
+                    const shareUrl = actionEl.dataset.shareUrl
+                        || (listingId ? ExperienceDetailsAPI.getGuideShareHref(listingId) : location.href);
+                    void window.hpCopyText?.(shareUrl).then((ok) => {
+                        if (ok !== false) {
+                            window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', actionEl);
+                        }
+                    });
                     return;
                 }
             }, true);
@@ -1965,7 +1991,7 @@
                     this.hostRecLabelEnTarget.innerText = `${hostFirst}'s Handpicked Escapes`;
                 }
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.href = ExperienceDetailsAPI.getGuideShareHref(id);
+                    this.shareLinkTarget.dataset.shareUrl = ExperienceDetailsAPI.getGuideShareHref(id);
                 }
                 this.updateDeepLinkChrome(this.isGuestGuideRoute());
                 window.hpHydrateGuestGuideDashboard?.(id);
@@ -2030,7 +2056,7 @@
                 const shareUrl = ExperienceDetailsAPI.getGuideShareHref(listingId);
                 const browserUrl = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, guideOnly: true });
                 if (this.hasShareLinkTarget) {
-                    this.shareLinkTarget.href = shareUrl;
+                    this.shareLinkTarget.dataset.shareUrl = shareUrl;
                 }
                 if (window.location.href.split('#')[0] !== browserUrl) {
                     history.replaceState({ hp: 'guide', listingId }, '', browserUrl);
@@ -2660,53 +2686,20 @@
                 this.setSlideOverlay(this.roomOverlayTarget, false);
             }
 
-            async shareExperience(event) {
+            async copyGuideShareLink(event) {
                 event?.preventDefault?.();
-                this.closeExperienceDetail();
-                this.syncGuideBrowserUrl();
-
+                const el = event?.currentTarget;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
-                const shareUrl = this.hasShareLinkTarget
-                    ? this.shareLinkTarget.href
-                    : ExperienceDetailsAPI.buildGuideShareUrl(null, {
-                        listingId: this.currentListingId || 'TAIPEI-CITY',
-                        guideOnly: true
-                    });
-                const guideLabel = this.hasHostTitleTarget
-                    ? this.hostTitleTarget.innerText.trim()
-                    : (isZh ? '入住指南' : 'Stay guide');
-                const shareTitle = isZh ? `${guideLabel} · 入住指南` : `${guideLabel} · Stay guide`;
+                const shareUrl = el?.dataset?.shareUrl
+                    || (this.hasShareLinkTarget ? this.shareLinkTarget.dataset.shareUrl : '')
+                    || ExperienceDetailsAPI.getGuideShareHref(this.currentListingId || 'TAIPEI-CITY');
 
                 try {
-                    if (navigator.share) {
-                        await navigator.share({ title: shareTitle, url: shareUrl });
-                        return;
-                    }
-                    if (navigator.clipboard?.writeText) {
-                        await navigator.clipboard.writeText(shareUrl);
-                    } else {
-                        const temp = document.createElement('textarea');
-                        temp.value = shareUrl;
-                        temp.setAttribute('readonly', '');
-                        temp.style.position = 'fixed';
-                        temp.style.left = '-9999px';
-                        document.body.appendChild(temp);
-                        temp.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(temp);
-                    }
-                    this.triggerToast(
-                        isZh ? '分享連結已複製' : 'Share Link Copied',
-                        isZh ? `指南連結已複製，可直接貼給旅伴：${shareUrl}` : `Guide link copied: ${shareUrl}`,
-                        'success'
-                    );
+                    const ok = await window.hpCopyText?.(shareUrl);
+                    if (ok === false) throw new Error('copy failed');
+                    window.hpShowCopyHint?.(isZh ? '已複製' : 'copied', el || this.shareLinkTarget);
                 } catch (error) {
-                    if (error?.name === 'AbortError') return;
-                    this.triggerToast(
-                        isZh ? '分享失敗' : 'Share failed',
-                        isZh ? '請再試一次或手動複製網址' : 'Please try again or copy the URL manually.',
-                        'error'
-                    );
+                    console.warn('[Host Pocket] copy guide share link failed', error);
                 }
             }
 

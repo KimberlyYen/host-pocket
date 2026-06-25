@@ -706,7 +706,7 @@
         return {
             isZh, exp, host, price, loc, cancel, media, highlights, agenda,
             availability, reviews, similar, a11y, labels, guestReqText,
-            shareHref: getGuideShareHref(options.listingId)
+            shareHref: getGuideShareHref(options.listingId, { experienceId: exp.id })
         };
     }
 
@@ -716,11 +716,13 @@
         return `
             <div class="p-5 space-y-4">
                 <div class="relative">
-                    <a href="${escapeHtml(shareHref)}"
-                       class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
+                    <button type="button"
+                            data-action="click->dashboard#copyGuideShareLink"
+                            data-share-url="${escapeHtml(shareHref)}"
+                            class="absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
                         <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
                         ${isZh ? '分享' : 'Share'}
-                    </a>
+                    </button>
                     <div class="pr-[4.75rem]">
                         ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
                         <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
@@ -895,20 +897,11 @@
         return buildGuideShareUrl(null, options);
     }
 
-    function getGuideShareHref(listingId) {
+    function getGuideShareHref(listingId, options = {}) {
         const id = String(listingId || 'TAIPEI-CITY').trim().toUpperCase();
-        if (global.HP_MOCK_DATA !== false) {
-            if (isStaticDevServer()) {
-                const base = typeof window !== 'undefined'
-                    ? window.location.pathname.replace(/[^/]*$/, '')
-                    : '/';
-                return `${window.location.origin}${base}index.html?listing=${encodeURIComponent(id)}`;
-            }
-            const paths = global.HP_GUIDE_SHARE_PATHS || {};
-            const path = paths[id] || `/guide/${encodeURIComponent(id)}`;
-            return `${window.location.origin}${path}`;
-        }
-        return buildGuideBrowserUrl({ listingId: id, guideOnly: true });
+        const experienceId = options.experienceId ? String(options.experienceId).trim() : '';
+        const guideOnly = experienceId ? false : options.guideOnly !== false;
+        return buildGuideBrowserUrl({ listingId: id, experienceId: experienceId || undefined, guideOnly });
     }
 
     const SHARE_PICKS_DEFAULT_NUM = 3;
