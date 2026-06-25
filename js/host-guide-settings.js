@@ -46,6 +46,16 @@
         }
     }
 
+    function writeAllLocal(all) {
+        try {
+            global.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+            return true;
+        } catch (error) {
+            console.warn('[HostGuideSettings] localStorage write failed', error);
+            return false;
+        }
+    }
+
     function loadLocal(listingId) {
         const id = normalizeListingId(listingId);
         return readAllLocal()[id] || null;
@@ -56,7 +66,7 @@
         const all = readAllLocal();
         all[id] = pickEditable(data);
         all[id].updatedAt = new Date().toISOString();
-        global.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+        writeAllLocal(all);
         return all[id];
     }
 
@@ -65,8 +75,7 @@
         const all = readAllLocal();
         if (!all[id]) return false;
         delete all[id];
-        global.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-        return true;
+        return writeAllLocal(all);
     }
 
     function listSavedIdsLocal() {

@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <!-- Hotwire Stimulus CDN -->
-    <script src="js/vendor/stimulus.umd.js"></script>
+    <script src="/js/vendor/stimulus.umd.js"></script>
 
     <script>
         // 自訂 Tailwind 設定（Sunset Terracotta 落日陶土暖橘色系）
@@ -1145,17 +1145,22 @@
     </div>
 
     <!-- Simulated Backend Database within Hotwire Client -->
-    <script src="js/toast.js"></script>
-    <script src="js/share-button.js"></script>
-    <script src="js/image-swipe.js"></script>
-    <script src="js/guide-defaults.js"></script>
-    <script src="js/mock-mode.js"></script>
-    <script src="js/listing-settings-api.js"></script>
-    <script src="js/host-guide-settings.js"></script>
-    <script src="js/booking-api.js"></script>
-    <script src="js/experience-details.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/share-button.js"></script>
+    <script src="/js/image-swipe.js"></script>
+    <script src="/js/guide-defaults.js"></script>
+    <script src="/js/mock-mode.js"></script>
+    <script src="/js/listing-settings-api.js"></script>
+    <script src="/js/host-guide-settings.js"></script>
+    <script src="/js/booking-api.js"></script>
+    <script src="/js/experience-details.js"></script>
     <script>
-        window.__hostPocketDeepLink = ExperienceDetailsAPI.parseDeepLinkFromLocation();
+        try {
+            window.__hostPocketDeepLink = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
+                || window.__hostPocketDeepLink;
+        } catch (_) {
+            /* scripts may still be loading on deep-link routes */
+        }
 
         const IMAGE_FALLBACKS = {
             room: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
@@ -1201,11 +1206,38 @@
         const guidesDb = GuideDefaults.guidesDb;
 
         function getResolvedListing(listingId) {
-            const id = GuideDefaults.ensureListing(listingId);
+            return hpLoadGuideSettingsData(listingId);
+        }
+
+        function hpEnsureGuideSettingsStored(listingId) {
+            const id = GuideDefaults.ensureListing(
+                (listingId || hpResolveGuestListingId() || 'TAIPEI-CITY').trim().toUpperCase()
+            );
+            if (!window.HostGuideSettings || !GuideDefaults.DEMO_LISTING_IDS?.includes(id)) return id;
+
+            try {
+                const stored = HostGuideSettings.load(id);
+                const guestBoot = document.documentElement.classList.contains('hp-boot-dashboard');
+                if (guestBoot || !stored?.recTitle1Zh || !stored?.wifi) {
+                    HostGuideSettings.seedDemoListing(id, { force: guestBoot || !stored?.recTitle1Zh });
+                }
+            } catch (error) {
+                console.warn('[host-pocket] host-pocket-guide-settings seed skipped', error);
+            }
+            return id;
+        }
+
+        /** Read merged guide data from host-pocket-guide-settings (localStorage) + GuideDefaults base. */
+        function hpLoadGuideSettingsData(listingId) {
+            const id = hpEnsureGuideSettingsStored(listingId);
             if (window.HostGuideSettings) {
                 return HostGuideSettings.getMerged(id);
             }
-            return guidesDb[id];
+            return GuideDefaults.getBase(id);
+        }
+
+        function getGuestListingData(listingId) {
+            return hpLoadGuideSettingsData(listingId);
         }
 
         function getExperienceIdForRec(listingId, recIndex) {
@@ -1296,18 +1328,6 @@
             if (icon) {
                 icon.className = `fa-regular ${visible ? 'fa-eye-slash' : 'fa-eye'} text-[10px] text-[#8C807A]`;
             }
-        }
-
-        function getGuestListingData(listingId) {
-            const id = GuideDefaults.ensureListing(
-                (listingId || hpResolveGuestListingId() || 'TAIPEI-CITY').trim().toUpperCase()
-            );
-            if (GuideDefaults.DEMO_LISTING_IDS?.includes(id) && window.HostGuideSettings?.seedDemoListing) {
-                return HostGuideSettings.seedDemoListing(id, {
-                    force: document.documentElement.classList.contains('hp-boot-dashboard')
-                });
-            }
-            return getResolvedListing(id);
         }
 
         function hpSeedGuestDemoStorage(listingId) {
@@ -1544,6 +1564,7 @@
 
         window.hpNavigateToGuideHome = hpNavigateToGuideHome;
         window.hpHydrateGuestGuideDashboard = hpHydrateGuestGuideDashboard;
+        window.hpLoadGuideSettingsData = hpLoadGuideSettingsData;
         window.hpSeedGuestDemoStorage = hpSeedGuestDemoStorage;
         window.hpBootGuestDeepLink = hpBootGuestDeepLink;
 
