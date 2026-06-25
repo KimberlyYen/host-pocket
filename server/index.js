@@ -7,6 +7,7 @@ const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
 const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = require('./smtp-config');
 const { handleListingSettings } = require('./listing-settings-handler');
 const { isDatabaseConfigured } = require('./listing-settings');
+const searchExperiences = require('../api/search/experiences');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -50,6 +51,8 @@ app.put('/api/listings/:listingId/settings', (req, res) => {
 app.delete('/api/listings/:listingId/settings', (req, res) => {
     handleListingSettings(req, res, req.params.listingId);
 });
+
+app.get('/api/search/experiences', (req, res) => searchExperiences(req, res));
 
 app.post('/api/booking', async (req, res) => {
     try {

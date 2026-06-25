@@ -873,6 +873,72 @@
         return `${origin}/`;
     }
 
+    const SHARE_SEARCH_DEFAULTS = { q: 'Tokyo cooking class', num: 3 };
+
+    function normalizeSearchExperience(item) {
+        if (!item) return null;
+        let id = item.id || item.experience_id || '';
+        if (!id && item.link) {
+            const match = String(item.link).match(/experiences\/(\d+)/);
+            if (match) id = match[1];
+        }
+        id = String(id || '').trim();
+        if (!id) return null;
+        const price = item.price?.price_label || item.price?.price || item.price_label || item.price || '';
+        const image = (Array.isArray(item.images) && item.images[0])
+            || item.image
+            || item.thumbnail
+            || item.cover_image
+            || IMAGE_FALLBACK;
+        return {
+            id,
+            title: item.title || item.name || '',
+            link: item.link || `https://www.airbnb.com/experiences/${id}`,
+            rating: item.rating,
+            reviews: item.reviews || item.review_count,
+            price: typeof price === 'string' ? price : (price?.price_label || ''),
+            image
+        };
+    }
+
+    async function fetchExperiencesSearch(options = {}) {
+        const q = options.q || SHARE_SEARCH_DEFAULTS.q;
+        const num = options.num || SHARE_SEARCH_DEFAULTS.num;
+        const params = new URLSearchParams({ q, num: String(num) });
+
+        const proxyBase = global.ListingSettingsAPI?.getApiBase
+            ? global.ListingSettingsAPI.getApiBase()
+            : (typeof window !== 'undefined' ? window.location.origin : '');
+        const endpoints = [`${proxyBase}/api/search/experiences?${params.toString()}`];
+        const apiKey = options.apiKey || global.SEARCHAPI_KEY;
+        if (apiKey) {
+            const direct = new URL('https://www.searchapi.io/api/v1/search');
+            direct.searchParams.set('engine', 'airbnb_experiences');
+            direct.searchParams.set('q', q);
+            direct.searchParams.set('num', String(num));
+            direct.searchParams.set('api_key', apiKey);
+            endpoints.push(direct.toString());
+        }
+
+        for (const endpoint of endpoints) {
+            try {
+                const res = await fetch(endpoint);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) continue;
+                const rawList = data.experiences || data.organic_results || [];
+                const experiences = rawList
+                    .map(normalizeSearchExperience)
+                    .filter(Boolean)
+                    .slice(0, num);
+                if (experiences.length) {
+                    return { q, num, experiences, source: endpoint.startsWith('/') ? 'proxy' : 'direct' };
+                }
+            } catch (_) { /* try next endpoint */ }
+        }
+
+        return { q, num, experiences: [], error: 'search_empty' };
+    }
+
     function buildShareContext(payload, options = {}) {
         const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
         const data = localizePayload(payload, isZh);
@@ -899,17 +965,49 @@
     }
 
     function renderShareSheet(payload, options = {}) {
-        const ctx = buildShareContext(payload, options);
+        const searchResults = options.searchResults || [];
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
+        const primaryExperienceId = options.primaryExperienceId
+            || searchResults[0]?.id
+            || options.experienceId;
+        const ctx = buildShareContext(payload, {
+            ...options,
+            listingId,
+            experienceId: primaryExperienceId
+        });
         const { isZh, exp, loc, shareUrl, mapsUrl, shareText, cover } = ctx;
         const labels = isZh ? {
             link: '分享連結', copy: '複製', copied: '已複製',
-            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式'
+            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式',
+            searchPicks: 'SearchAPI 推薦體驗', searchEmpty: '目前找不到 SearchAPI 體驗結果'
         } : {
             link: 'Share link', copy: 'Copy', copied: 'Copied',
-            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options'
+            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options',
+            searchPicks: 'SearchAPI picks', searchEmpty: 'No SearchAPI experiences found'
         };
         const waUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
         const mailUrl = `mailto:?subject=${encodeURIComponent(exp.title || 'host-pocket')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}\n\n${mapsUrl}`)}`;
+
+        const searchPicksHtml = searchResults.length ? `
+                <div class="bg-white border border-hp-border rounded-2xl p-3 space-y-2">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A]">${labels.searchPicks}</p>
+                    ${searchResults.map(item => {
+                        const deepUrl = listingId && item.id
+                            ? buildGuideShareUrl({}, { listingId, experienceId: item.id })
+                            : (item.link || '#');
+                        return `
+                        <a href="${escapeHtml(deepUrl)}" target="_blank" rel="noopener noreferrer"
+                           class="flex gap-3 items-center p-2 rounded-xl border border-hp-border hover:border-hp-coral transition bg-hp-bgLight/40">
+                            <img src="${escapeHtml(item.image)}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(item.title)}</p>
+                                <p class="text-[10px] text-hp-muted mt-0.5">${item.rating ? `★ ${item.rating}` : ''}${item.price ? `${item.rating ? ' · ' : ''}${escapeHtml(item.price)}` : ''}</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-hp-coral shrink-0"></i>
+                        </a>`;
+                    }).join('')}
+                </div>` : (options.searchAttempted ? `
+                <p class="text-xs text-hp-muted text-center py-2">${labels.searchEmpty}</p>` : '');
 
         return `
             <div class="space-y-4">
@@ -937,6 +1035,8 @@
                         </button>
                     </div>
                 </div>
+
+                ${searchPicksHtml}
 
                 <div class="grid grid-cols-4 gap-2">
                     <button type="button" data-action="click->dashboard#copyExpShareLink"
@@ -1333,7 +1433,10 @@
     global.ExperienceDetailsAPI = {
         FIXTURES,
         BOOKING_TIMEZONE_OTHER,
+        SHARE_SEARCH_DEFAULTS,
         fetchDetails,
+        fetchExperiencesSearch,
+        normalizeSearchExperience,
         localizePayload,
         renderPanel,
         renderPanelParts,

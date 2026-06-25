@@ -471,8 +471,8 @@
                                     </h4>
                                     <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh"><span data-dashboard-target="hostRecLabelZh">Mia 的精選私藏行程</span></p>
                                     <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en"><span data-dashboard-target="hostRecLabelEn">Mia's Handpicked Escapes</span></p>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片查看 Airbnb 體驗詳情，或點地圖導航</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap for Experience Details API view, or map for route</p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片查看 Airbnb 體驗詳情</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card for experience details</p>
                                 </div>
                             </div>
 
@@ -500,14 +500,6 @@
                                         </div>
                                     </div>
                                     </button>
-                                    <div class="px-3 pb-3 -mt-1">
-                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="1"
-                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
-                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                            <span data-global-lang="zh">地圖導航</span>
-                                            <span data-global-lang="en" class="hidden">Map route</span>
-                                        </button>
-                                    </div>
                                 </div>
 
                                 <!-- Card 2 -->
@@ -531,14 +523,6 @@
                                         </div>
                                     </div>
                                     </button>
-                                    <div class="px-3 pb-3 -mt-1">
-                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="2"
-                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
-                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                            <span data-global-lang="zh">地圖導航</span>
-                                            <span data-global-lang="en" class="hidden">Map route</span>
-                                        </button>
-                                    </div>
                                 </div>
 
                                 <!-- Card 3 -->
@@ -562,14 +546,6 @@
                                         </div>
                                     </div>
                                     </button>
-                                    <div class="px-3 pb-3 -mt-1">
-                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="3"
-                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
-                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                            <span data-global-lang="zh">地圖導航</span>
-                                            <span data-global-lang="en" class="hidden">Map route</span>
-                                        </button>
-                                    </div>
                                 </div>
 
                                 <!-- Card 4 -->
@@ -593,14 +569,6 @@
                                         </div>
                                     </div>
                                     </button>
-                                    <div class="px-3 pb-3 -mt-1">
-                                        <button type="button" data-action="click->dashboard#openRecOnMap" data-rec="4"
-                                                class="w-full text-xs text-hp-coral font-bold flex items-center justify-center gap-1 py-1.5 rounded-lg bg-hp-coral/5 hover:bg-hp-coral/10 border border-hp-coral/20 transition">
-                                            <i class="fa-solid fa-map-location-dot text-xs"></i>
-                                            <span data-global-lang="zh">地圖導航</span>
-                                            <span data-global-lang="en" class="hidden">Map route</span>
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1213,7 +1181,8 @@
             connect() {
                 window.appNavigate = (name) => this.show(name);
                 const deep = window.__hostPocketDeepLink;
-                this.show(deep ? 'dashboard' : this.currentValue);
+                const hasDeepLink = Boolean(deep?.listing || deep?.experience);
+                this.show(hasDeepLink ? 'dashboard' : this.currentValue);
             }
 
             show(name) {
@@ -1542,9 +1511,12 @@
                 if (hasDeepLink) {
                     window.appNavigate?.('dashboard');
                     const pairingInput = document.querySelector('[data-pairing-target="input"]');
-                    if (pairingInput && urlListing) pairingInput.value = resolvedListing;
+                    if (pairingInput) pairingInput.value = resolvedListing;
+                    this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
                     if (urlExperience) {
                         void this.openExperienceFromShareLink(resolvedListing, urlExperience);
+                    } else {
+                        this.syncGuideBrowserUrl();
                     }
                 }
 
@@ -1899,17 +1871,37 @@
             openExpShareSheet() {
                 if (!this.currentExpPayload || !this.hasExpShareOverlayTarget) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const linkOptions = this.getShareLinkOptions();
+
                 if (this.hasExpShareBodyTarget) {
-                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
-                        isZh,
-                        ...this.getShareLinkOptions()
-                    });
+                    this.expShareBodyTarget.innerHTML = `<div class="py-10 flex flex-col items-center justify-center gap-2 text-hp-muted"><i class="fa-solid fa-spinner fa-spin"></i><p class="text-xs">${isZh ? '正在載入 SearchAPI 體驗…' : 'Loading SearchAPI experiences…'}</p></div>`;
                 }
+                this.shareSearchResults = [];
+                this.sharePrimaryExperienceId = null;
+
                 this.expShareOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
                 requestAnimationFrame(() => {
                     if (this.hasExpShareSheetTarget) {
                         this.expShareSheetTarget.classList.remove('translate-y-full');
                     }
+                });
+
+                void ExperienceDetailsAPI.fetchExperiencesSearch({
+                    q: ExperienceDetailsAPI.SHARE_SEARCH_DEFAULTS.q,
+                    num: ExperienceDetailsAPI.SHARE_SEARCH_DEFAULTS.num
+                }).then((search) => {
+                    if (!this.hasExpShareBodyTarget) return;
+                    this.shareSearchResults = search.experiences || [];
+                    this.sharePrimaryExperienceId = this.shareSearchResults[0]?.id || linkOptions.experienceId || null;
+                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
+                        isZh,
+                        listingId,
+                        experienceId: linkOptions.experienceId,
+                        primaryExperienceId: this.sharePrimaryExperienceId,
+                        searchResults: this.shareSearchResults,
+                        searchAttempted: true
+                    });
                 });
             }
 
@@ -1921,6 +1913,8 @@
                 const hide = () => {
                     this.expShareOverlayTarget.classList.add('opacity-0', 'pointer-events-none');
                     if (this.hasExpShareBodyTarget) this.expShareBodyTarget.innerHTML = '';
+                    this.shareSearchResults = [];
+                    this.sharePrimaryExperienceId = null;
                 };
                 if (animate) {
                     setTimeout(hide, 300);
@@ -1930,7 +1924,8 @@
             }
 
             getExpShareUrl() {
-                const { listingId, experienceId } = this.getShareLinkOptions();
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const experienceId = this.sharePrimaryExperienceId || this.getShareLinkOptions().experienceId;
                 return ExperienceDetailsAPI.buildGuideShareUrl(
                     experienceId ? { id: experienceId } : {},
                     { listingId, experienceId }
@@ -1959,7 +1954,9 @@
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const ctx = ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
                     isZh,
-                    ...this.getShareLinkOptions()
+                    listingId: this.currentListingId || 'TAIPEI-CITY',
+                    experienceId: this.sharePrimaryExperienceId || this.getShareLinkOptions().experienceId,
+                    primaryExperienceId: this.sharePrimaryExperienceId
                 });
                 if (navigator.share) {
                     navigator.share({ title: ctx.exp.title, text: ctx.shareText, url: ctx.shareUrl }).catch(() => {});
@@ -2324,32 +2321,6 @@
                 ExperienceDetailsAPI.fetchDetails(expId).then(payload => {
                     this.renderExperienceDetail(payload, this.currentExpRecIndex || 1);
                 });
-            }
-
-            openRecOnMap(event) {
-                event?.stopPropagation?.();
-                event?.preventDefault?.();
-                const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
-                const id = this.currentListingId || 'TAIPEI-CITY';
-                const data = getResolvedListing(id);
-                if (!data) return;
-
-                const detail = getRecExplorerDetail(data, recIndex);
-
-                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
-                if (global) {
-                    global.navigateToExplorer(detail);
-                    return;
-                }
-
-                window.dispatchEvent(new CustomEvent("explorer:selectRec", { detail }));
-
-                const isZh = (window.currentLanguage || "zh") === "zh";
-                this.triggerToast(
-                    isZh ? "已開啟地圖導航" : "Map Route Opened",
-                    isZh ? `正在導航至：${detail.titleZh}` : `Navigating to: ${detail.titleEn}`,
-                    "success"
-                );
             }
 
             contactHost(event) {
