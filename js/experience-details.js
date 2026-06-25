@@ -873,7 +873,43 @@
         return `${origin}/`;
     }
 
-    const SHARE_SEARCH_DEFAULTS = { q: 'Tokyo cooking class', num: 3 };
+    const SHARE_PICKS_DEFAULT_NUM = 3;
+
+    function getApiBase() {
+        return global.ListingSettingsAPI?.getApiBase
+            ? global.ListingSettingsAPI.getApiBase()
+            : (typeof window !== 'undefined' ? window.location.origin : '');
+    }
+
+    function isValidExperiencePayload(data) {
+        return Boolean(data?.experience?.id) && !data?.error;
+    }
+
+    function resolveExperienceTitle(item, id) {
+        const title = item?.title || item?.name || item?.headline || '';
+        if (String(title).trim()) return String(title).trim();
+        const desc = String(item?.description || '').trim();
+        if (desc) return desc.length > 80 ? `${desc.slice(0, 77)}…` : desc;
+        return id ? (global.currentLanguage === 'zh' ? `體驗 #${id}` : `Experience #${id}`) : '';
+    }
+
+    function resolveExperienceImage(item) {
+        const firstImage = Array.isArray(item?.images) ? item.images[0] : null;
+        if (typeof firstImage === 'string' && firstImage) return firstImage;
+        if (firstImage && typeof firstImage === 'object') {
+            return firstImage.image || firstImage.url || firstImage.src || '';
+        }
+        return item?.image || item?.thumbnail || item?.cover_image || IMAGE_FALLBACK;
+    }
+
+    function resolveExperiencePrice(item) {
+        const price = item?.price;
+        if (typeof price === 'string') return price;
+        if (price && typeof price === 'object') {
+            return price.price_label || price.price || '';
+        }
+        return item?.price_label || '';
+    }
 
     function normalizeSearchExperience(item) {
         if (!item) return null;
@@ -884,31 +920,82 @@
         }
         id = String(id || '').trim();
         if (!id) return null;
-        const price = item.price?.price_label || item.price?.price || item.price_label || item.price || '';
-        const image = (Array.isArray(item.images) && item.images[0])
-            || item.image
-            || item.thumbnail
-            || item.cover_image
-            || IMAGE_FALLBACK;
+        const title = resolveExperienceTitle(item, id);
         return {
             id,
-            title: item.title || item.name || '',
+            title,
             link: item.link || `https://www.airbnb.com/experiences/${id}`,
             rating: item.rating,
             reviews: item.reviews || item.review_count,
-            price: typeof price === 'string' ? price : (price?.price_label || ''),
-            image
+            price: resolveExperiencePrice(item),
+            image: resolveExperienceImage(item),
+            location: typeof item.location === 'string' ? item.location : (item.location?.display_label || '')
+        };
+    }
+
+    async function fetchDetails(experienceId, options = {}) {
+        const id = String(experienceId || '').trim();
+        if (!id) return null;
+
+        const proxyBase = getApiBase();
+        const endpoints = [`${proxyBase}/api/search/experience-details?experience_id=${encodeURIComponent(id)}`];
+        const apiKey = options.apiKey || global.SEARCHAPI_KEY;
+        if (apiKey) {
+            const direct = new URL('https://www.searchapi.io/api/v1/search');
+            direct.searchParams.set('engine', 'airbnb_experience_details');
+            direct.searchParams.set('experience_id', id);
+            direct.searchParams.set('api_key', apiKey);
+            if (options.currency) direct.searchParams.set('currency', options.currency);
+            if (options.airbnb_domain) direct.searchParams.set('airbnb_domain', options.airbnb_domain);
+            endpoints.push(direct.toString());
+        }
+
+        for (const endpoint of endpoints) {
+            try {
+                const res = await fetch(endpoint);
+                if (!res.ok) continue;
+                const data = await res.json();
+                if (isValidExperiencePayload(data)) return data;
+            } catch (_) { /* try next endpoint */ }
+        }
+
+        return FIXTURES[id] ? { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } } : null;
+    }
+
+    function extractSimilarExperiences(payload, num = SHARE_PICKS_DEFAULT_NUM) {
+        if (!isValidExperiencePayload(payload) && !payload?.similar_experiences?.length) return [];
+        const rawList = payload?.similar_experiences || [];
+        return rawList
+            .map(normalizeSearchExperience)
+            .filter(Boolean)
+            .slice(0, num);
+    }
+
+    async function fetchShareRecommendations(experienceId, options = {}) {
+        const id = String(experienceId || '').trim();
+        const num = options.num || SHARE_PICKS_DEFAULT_NUM;
+        if (!id) return { experienceId: id, num, experiences: [], error: 'missing_experience_id' };
+
+        let payload = isValidExperiencePayload(options.payload) ? options.payload : null;
+        if (!payload?.similar_experiences?.length) {
+            payload = await fetchDetails(id, options);
+        }
+        const experiences = extractSimilarExperiences(payload, num);
+        return {
+            experienceId: id,
+            num,
+            experiences,
+            source: 'similar_experiences',
+            error: experiences.length ? null : 'search_empty'
         };
     }
 
     async function fetchExperiencesSearch(options = {}) {
-        const q = options.q || SHARE_SEARCH_DEFAULTS.q;
-        const num = options.num || SHARE_SEARCH_DEFAULTS.num;
+        const q = options.q || 'Tokyo cooking class';
+        const num = options.num || SHARE_PICKS_DEFAULT_NUM;
         const params = new URLSearchParams({ q, num: String(num) });
 
-        const proxyBase = global.ListingSettingsAPI?.getApiBase
-            ? global.ListingSettingsAPI.getApiBase()
-            : (typeof window !== 'undefined' ? window.location.origin : '');
+        const proxyBase = getApiBase();
         const endpoints = [`${proxyBase}/api/search/experiences?${params.toString()}`];
         const apiKey = options.apiKey || global.SEARCHAPI_KEY;
         if (apiKey) {
@@ -944,7 +1031,8 @@
         const data = localizePayload(payload, isZh);
         const exp = data.experience || {};
         const loc = exp.location || {};
-        const query = encodeURIComponent(loc.display_label || loc.address || exp.meeting_point || exp.title || '');
+        const displayTitle = resolveExperienceTitle(exp, exp.id);
+        const query = encodeURIComponent(loc.display_label || loc.address || exp.meeting_point || displayTitle || '');
         const lat = loc.latitude;
         const lng = loc.longitude;
         const mapsUrl = lat != null && lng != null
@@ -957,33 +1045,33 @@
             ? buildGuideShareUrl(exp, { listingId, experienceId })
             : buildGuideShareUrl({}, { listingId });
         const shareText = isZh
-            ? `我在 host-pocket 發現這個在地體驗：${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`
-            : `Check out this experience on host-pocket: ${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
+            ? `我在 host-pocket 發現這個在地體驗：${displayTitle}${loc.display_label ? ` · ${loc.display_label}` : ''}`
+            : `Check out this experience on host-pocket: ${displayTitle}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
         const cover = normalizeMedia(exp)[0]?.url || exp.cover_image || IMAGE_FALLBACK;
 
-        return { isZh, exp, loc, shareUrl, airbnbUrl, mapsUrl, shareText, cover };
+        return { isZh, exp, loc, displayTitle, shareUrl, airbnbUrl, mapsUrl, shareText, cover };
     }
 
     function renderShareSheet(payload, options = {}) {
         const searchResults = options.searchResults || [];
         const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
         const primaryExperienceId = options.primaryExperienceId
-            || searchResults[0]?.id
-            || options.experienceId;
+            || options.experienceId
+            || searchResults[0]?.id;
         const ctx = buildShareContext(payload, {
             ...options,
             listingId,
             experienceId: primaryExperienceId
         });
-        const { isZh, exp, loc, shareUrl, mapsUrl, shareText, cover } = ctx;
+        const { isZh, exp, loc, displayTitle, shareUrl, mapsUrl, shareText, cover } = ctx;
         const labels = isZh ? {
             link: '分享連結', copy: '複製', copied: '已複製',
             openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式',
-            searchPicks: 'SearchAPI 推薦體驗', searchEmpty: '目前找不到 SearchAPI 體驗結果'
+            searchPicks: '相似體驗推薦', searchEmpty: '目前找不到相似體驗'
         } : {
             link: 'Share link', copy: 'Copy', copied: 'Copied',
             openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options',
-            searchPicks: 'SearchAPI picks', searchEmpty: 'No SearchAPI experiences found'
+            searchPicks: 'Similar experiences', searchEmpty: 'No similar experiences found'
         };
         const waUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
         const mailUrl = `mailto:?subject=${encodeURIComponent(exp.title || 'host-pocket')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}\n\n${mapsUrl}`)}`;
@@ -997,11 +1085,11 @@
                             : (item.link || '#');
                         return `
                         <a href="${escapeHtml(deepUrl)}" target="_blank" rel="noopener noreferrer"
-                           class="flex gap-3 items-center p-2 rounded-xl border border-hp-border hover:border-hp-coral transition bg-hp-bgLight/40">
+                           class="flex w-full gap-3 items-center p-2 rounded-xl border border-hp-border hover:border-hp-coral transition bg-hp-bgLight/40">
                             <img src="${escapeHtml(item.image)}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(item.title)}</p>
-                                <p class="text-[10px] text-hp-muted mt-0.5">${item.rating ? `★ ${item.rating}` : ''}${item.price ? `${item.rating ? ' · ' : ''}${escapeHtml(item.price)}` : ''}</p>
+                                <p class="text-xs font-bold text-hp-dark leading-snug">${escapeHtml(item.title || (isZh ? `體驗 #${item.id}` : `Experience #${item.id}`))}</p>
+                                <p class="text-[10px] text-hp-muted mt-0.5">${item.rating ? `★ ${item.rating}` : ''}${item.price ? `${item.rating ? ' · ' : ''}${escapeHtml(item.price)}` : ''}${!item.rating && !item.price && item.location ? escapeHtml(item.location) : ''}</p>
                             </div>
                             <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-hp-coral shrink-0"></i>
                         </a>`;
@@ -1013,8 +1101,8 @@
             <div class="space-y-4">
                 <div class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3 shadow-sm">
                     <img src="${escapeHtml(cover)}" alt="" class="w-16 h-16 rounded-xl object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
-                    <div class="min-w-0">
-                        <p class="text-sm font-bold text-hp-dark leading-snug line-clamp-2">${escapeHtml(exp.title)}</p>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold text-hp-dark leading-snug">${escapeHtml(displayTitle)}</p>
                         ${loc.display_label || loc.address ? `
                         <p class="text-xs text-hp-muted mt-1 flex items-start gap-1">
                             <i class="fa-solid fa-location-dot text-hp-coral mt-0.5 shrink-0"></i>
@@ -1405,25 +1493,6 @@
         return parts.mediaHtml + parts.contentHtml + parts.bookingHtml;
     }
 
-    async function fetchDetails(experienceId, options = {}) {
-        const id = String(experienceId || '').trim();
-        if (!id) return null;
-        const apiKey = options.apiKey || global.SEARCHAPI_KEY;
-        if (apiKey) {
-            try {
-                const url = new URL('https://www.searchapi.io/api/v1/search');
-                url.searchParams.set('engine', 'airbnb_experience_details');
-                url.searchParams.set('experience_id', id);
-                url.searchParams.set('api_key', apiKey);
-                if (options.currency) url.searchParams.set('currency', options.currency);
-                if (options.airbnb_domain) url.searchParams.set('airbnb_domain', options.airbnb_domain);
-                const res = await fetch(url.toString());
-                if (res.ok) return await res.json();
-            } catch (_) { /* fall through to fixtures */ }
-        }
-        return FIXTURES[id] ? { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } } : null;
-    }
-
     function getExperienceIdForRec(guidesDb, listingId, recIndex) {
         const listing = guidesDb?.[listingId];
         if (!listing) return null;
@@ -1433,8 +1502,10 @@
     global.ExperienceDetailsAPI = {
         FIXTURES,
         BOOKING_TIMEZONE_OTHER,
-        SHARE_SEARCH_DEFAULTS,
+        SHARE_PICKS_DEFAULT_NUM,
         fetchDetails,
+        fetchShareRecommendations,
+        extractSimilarExperiences,
         fetchExperiencesSearch,
         normalizeSearchExperience,
         localizePayload,

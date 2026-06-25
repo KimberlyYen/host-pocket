@@ -436,26 +436,23 @@
                                 
                                 <!-- Connection Area -->
                                 <div class="p-4 bg-white space-y-3">
-                                    <div class="flex justify-between items-center">
-                                        <div>
+                                    <div class="flex justify-between items-start gap-2">
+                                        <div class="min-w-0">
                                             <span class="text-xs uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">房東體驗指南</span>
                                             <span class="text-xs uppercase font-bold tracking-widest text-hp-muted hidden" data-global-lang="en">Active Host Guide</span>
                                             <h3 data-dashboard-target="hostTitle" class="text-xs font-black tracking-tight text-hp-dark mt-0.5">
                                                 Sarah 的京都西陣織屋
                                             </h3>
                                         </div>
-                                        <div class="w-8 h-8 rounded-xl bg-hp-coral/10 text-hp-coral flex items-center justify-center border border-hp-coral/20 shrink-0">
-                                            <i class="fa-solid fa-link text-xs"></i>
-                                        </div>
+                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-white px-2 py-0.5 rounded-full border border-hp-border shrink-0">台北·大安</span>
                                     </div>
                                     
-                                    <div class="pt-2.5 border-t border-hp-border flex items-center justify-between gap-2">
+                                    <div class="pt-2.5 border-t border-hp-border">
                                         <button data-action="click->dashboard#connectBackToRoom" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm">
                                             <i class="fa-solid fa-arrow-rotate-left text-xs text-hp-coral animate-pulse"></i>
                                             <span data-global-lang="zh">查看 Airbnb 房源</span>
                                             <span data-global-lang="en" class="hidden">View Airbnb Listing</span>
                                         </button>
-                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-hp-bgLight px-2 py-0.5 rounded-lg border border-hp-border">台北·大安</span>
                                     </div>
                                 </div>
                             </div>
@@ -618,15 +615,6 @@
                                     </div>
                                 </div>
                                 <i class="fa-solid fa-angle-right text-xs text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
-                            </button>
-                        </div>
-
-                        <div class="px-5 pb-6">
-                            <button type="button" data-action="click->dashboard#addAnotherListing"
-                                    class="w-full border border-hp-coral/40 bg-hp-coral/5 hover:bg-hp-coral/10 text-hp-coral text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 active:scale-[0.98]">
-                                <i class="fa-solid fa-plus text-xs"></i>
-                                <span data-global-lang="zh">新增其他房源</span>
-                                <span data-global-lang="en" class="hidden">Add Another Listing</span>
                             </button>
                         </div>
 
@@ -851,12 +839,6 @@
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
                             <span data-global-lang="en" class="hidden">Home</span>
-                        </button>
-                        <button data-action="click->dashboard#goExplorer" data-dashboard-target="bottomNavBtn"
-                                class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
-                            <i class="fa-solid fa-map-location-dot text-base"></i>
-                            <span data-global-lang="zh">實境探索</span>
-                            <span data-global-lang="en" class="hidden">Map Guide</span>
                         </button>
                         <button data-action="click->dashboard#contactHost" data-dashboard-target="bottomNavBtn"
                                 class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
@@ -1090,11 +1072,6 @@
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
                             <span data-global-lang="en" class="hidden">Home</span>
-                        </button>
-                        <button class="flex flex-col items-center gap-1 text-hp-coral">
-                            <i class="fa-solid fa-map-location-dot text-base"></i>
-                            <span data-global-lang="zh">實境探索</span>
-                            <span data-global-lang="en" class="hidden">Map Guide</span>
                         </button>
                     </div>
             </div>
@@ -1730,24 +1707,6 @@
                 );
             }
 
-            goExplorer(event) {
-                this.setActiveBottomNav(event.currentTarget);
-                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
-                if (global) global.navigateToExplorer();
-            }
-
-            addAnotherListing() {
-                const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
-                if (global) {
-                    global.setPairingInput('');
-                    global.navigateToPairing('add');
-                    setTimeout(() => {
-                        const input = document.querySelector('[data-pairing-target="input"]');
-                        if (input) input.focus();
-                    }, 350);
-                }
-            }
-
             goBackToPairing() {
                 this.closeExperienceDetail();
                 const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
@@ -1875,10 +1834,10 @@
                 const linkOptions = this.getShareLinkOptions();
 
                 if (this.hasExpShareBodyTarget) {
-                    this.expShareBodyTarget.innerHTML = `<div class="py-10 flex flex-col items-center justify-center gap-2 text-hp-muted"><i class="fa-solid fa-spinner fa-spin"></i><p class="text-xs">${isZh ? '正在載入 SearchAPI 體驗…' : 'Loading SearchAPI experiences…'}</p></div>`;
+                    this.expShareBodyTarget.innerHTML = `<div class="py-10 flex flex-col items-center justify-center gap-2 text-hp-muted"><i class="fa-solid fa-spinner fa-spin"></i><p class="text-xs">${isZh ? '正在載入相似體驗…' : 'Loading similar experiences…'}</p></div>`;
                 }
                 this.shareSearchResults = [];
-                this.sharePrimaryExperienceId = null;
+                this.sharePrimaryExperienceId = linkOptions.experienceId || this.currentExpPayload?.experience?.id || null;
 
                 this.expShareOverlayTarget.classList.remove('opacity-0', 'pointer-events-none');
                 requestAnimationFrame(() => {
@@ -1887,13 +1846,14 @@
                     }
                 });
 
-                void ExperienceDetailsAPI.fetchExperiencesSearch({
-                    q: ExperienceDetailsAPI.SHARE_SEARCH_DEFAULTS.q,
-                    num: ExperienceDetailsAPI.SHARE_SEARCH_DEFAULTS.num
+                const experienceId = linkOptions.experienceId || this.currentExpPayload?.experience?.id;
+                void ExperienceDetailsAPI.fetchShareRecommendations(experienceId, {
+                    num: ExperienceDetailsAPI.SHARE_PICKS_DEFAULT_NUM,
+                    payload: this.currentExpPayload
                 }).then((search) => {
                     if (!this.hasExpShareBodyTarget) return;
                     this.shareSearchResults = search.experiences || [];
-                    this.sharePrimaryExperienceId = this.shareSearchResults[0]?.id || linkOptions.experienceId || null;
+                    this.sharePrimaryExperienceId = experienceId || linkOptions.experienceId || null;
                     this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
                         isZh,
                         listingId,
