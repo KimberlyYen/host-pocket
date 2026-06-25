@@ -885,9 +885,11 @@
             ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
             : `https://www.google.com/maps/search/?api=1&query=${query}`;
         const airbnbUrl = exp.link || null;
-        const shareUrl = options.experienceId
-            ? buildGuideShareUrl(exp, options)
-            : buildGuideShareUrl({}, { listingId: options.listingId });
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
+        const experienceId = (options.experienceId || exp?.id) ? String(options.experienceId || exp.id).trim() : '';
+        const shareUrl = listingId && experienceId
+            ? buildGuideShareUrl(exp, { listingId, experienceId })
+            : buildGuideShareUrl({}, { listingId });
         const shareText = isZh
             ? `我在 host-pocket 發現這個在地體驗：${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`
             : `Check out this experience on host-pocket: ${exp.title}${loc.display_label ? ` · ${loc.display_label}` : ''}`;
