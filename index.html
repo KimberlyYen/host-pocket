@@ -1142,17 +1142,7 @@
     <script src="js/booking-api.js"></script>
     <script src="js/experience-details.js"></script>
     <script>
-        window.__hostPocketDeepLink = (() => {
-            try {
-                const params = new URLSearchParams(location.search);
-                const listing = (params.get('listing') || params.get('id') || '').trim().toUpperCase();
-                const experience = (params.get('experience') || '').trim();
-                if (!listing && !experience) return null;
-                return { listing: listing || null, experience: experience || null };
-            } catch {
-                return null;
-            }
-        })();
+        window.__hostPocketDeepLink = ExperienceDetailsAPI.parseDeepLinkFromLocation();
 
         const IMAGE_FALLBACKS = {
             room: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
@@ -1481,6 +1471,10 @@
                         setTimeout(() => phone2.classList.remove('ring-2', 'ring-hp-coral', 'rounded-[56px]'), 1500);
                     }
                 }
+
+                const dashEl = document.querySelector('[data-controller="dashboard"]');
+                const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
+                dashCtrl?.syncGuideBrowserUrl?.();
             }
 
             quickPair(event) {
@@ -1548,6 +1542,7 @@
                     const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
                     if (hasDeepLink) {
                         global?.syncControllers(resolvedListing);
+                        if (!urlExperience) this.syncGuideBrowserUrl();
                     } else {
                         this.renderDashboard(getResolvedListing(resolvedListing), resolvedListing);
                     }
@@ -1793,6 +1788,30 @@
                 });
             }
 
+            getShareLinkOptions() {
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const experienceId = this.currentExpPayload?.experience?.id
+                    || getExperienceIdForRec(listingId, this.currentExpRecIndex);
+                return { listingId, experienceId };
+            }
+
+            syncExperienceBrowserUrl() {
+                const { listingId, experienceId } = this.getShareLinkOptions();
+                if (!listingId || !experienceId) return;
+                const url = ExperienceDetailsAPI.buildGuideShareUrl({ id: experienceId }, { listingId, experienceId });
+                if (window.location.href.split('#')[0] !== url) {
+                    history.replaceState({ hp: 'experience', listingId, experienceId }, '', url);
+                }
+            }
+
+            syncGuideBrowserUrl() {
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const url = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId });
+                if (window.location.href.split('#')[0] !== url) {
+                    history.replaceState({ hp: 'guide', listingId }, '', url);
+                }
+            }
+
             async openExperienceFromShareLink(listingId, experienceId) {
                 const expIdNorm = String(experienceId || '').trim();
                 if (!expIdNorm || !this.hasExpDetailOverlayTarget) return;
@@ -1813,14 +1832,10 @@
                 }
 
                 const payload = await ExperienceDetailsAPI.fetchDetails(expIdNorm);
-                if (payload) this.renderExperienceDetail(payload, recIndex);
-            }
-
-            getShareLinkOptions() {
-                const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const experienceId = this.currentExpPayload?.experience?.id
-                    || getExperienceIdForRec(listingId, this.currentExpRecIndex);
-                return { listingId, experienceId };
+                if (payload) {
+                    this.renderExperienceDetail(payload, recIndex);
+                    this.syncExperienceBrowserUrl();
+                }
             }
 
             async openExperienceDetail(event) {
@@ -1839,6 +1854,7 @@
 
                 const payload = await ExperienceDetailsAPI.fetchDetails(expId);
                 this.renderExperienceDetail(payload, recIndex);
+                this.syncExperienceBrowserUrl();
             }
 
             renderExperienceDetail(payload, recIndex) {
@@ -1865,6 +1881,7 @@
                 if (this.hasExpDetailOverlayTarget) {
                     this.expDetailOverlayTarget.classList.add('translate-y-full');
                 }
+                this.syncGuideBrowserUrl();
             }
 
             openExpShareSheet() {
@@ -2297,13 +2314,6 @@
                 });
             }
 
-            openExpDetailMap() {
-                if (!this.currentExpRecIndex) return;
-                this.closeExperienceDetail();
-                const fakeEvent = { currentTarget: { dataset: { rec: String(this.currentExpRecIndex) } } };
-                setTimeout(() => this.openRecOnMap(fakeEvent), 300);
-            }
-
             openRecOnMap(event) {
                 event?.stopPropagation?.();
                 event?.preventDefault?.();
@@ -2398,7 +2408,7 @@
             shareExperience() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const shareId = this.currentListingId || 'TAIPEI-CITY';
-                const shareText = `${window.location.origin}${window.location.pathname.split('?')[0]}?listing=${encodeURIComponent(shareId)}`;
+                const shareText = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId: shareId });
                 const temp = document.createElement('textarea');
                 temp.value = shareText;
                 document.body.appendChild(temp);

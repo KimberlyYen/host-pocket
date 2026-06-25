@@ -1,4 +1,8 @@
 {
+  "rewrites": [
+    { "source": "/guide/:listing/experience/:experience", "destination": "/index.html" },
+    { "source": "/guide/:listing", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

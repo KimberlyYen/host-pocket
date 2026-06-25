@@ -691,12 +691,12 @@
 
         const labels = isZh ? {
             agenda: '行程內容', host: '體驗達人', availability: '近期可預訂', reviews: '旅客評價',
-            location: '地點', logistics: '須知與政策', similar: '相似體驗', map: '地圖導航',
+            location: '地點', logistics: '須知與政策', similar: '相似體驗',
             openAirbnb: '在 Airbnb 查看', guestReq: '賓客要求', accessibility: '無障礙設施',
             cancellation: '取消政策', perGuest: '每位房客', reviewsCount: '則評價'
         } : {
             agenda: 'Agenda', host: 'Your host', availability: 'Upcoming availability', reviews: 'Reviews',
-            location: 'Location', logistics: 'Good to know', similar: 'Similar experiences', map: 'Map route',
+            location: 'Location', logistics: 'Good to know', similar: 'Similar experiences',
             openAirbnb: 'View on Airbnb', guestReq: 'Guest requirements', accessibility: 'Accessibility',
             cancellation: 'Cancellation', perGuest: 'per guest', reviewsCount: 'reviews'
         };
@@ -836,25 +836,45 @@
                 <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>
                 ${isZh ? '分享' : 'Share'}
             </button>
-            <button type="button" data-action="click->dashboard#openExpDetailMap"
-                    class="inline-flex items-center text-xs font-bold text-hp-coral px-2.5 py-1.5 rounded-lg bg-hp-coral/10 border border-hp-coral/20 whitespace-nowrap">
-                <i class="fa-solid fa-map-location-dot mr-1"></i>
-                ${isZh ? '地圖' : 'Map'}
-            </button>
         </div>`;
     }
 
+    function parseDeepLinkFromLocation(loc) {
+        const locationRef = loc || (typeof window !== 'undefined' ? window.location : null);
+        if (!locationRef) return null;
+
+        const params = new URLSearchParams(locationRef.search || '');
+        let listing = (params.get('listing') || params.get('id') || '').trim().toUpperCase();
+        let experience = (params.get('experience') || '').trim();
+
+        const pathMatch = String(locationRef.pathname || '').match(/\/guide\/([^/]+)(?:\/experience\/([^/]+))?\/?$/i);
+        if (pathMatch) {
+            listing = decodeURIComponent(pathMatch[1]).trim().toUpperCase();
+            if (pathMatch[2]) experience = decodeURIComponent(pathMatch[2]).trim();
+        }
+
+        if (!listing && !experience) return null;
+        return { listing: listing || null, experience: experience || null };
+    }
+
     function buildGuideShareUrl(exp, options = {}) {
-        const base = typeof window !== 'undefined'
-            ? `${window.location.origin}${window.location.pathname}`.split('?')[0]
-            : 'https://host-pocket.vercel.app/';
-        const params = new URLSearchParams();
-        const listingId = options.listingId;
-        const experienceId = options.experienceId || exp?.id;
-        if (listingId) params.set('listing', listingId);
-        if (experienceId) params.set('experience', experienceId);
-        const qs = params.toString();
-        return qs ? `${base}?${qs}` : base;
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://host-pocket.vercel.app';
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
+        const experienceId = (options.experienceId || exp?.id) ? String(options.experienceId || exp.id).trim() : '';
+
+        if (listingId && experienceId) {
+            return `${origin}/guide/${encodeURIComponent(listingId)}/experience/${encodeURIComponent(experienceId)}`;
+        }
+        if (listingId) {
+            return `${origin}/guide/${encodeURIComponent(listingId)}`;
+        }
+        if (experienceId) {
+            const found = global.GuideDefaults?.findListingForExperience?.(experienceId);
+            if (found) {
+                return `${origin}/guide/${encodeURIComponent(found)}/experience/${encodeURIComponent(experienceId)}`;
+            }
+        }
+        return `${origin}/`;
     }
 
     function buildShareContext(payload, options = {}) {
@@ -1322,6 +1342,7 @@
         getBookingMeta,
         buildShareContext,
         buildGuideShareUrl,
+        parseDeepLinkFromLocation,
         renderShareSheet,
         initMediaPlayer,
         pauseMediaPlayer,
