@@ -371,14 +371,17 @@
 
             <!-- 畫面 2：指南主頁 -->
             <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
+                    <div class="shrink-0 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 bg-hp-bgLight flex items-center justify-between relative z-20">
+                        <button type="button" data-action="click->dashboard#goBackToPairing" aria-label="返回上一步"
+                                class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
+                            <i class="fa-solid fa-arrow-left text-lg"></i>
+                        </button>
+                        <button type="button" data-action="click->dashboard#shareExperience" aria-label="Share guide"
+                                class="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
+                            <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
+                        </button>
+                    </div>
                     <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
-                        <!-- 返回上一步（Airbnb 風格：頂部左側幽靈箭頭） -->
-                        <div class="px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 bg-hp-bgLight">
-                            <button type="button" data-action="click->dashboard#goBackToPairing" aria-label="返回上一步"
-                                    class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
-                                <i class="fa-solid fa-arrow-left text-lg"></i>
-                            </button>
-                        </div>
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
@@ -402,11 +405,6 @@
                                         <span data-global-lang="zh">已出租房源實景</span>
                                         <span data-global-lang="en" class="hidden">Rented Out Listing</span>
                                     </span>
-                                    
-                                    <!-- Can Share Button -->
-                                    <button data-action="click->dashboard#shareExperience" class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
-                                        <i class="fa-solid fa-arrow-up-from-bracket text-xs text-hp-coral"></i>
-                                    </button>
 
                                     <!-- Bottom Info Text inside Room Photo -->
                                     <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end z-10 pointer-events-none">
@@ -604,7 +602,7 @@
                     </div>
 
                     <!-- ================= SIMULATED AIRBNB ROOM OVERLAY (Connects Back to Room Detail Screen) ================= -->
-                    <div data-dashboard-target="roomOverlay" class="absolute inset-0 bg-[#FAF8F5] z-40 transform translate-y-full transition-transform duration-500 flex flex-col">
+                    <div data-dashboard-target="roomOverlay" class="absolute inset-0 bg-[#FAF8F5] z-40 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <!-- Scrollable Detail Contents of Room -->
                         <div class="flex-grow overflow-y-auto hide-scrollbar pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                             <div data-dashboard-target="overlayHero" class="hp-image-swipe h-48 relative overflow-hidden">
@@ -698,7 +696,7 @@
                     </div>
 
                     <!-- Experience Details Overlay (Airbnb Experience Details API) -->
-                    <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col overflow-hidden">
+                    <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col overflow-hidden">
                         <button data-action="click->dashboard#closeExperienceDetail" aria-label="Close"
                                 class="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-50 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-hp-dark flex items-center justify-center shadow-md transition active:scale-95 pointer-events-auto">
                             <i class="fa-solid fa-xmark text-sm"></i>
@@ -724,7 +722,7 @@
                             </div>
                         </div>
                         <!-- Booking Calendar Sheet -->
-                        <div data-dashboard-target="expBookingOverlay" class="absolute inset-0 bg-[#FAF8F5] z-[60] transform translate-y-full transition-transform duration-500 flex flex-col">
+                        <div data-dashboard-target="expBookingOverlay" class="absolute inset-0 bg-[#FAF8F5] z-[60] transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                             <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-[max(2.75rem,env(safe-area-inset-top))]">
                                 <button type="button" data-action="click->dashboard#closeExpBookingCalendar" aria-label="Close calendar"
                                         class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
@@ -816,15 +814,15 @@
                     </button>
 
                     <!-- Bottom Nav -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center items-center gap-16 text-xs font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] grid grid-cols-2 text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
-                                class="flex flex-col items-center gap-1 text-hp-coral transition">
+                                class="flex flex-col items-center justify-center gap-1 text-hp-coral transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
                             <span data-global-lang="en" class="hidden">Home</span>
                         </button>
                         <button data-action="click->dashboard#contactHost" data-dashboard-target="bottomNavBtn"
-                                class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
+                                class="flex flex-col items-center justify-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-circle-question text-base"></i>
                             <span data-global-lang="zh">求助房東</span>
                             <span data-global-lang="en" class="hidden">Help</span>
@@ -832,7 +830,7 @@
                     </div>
 
                     <!-- Help / Contact Host Overlay -->
-                    <div data-dashboard-target="helpOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
+                    <div data-dashboard-target="helpOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
                             <button data-action="click->dashboard#closeHelpOverlay" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
                                 <i class="fa-solid fa-xmark text-sm"></i>
@@ -872,7 +870,7 @@
                     </div>
 
                     <!-- Lock Guide Overlay -->
-                    <div data-dashboard-target="lockOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full transition-transform duration-500 flex flex-col">
+                    <div data-dashboard-target="lockOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
                             <button data-action="click->dashboard#closeLockGuide" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
                                 <i class="fa-solid fa-xmark text-sm"></i>
@@ -1750,7 +1748,7 @@
                 if (!recIndex) recIndex = 1;
                 this.currentExpRecIndex = recIndex;
 
-                this.expDetailOverlayTarget.classList.remove('translate-y-full');
+                this.setSlideOverlay(this.expDetailOverlayTarget, true);
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (this.hasExpDetailBodyTarget) {
                     this.expDetailBodyTarget.scrollTop = 0;
@@ -1771,7 +1769,7 @@
                 if (!expId || !this.hasExpDetailOverlayTarget) return;
 
                 this.currentExpRecIndex = recIndex;
-                this.expDetailOverlayTarget.classList.remove('translate-y-full');
+                this.setSlideOverlay(this.expDetailOverlayTarget, true);
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (this.hasExpDetailBodyTarget) {
                     this.expDetailBodyTarget.scrollTop = 0;
@@ -1805,7 +1803,7 @@
                 this.currentExpPayload = null;
                 this.selectedBookingDate = null;
                 if (this.hasExpDetailOverlayTarget) {
-                    this.expDetailOverlayTarget.classList.add('translate-y-full');
+                    this.setSlideOverlay(this.expDetailOverlayTarget, false);
                 }
                 this.syncGuideBrowserUrl();
             }
@@ -1956,13 +1954,13 @@
                 this.bookingViewDate = this.bookingViewDate || new Date(2026, 5, 1);
                 this.selectedBookingDate = null;
                 this.renderBookingCalendarView();
-                this.expBookingOverlayTarget.classList.remove('translate-y-full');
+                this.setSlideOverlay(this.expBookingOverlayTarget, true);
             }
 
             closeExpBookingCalendar() {
                 this.closeExpBookingConfirm(false);
                 if (this.hasExpBookingOverlayTarget) {
-                    this.expBookingOverlayTarget.classList.add('translate-y-full');
+                    this.setSlideOverlay(this.expBookingOverlayTarget, false);
                 }
                 this.selectedBookingDate = null;
                 this.pendingBookingSlot = null;
@@ -2312,7 +2310,7 @@
             contactHost(event) {
                 this.setActiveBottomNav(event.currentTarget);
                 if (this.hasHelpOverlayTarget) {
-                    this.helpOverlayTarget.classList.remove('translate-y-full');
+                    this.setSlideOverlay(this.helpOverlayTarget, true);
                 }
                 this.triggerToast(
                     (window.currentLanguage || 'zh') === 'zh' ? '求助房東' : 'Contact Host',
@@ -2323,7 +2321,7 @@
 
             closeHelpOverlay() {
                 if (this.hasHelpOverlayTarget) {
-                    this.helpOverlayTarget.classList.add('translate-y-full');
+                    this.setSlideOverlay(this.helpOverlayTarget, false);
                 }
                 if (this.hasBottomNavBtnTarget) {
                     this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
@@ -2359,7 +2357,7 @@
                 const currentLabel = this.hasActiveIdTarget ? this.activeIdTarget.innerText : this.currentListingId;
                 
                 // Remove translate-y-full class to trigger a smooth bottom-to-top slide up transition
-                this.roomOverlayTarget.classList.remove('translate-y-full');
+                this.setSlideOverlay(this.roomOverlayTarget, true);
 
                 this.triggerToast(
                     isZh ? "已開啟 Airbnb 房源詳情" : "Airbnb listing details opened",
@@ -2370,26 +2368,49 @@
 
             // Closes the Airbnb Room Listing slide-up card and goes back to Guide
             closeRoomOverlay() {
-                this.roomOverlayTarget.classList.add('translate-y-full');
+                this.setSlideOverlay(this.roomOverlayTarget, false);
             }
 
-            // Airbnb user story - "Can share" Action
-            shareExperience() {
+            async shareExperience() {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const shareId = this.currentListingId || 'TAIPEI-CITY';
-                const shareText = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId: shareId });
-                const temp = document.createElement('textarea');
-                temp.value = shareText;
-                document.body.appendChild(temp);
-                temp.select();
-                document.execCommand('copy');
-                document.body.removeChild(temp);
+                const shareUrl = ExperienceDetailsAPI.buildGuideShareUrl({}, { listingId: shareId });
+                const shareTitle = isZh ? '入住指南' : 'Stay guide';
+                const shareBody = isZh
+                    ? `查看 ${shareTitle}：${shareUrl}`
+                    : `View ${shareTitle}: ${shareUrl}`;
 
-                this.triggerToast(
-                    isZh ? "分享連結已複製" : "Share Link Copied",
-                    isZh ? `房東您好！房客體驗指南連結 (${shareText}) 已複製，可直接分享至訊息中！` : `Guide link copied. Ready to send to your checked-in guests!`,
-                    'info'
-                );
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: shareTitle, text: shareBody, url: shareUrl });
+                        return;
+                    }
+                    if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(shareUrl);
+                    } else {
+                        const temp = document.createElement('textarea');
+                        temp.value = shareUrl;
+                        temp.setAttribute('readonly', '');
+                        temp.style.position = 'fixed';
+                        temp.style.left = '-9999px';
+                        document.body.appendChild(temp);
+                        temp.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(temp);
+                    }
+                    this.triggerToast(
+                        isZh ? '分享連結已複製' : 'Share Link Copied',
+                        isZh ? `指南連結已複製，可直接貼給旅伴：${shareUrl}` : `Guide link copied: ${shareUrl}`,
+                        'success'
+                    );
+                } catch (error) {
+                    if (error?.name === 'AbortError') return;
+                    this.triggerToast(
+                        isZh ? '分享失敗' : 'Share failed',
+                        isZh ? '請再試一次或手動複製網址' : 'Please try again or copy the URL manually.',
+                        'error'
+                    );
+                }
             }
 
             // Clipboard Action Helper for Wifi
@@ -2411,7 +2432,7 @@
 
             showLockGuide() {
                 if (this.hasLockOverlayTarget) {
-                    this.lockOverlayTarget.classList.remove('translate-y-full');
+                    this.setSlideOverlay(this.lockOverlayTarget, true);
                 }
                 this.triggerToast(
                     (window.currentLanguage || 'zh') === 'zh' ? '大門解鎖指南' : 'Door Access Guide',
@@ -2422,7 +2443,7 @@
 
             closeLockGuide() {
                 if (this.hasLockOverlayTarget) {
-                    this.lockOverlayTarget.classList.add('translate-y-full');
+                    this.setSlideOverlay(this.lockOverlayTarget, false);
                 }
             }
 
@@ -2503,6 +2524,12 @@
                 });
                 section.classList.add('ring-2', 'ring-hp-coral/40', 'rounded-2xl');
                 setTimeout(() => section.classList.remove('ring-2', 'ring-hp-coral/40', 'rounded-2xl'), 1200);
+            }
+
+            setSlideOverlay(element, isOpen) {
+                if (!element) return;
+                element.classList.toggle('translate-y-full', !isOpen);
+                element.classList.toggle('pointer-events-none', !isOpen);
             }
 
             triggerToast(title, msg, type, options) {
