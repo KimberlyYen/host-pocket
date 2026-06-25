@@ -93,6 +93,12 @@
         html.hp-boot-dashboard [data-global-target="langBar"] {
             display: none !important;
         }
+        html.hp-boot-dashboard [data-dashboard-target="backBtn"] {
+            display: none !important;
+        }
+        html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
+            justify-content: flex-end !important;
+        }
         .partner-bar {
             background: linear-gradient(180deg, #2E2421 0%, #231C19 100%);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -1161,6 +1167,83 @@
             return listing[`recExperienceId${recIndex}`] || null;
         }
 
+        function hpResolveGuestListingId() {
+            const deep = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
+                || window.__hostPocketDeepLink;
+            const params = new URLSearchParams(location.search);
+            const htmlListing = document.documentElement.dataset.hpListing || '';
+            return (deep?.listing || params.get('listing') || params.get('id') || htmlListing || '')
+                .trim()
+                .toUpperCase();
+        }
+
+        function hpHydrateGuestGuideDashboard(listingId) {
+            const id = listingId || hpResolveGuestListingId();
+            if (!id) return false;
+
+            const root = document.querySelector('[data-screen="dashboard"]');
+            if (!root) return false;
+
+            const data = getResolvedListing(id);
+            if (!data) return false;
+
+            const isZh = (window.currentLanguage || 'zh') !== 'en';
+            const text = (zh, en) => (isZh ? (zh || en || '') : (en || zh || ''));
+            const setText = (target, zh, en) => {
+                const el = root.querySelector(`[data-dashboard-target="${target}"]`);
+                if (el) el.textContent = text(zh, en);
+            };
+
+            setText('roomTitle', data.roomTitleZh, data.roomTitleEn);
+            setText('hostTitle', data.hostNameZh, data.hostNameEn);
+            setText('hostLocation', data.locationZh, data.locationEn);
+            setText('activeId', data.listingLabelZh || id, data.listingLabelEn || id);
+            setText('wifiValue', data.wifi, data.wifi);
+            const lockText = text(data.lockZh || data.lock, data.lockEn || data.lock);
+            setText('lockValue', lockText, lockText);
+
+            const roomImg = root.querySelector('[data-dashboard-target="roomHeroImg"]');
+            const heroSrc = (data.roomGallery && data.roomGallery[0]) || data.roomImg;
+            if (roomImg && heroSrc) setImgWithFallback(roomImg, heroSrc, IMAGE_FALLBACKS.room);
+
+            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+                setText(`recTitle${i}`, data[`recTitle${i}Zh`], data[`recTitle${i}En`]);
+                setText(`recBadge${i}`, data[`recBadge${i}Zh`], data[`recBadge${i}En`]);
+                setText(`recDist${i}`, data[`recDist${i}Zh`], data[`recDist${i}En`]);
+                setText(`recPrice${i}`, data[`recPrice${i}Zh`], data[`recPrice${i}En`]);
+                const recImg = root.querySelector(`[data-dashboard-target="recImg${i}"]`);
+                if (recImg && data[`recImg${i}`]) {
+                    setImgWithFallback(recImg, data[`recImg${i}`], IMAGE_FALLBACKS.rec);
+                }
+            }
+
+            const hostFirst = isZh
+                ? (data.hostNameZh || '').split(' ')[0]
+                : (data.hostNameEn || '').split("'")[0];
+            const hostRecZh = root.querySelector('[data-dashboard-target="hostRecLabelZh"]');
+            const hostRecEn = root.querySelector('[data-dashboard-target="hostRecLabelEn"]');
+            if (hostRecZh && hostFirst) hostRecZh.textContent = `${hostFirst} 的精選私藏行程`;
+            if (hostRecEn && hostFirst) hostRecEn.textContent = `${hostFirst}'s Handpicked Escapes`;
+
+            return true;
+        }
+
+        function hpScheduleGuestGuideHydration() {
+            const id = hpResolveGuestListingId();
+            if (!id) return;
+            hpHydrateGuestGuideDashboard(id);
+            HostGuideSettings?.ensureLoaded(id).then(() => {
+                hpHydrateGuestGuideDashboard(id);
+            }).catch(() => {
+                hpHydrateGuestGuideDashboard(id);
+            });
+        }
+
+        window.hpHydrateGuestGuideDashboard = hpHydrateGuestGuideDashboard;
+        document.addEventListener('DOMContentLoaded', hpScheduleGuestGuideHydration);
+        window.addEventListener('load', hpScheduleGuestGuideHydration);
+        setTimeout(hpScheduleGuestGuideHydration, 0);
+
         // --- STIMULUS CONTROLLER REGISTRATIONS ---
         const { Application, Controller } = Stimulus;
         const stimulusApp = Application.start();
@@ -1619,7 +1702,7 @@
                 const { id, data } = event.detail;
                 this.currentListingId = id;
                 this.renderDashboard(data, id);
-                this.updateDeepLinkChrome(this.resolveDeepLinkContext().hasDeepLink);
+                this.updateDeepLinkChrome(this.isGuestGuideRoute());
                 if (this.hasExpDetailOverlayTarget
                     && !this.expDetailOverlayTarget.classList.contains('translate-y-full')
                     && this.currentExpRecIndex
@@ -1647,13 +1730,21 @@
                 return { listingId: resolvedListing, experienceId: urlExperience, hasDeepLink };
             }
 
-            updateDeepLinkChrome(hasDeepLink) {
+            isGuestGuideRoute() {
+                if (document.documentElement.classList.contains('hp-boot-dashboard')) return true;
+                if (document.documentElement.dataset.hpListing) return true;
+                return this.resolveDeepLinkContext().hasDeepLink;
+            }
+
+            updateDeepLinkChrome(isGuestRoute) {
+                const hideBack = Boolean(isGuestRoute);
                 if (this.hasBackBtnTarget) {
-                    this.backBtnTarget.classList.toggle('hidden', hasDeepLink);
+                    this.backBtnTarget.classList.toggle('hidden', hideBack);
+                    this.backBtnTarget.hidden = hideBack;
                 }
                 if (this.hasHeaderBarTarget) {
-                    this.headerBarTarget.classList.toggle('justify-end', hasDeepLink);
-                    this.headerBarTarget.classList.toggle('justify-between', !hasDeepLink);
+                    this.headerBarTarget.classList.toggle('justify-end', hideBack);
+                    this.headerBarTarget.classList.toggle('justify-between', !hideBack);
                 }
             }
 
@@ -1662,7 +1753,10 @@
                 window.__hostPocketDeepLink = ExperienceDetailsAPI.parseDeepLinkFromLocation()
                     || window.__hostPocketDeepLink;
                 this.currentListingId = listingId;
-                this.updateDeepLinkChrome(hasDeepLink);
+                if (hasDeepLink) {
+                    document.documentElement.classList.add('hp-boot-dashboard');
+                }
+                this.updateDeepLinkChrome(this.isGuestGuideRoute());
 
                 if (!hasDeepLink) return;
 
@@ -1673,6 +1767,7 @@
                 if (pairingInput) pairingInput.value = listingId;
 
                 this.renderDashboard(getResolvedListing(listingId), listingId);
+                window.hpHydrateGuestGuideDashboard?.(listingId);
 
                 if (experienceId) {
                     void this.openExperienceFromShareLink(listingId, experienceId);
@@ -1687,15 +1782,22 @@
             }
 
             renderDashboard(data, listingId) {
+                if (!data) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const id = listingId || this.currentListingId || 'TAIPEI-CITY';
                 
                 // Update Room photo and Room title targets dynamically (Fulfills User Story details)
                 this.setRoomGallery(data);
-                this.roomTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
+                if (this.hasRoomTitleTarget) {
+                    this.roomTitleTarget.innerText = isZh ? (data.roomTitleZh || '') : (data.roomTitleEn || '');
+                }
 
-                this.hostTitleTarget.innerText = isZh ? data.hostNameZh : data.hostNameEn;
-                this.hostLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
+                if (this.hasHostTitleTarget) {
+                    this.hostTitleTarget.innerText = isZh ? (data.hostNameZh || '') : (data.hostNameEn || '');
+                }
+                if (this.hasHostLocationTarget) {
+                    this.hostLocationTarget.innerText = isZh ? (data.locationZh || '') : (data.locationEn || '');
+                }
                 if (this.hasActiveIdTarget) {
                     this.activeIdTarget.innerText = isZh
                         ? (data.listingLabelZh || id)
@@ -1713,12 +1815,16 @@
                 }
 
                 setImgWithFallback(this.recImg1Target, data.recImg1, IMAGE_FALLBACKS.rec);
-                this.recTitle1Target.innerText = isZh ? data.recTitle1Zh : data.recTitle1En;
+                if (this.hasRecTitle1Target) {
+                    this.recTitle1Target.innerText = isZh ? (data.recTitle1Zh || '') : (data.recTitle1En || '');
+                }
                 if (this.hasRecBadge1Target) this.recBadge1Target.innerText = isZh ? data.recBadge1Zh : data.recBadge1En;
                 if (this.hasRecDist1Target) this.recDist1Target.innerText = isZh ? data.recDist1Zh : data.recDist1En;
                 if (this.hasRecPrice1Target) this.recPrice1Target.innerText = isZh ? data.recPrice1Zh : data.recPrice1En;
                 setImgWithFallback(this.recImg2Target, data.recImg2, IMAGE_FALLBACKS.rec);
-                this.recTitle2Target.innerText = isZh ? data.recTitle2Zh : data.recTitle2En;
+                if (this.hasRecTitle2Target) {
+                    this.recTitle2Target.innerText = isZh ? (data.recTitle2Zh || '') : (data.recTitle2En || '');
+                }
                 if (this.hasRecBadge2Target) this.recBadge2Target.innerText = isZh ? data.recBadge2Zh : data.recBadge2En;
                 if (this.hasRecDist2Target) this.recDist2Target.innerText = isZh ? data.recDist2Zh : data.recDist2En;
                 if (this.hasRecPrice2Target) this.recPrice2Target.innerText = isZh ? data.recPrice2Zh : data.recPrice2En;
@@ -1739,9 +1845,15 @@
 
                 // Also sync targets of the hidden/connectable Airbnb room details overlay!
                 this.updateRoomHeroPhoto();
-                this.overlayTitleTarget.innerText = isZh ? data.roomTitleZh : data.roomTitleEn;
-                this.overlayLocationTarget.innerText = isZh ? data.locationZh : data.locationEn;
-                const hostFirst = isZh ? data.hostNameZh.split(' ')[0] : data.hostNameEn.split("'")[0];
+                if (this.hasOverlayTitleTarget) {
+                    this.overlayTitleTarget.innerText = isZh ? (data.roomTitleZh || '') : (data.roomTitleEn || '');
+                }
+                if (this.hasOverlayLocationTarget) {
+                    this.overlayLocationTarget.innerText = isZh ? (data.locationZh || '') : (data.locationEn || '');
+                }
+                const hostFirst = isZh
+                    ? (data.hostNameZh || '').split(' ')[0]
+                    : (data.hostNameEn || '').split("'")[0];
                 if (this.hasOverlayHostLineTarget) {
                     this.overlayHostLineTarget.innerText = isZh
                         ? `${hostFirst} 的房源主頁`
@@ -1757,6 +1869,8 @@
                 if (this.hasShareLinkTarget) {
                     this.shareLinkTarget.href = ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId: id, guideOnly: true });
                 }
+                this.updateDeepLinkChrome(this.isGuestGuideRoute());
+                window.hpHydrateGuestGuideDashboard?.(id);
             }
 
             // --- Bottom Nav Actions ---
