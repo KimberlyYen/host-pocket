@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <!-- Hotwire Stimulus CDN -->
-    <script src="https://unpkg.com/@hotwired/stimulus/dist/stimulus.umd.js"></script>
+    <script src="js/vendor/stimulus.umd.js"></script>
 
     <script>
         // 自訂 Tailwind 設定（Sunset Terracotta 落日陶土暖橘色系）
@@ -78,12 +78,13 @@
             pointer-events: none;
         }
         /* 深連結：在 Stimulus 載入前先顯示指南主頁，避免手機上短暫看到配對首頁 */
-        html.hp-boot-dashboard .app-screen[data-screen="pairing"] {
-            opacity: 0 !important;
-            visibility: hidden !important;
+        html.hp-boot-dashboard .app-screen[data-screen="pairing"],
+        html.hp-boot-dashboard .app-screen[data-screen="explorer"] {
+            display: none !important;
             pointer-events: none !important;
         }
         html.hp-boot-dashboard .app-screen[data-screen="dashboard"] {
+            display: flex !important;
             opacity: 1 !important;
             visibility: visible !important;
             transform: translateX(0) !important;
@@ -95,6 +96,18 @@
         }
         html.hp-boot-dashboard [data-dashboard-target="backBtn"] {
             display: none !important;
+        }
+        html.hp-boot-dashboard [data-dashboard-target="airbnbListingCta"] {
+            display: none !important;
+        }
+        html.hp-boot-dashboard [data-dashboard-target="contactHostNav"] {
+            display: none !important;
+        }
+        html.hp-boot-dashboard [data-dashboard-target="bottomNavBar"] {
+            display: none !important;
+        }
+        html.hp-boot-dashboard [data-dashboard-target="scrollContainer"] {
+            padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important;
         }
         html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
             justify-content: flex-end !important;
@@ -213,6 +226,14 @@
                 if (!listing && !experience) return;
                 document.documentElement.classList.add('hp-boot-dashboard');
                 if (listing) document.documentElement.dataset.hpListing = listing.toUpperCase();
+                document.addEventListener('DOMContentLoaded', function () {
+                    var pairing = document.querySelector('[data-screen="pairing"]');
+                    var explorer = document.querySelector('[data-screen="explorer"]');
+                    var dashboard = document.querySelector('[data-screen="dashboard"]');
+                    if (pairing) pairing.classList.remove('is-active');
+                    if (explorer) explorer.classList.remove('is-active');
+                    if (dashboard) dashboard.classList.add('is-active');
+                }, { once: true });
             } catch (_) { /* ignore */ }
         })();
     </script>
@@ -468,7 +489,7 @@
                                         <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-white px-2 py-0.5 rounded-full border border-hp-border shrink-0">台北·大安</span>
                                     </div>
                                     
-                                    <div class="pt-2.5 border-t border-hp-border">
+                                    <div data-dashboard-target="airbnbListingCta" class="pt-2.5 border-t border-hp-border">
                                         <button data-action="click->dashboard#connectBackToRoom" class="bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm">
                                             <i class="fa-solid fa-arrow-rotate-left text-xs text-hp-coral animate-pulse"></i>
                                             <span data-global-lang="zh">查看 Airbnb 房源</span>
@@ -854,14 +875,14 @@
                     </button>
 
                     <!-- Bottom Nav -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] grid grid-cols-2 text-xs font-bold text-[#8C807A] select-none z-20">
+                    <div data-dashboard-target="bottomNavBar" class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] grid grid-cols-2 text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
                                 class="flex flex-col items-center justify-center gap-1 text-hp-coral transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
                             <span data-global-lang="en" class="hidden">Home</span>
                         </button>
-                        <button data-action="click->dashboard#contactHost" data-dashboard-target="bottomNavBtn"
+                        <button data-action="click->dashboard#contactHost" data-dashboard-target="contactHostNav"
                                 class="flex flex-col items-center justify-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-circle-question text-base"></i>
                             <span data-global-lang="zh">求助房東</span>
@@ -1240,13 +1261,87 @@
         }
 
         window.hpHydrateGuestGuideDashboard = hpHydrateGuestGuideDashboard;
+
+        function hpActivateGuestDashboardScreen() {
+            if (!document.documentElement.classList.contains('hp-boot-dashboard')) return;
+            document.querySelector('[data-screen="pairing"]')?.classList.remove('is-active');
+            document.querySelector('[data-screen="explorer"]')?.classList.remove('is-active');
+            document.querySelector('[data-screen="dashboard"]')?.classList.add('is-active');
+        }
+
+        function hpHasDashboardController() {
+            const el = document.querySelector('[data-controller~="dashboard"]');
+            if (!el || !window.__hpStimulusApp) return false;
+            return Boolean(window.__hpStimulusApp.getControllerForElementAndIdentifier(el, 'dashboard'));
+        }
+
+        function hpBindGuestDeepLinkFallbacks() {
+            document.addEventListener('click', (event) => {
+                if (!document.documentElement.classList.contains('hp-boot-dashboard')) return;
+                if (hpHasDashboardController()) return;
+
+                const actionEl = event.target.closest('[data-action]');
+                if (!actionEl) return;
+
+                const action = actionEl.getAttribute('data-action') || '';
+                const listingId = hpResolveGuestListingId();
+                const data = listingId ? getResolvedListing(listingId) : null;
+                const isZh = (window.currentLanguage || 'zh') !== 'en';
+
+                if (action.includes('openExperienceDetail')) {
+                    event.preventDefault();
+                    const rec = actionEl.dataset.rec || actionEl.closest('[data-rec]')?.dataset.rec;
+                    if (rec && listingId && window.ExperienceDetailsAPI) {
+                        const expId = getExperienceIdForRec(listingId, Number(rec));
+                        if (expId) {
+                            location.href = ExperienceDetailsAPI.buildGuideBrowserUrl({
+                                listingId,
+                                experienceId: expId
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                if (action.includes('copyWifi') && data?.wifi) {
+                    event.preventDefault();
+                    navigator.clipboard?.writeText(data.wifi);
+                    window.hpTriggerToast?.(
+                        isZh ? '已複製 Wi-Fi' : 'Wi-Fi copied',
+                        data.wifi,
+                        'success'
+                    );
+                    return;
+                }
+
+                if (action.includes('shareExperience')) {
+                    event.preventDefault();
+                    const shareUrl = listingId
+                        ? ExperienceDetailsAPI.buildGuideShareUrl(null, { listingId, guideOnly: true })
+                        : location.href;
+                    if (navigator.share) {
+                        navigator.share({ title: isZh ? '入住指南' : 'Stay guide', url: shareUrl });
+                    } else {
+                        navigator.clipboard?.writeText(shareUrl);
+                    }
+                }
+            }, true);
+        }
+
+        hpBindGuestDeepLinkFallbacks();
+        document.addEventListener('DOMContentLoaded', hpActivateGuestDashboardScreen);
+        window.addEventListener('load', hpActivateGuestDashboardScreen);
         document.addEventListener('DOMContentLoaded', hpScheduleGuestGuideHydration);
         window.addEventListener('load', hpScheduleGuestGuideHydration);
         setTimeout(hpScheduleGuestGuideHydration, 0);
 
         // --- STIMULUS CONTROLLER REGISTRATIONS ---
+        if (typeof Stimulus === 'undefined') {
+            console.error('[host-pocket] Stimulus failed to load');
+        } else {
         const { Application, Controller } = Stimulus;
         const stimulusApp = Application.start();
+        window.__hpStimulusApp = stimulusApp;
 
         // --- APP SHELL：三支畫面切換 ---
         stimulusApp.register("app", class extends Controller {
@@ -1255,10 +1350,12 @@
 
             connect() {
                 window.appNavigate = (name) => this.show(name);
+                hpActivateGuestDashboardScreen();
                 const deep = ExperienceDetailsAPI.parseDeepLinkFromLocation()
                     || window.__hostPocketDeepLink;
                 window.__hostPocketDeepLink = deep;
-                const hasDeepLink = Boolean(deep?.listing || deep?.experience);
+                const isGuestBoot = document.documentElement.classList.contains('hp-boot-dashboard');
+                const hasDeepLink = Boolean(deep?.listing || deep?.experience) || isGuestBoot;
                 this.show(hasDeepLink ? 'dashboard' : this.currentValue);
                 if (hasDeepLink) {
                     document.documentElement.classList.add('hp-boot-dashboard');
@@ -1560,7 +1657,7 @@
                 "recImg3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
-                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "shareLink", "backBtn", "headerBar",
+                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
                 "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
@@ -1737,14 +1834,26 @@
             }
 
             updateDeepLinkChrome(isGuestRoute) {
-                const hideBack = Boolean(isGuestRoute);
+                const hideGuest = Boolean(isGuestRoute);
                 if (this.hasBackBtnTarget) {
-                    this.backBtnTarget.classList.toggle('hidden', hideBack);
-                    this.backBtnTarget.hidden = hideBack;
+                    this.backBtnTarget.classList.toggle('hidden', hideGuest);
+                    this.backBtnTarget.hidden = hideGuest;
                 }
                 if (this.hasHeaderBarTarget) {
-                    this.headerBarTarget.classList.toggle('justify-end', hideBack);
-                    this.headerBarTarget.classList.toggle('justify-between', !hideBack);
+                    this.headerBarTarget.classList.toggle('justify-end', hideGuest);
+                    this.headerBarTarget.classList.toggle('justify-between', !hideGuest);
+                }
+                if (this.hasAirbnbListingCtaTarget) {
+                    this.airbnbListingCtaTarget.classList.toggle('hidden', hideGuest);
+                    this.airbnbListingCtaTarget.hidden = hideGuest;
+                }
+                if (this.hasContactHostNavTarget) {
+                    this.contactHostNavTarget.classList.toggle('hidden', hideGuest);
+                    this.contactHostNavTarget.hidden = hideGuest;
+                }
+                if (this.hasBottomNavBarTarget) {
+                    this.bottomNavBarTarget.classList.toggle('hidden', hideGuest);
+                    this.bottomNavBarTarget.hidden = hideGuest;
                 }
             }
 
@@ -2921,6 +3030,7 @@
             }
         });
 
+        } // Stimulus loaded
 
     </script>
 </body>
