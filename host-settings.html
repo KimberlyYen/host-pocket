@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房東設定 · 在地精選 · host-pocket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hp: {
+                            coral: '#FF5B3E',
+                            dark: '#1F1A18',
+                            bgLight: '#FAF8F5',
+                            border: '#EBE5DF',
+                            muted: '#8C807A'
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'Noto Sans TC', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-hp-bgLight min-h-screen font-sans text-hp-dark text-xs">
+    <header class="bg-white border-b border-hp-border px-5 py-4 sticky top-0 z-20">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-hp-muted">host-pocket · 房東</p>
+                <h1 class="text-sm font-black mt-0.5">在地精選設定</h1>
+                <p class="text-[10px] text-hp-muted mt-1">資料儲存在 Neon Postgres（API 不可用時 fallback localStorage）</p>
+            </div>
+            <a href="index.html" class="text-xs font-bold text-hp-coral hover:underline shrink-0">← 返回 App</a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto p-5 space-y-4 pb-16">
+        <section class="bg-white border border-hp-border rounded-2xl p-5 shadow-sm space-y-4">
+            <div>
+                <label for="listingId" class="block text-[10px] font-bold uppercase tracking-wider text-hp-muted mb-1.5">房源代碼 / Listing ID</label>
+                <div class="flex flex-wrap gap-2">
+                    <input id="listingId" type="text" placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
+                           class="flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
+                    <button type="button" id="loadBtn"
+                            class="px-4 py-2.5 rounded-xl bg-hp-dark text-white text-xs font-bold hover:bg-hp-dark/90 transition">
+                        載入
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="text-[10px] text-hp-muted w-full">示範主題：</span>
+                    <button type="button" data-demo-id="TAIPEI-CITY" class="demo-preset px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">台北</button>
+                    <button type="button" data-demo-id="UK-LONDON" class="demo-preset px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">倫敦</button>
+                    <button type="button" data-demo-id="VILNIUS-OLDTOWN" class="demo-preset px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">維爾紐斯</button>
+                    <button type="button" data-demo-id="RIO-COPACABANA" class="demo-preset px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">里約</button>
+                </div>
+                <p id="savedHint" class="text-[10px] text-hp-muted mt-2 hidden"></p>
+            </div>
+        </section>
+
+        <form id="settingsForm" class="space-y-4 hidden">
+            <section class="bg-white border border-hp-border rounded-2xl p-5 shadow-sm space-y-4">
+                <h2 class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="block space-y-1"><span class="field-label">房源名稱（繁中）</span><input name="roomTitleZh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Room title (EN)</span><input name="roomTitleEn" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">房東顯示名（繁中）</span><input name="hostNameZh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Host name (EN)</span><input name="hostNameEn" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">地點說明（繁中）</span><input name="locationZh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Location (EN)</span><input name="locationEn" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">標籤（繁中）</span><input name="listingLabelZh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Label (EN)</span><input name="listingLabelEn" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Wi‑Fi</span><input name="wifi" class="field-input" placeholder="NetworkName / pass: xxxx"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">電子鎖說明（繁中）</span><input name="lockZh" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Lock instructions (EN)</span><input name="lockEn" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東 Email（選填，mailto 用）</span><input name="hostEmail" type="email" class="field-input"></label>
+                </div>
+                <label class="block space-y-1">
+                    <span class="field-label">房源輪播照片 URL（每行一張）</span>
+                    <textarea name="roomGalleryText" rows="3" class="field-input font-mono text-[11px]" placeholder="https://..."></textarea>
+                </label>
+            </section>
+
+            <section class="bg-white border border-hp-border rounded-2xl p-5 shadow-sm space-y-4">
+                <h2 class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-star text-hp-coral"></i> 在地精選 1</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Airbnb 體驗 ID（選填）</span><input name="recExperienceId1" class="field-input font-mono" placeholder="3310245"></label>
+                    <label class="block space-y-1"><span class="field-label">標題（繁中）</span><input name="recTitle1Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Title (EN)</span><input name="recTitle1En" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">封面圖 URL</span><input name="recImg1" class="field-input font-mono text-[11px]"></label>
+                    <label class="block space-y-1"><span class="field-label">標籤（繁中）</span><input name="recBadge1Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Badge (EN)</span><input name="recBadge1En" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">距離（繁中）</span><input name="recDist1Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Distance (EN)</span><input name="recDist1En" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">價格（繁中）</span><input name="recPrice1Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Price (EN)</span><input name="recPrice1En" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東推薦文案（繁中）</span><textarea name="desc1Zh" rows="2" class="field-input"></textarea></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Description (EN)</span><textarea name="desc1En" rows="2" class="field-input"></textarea></label>
+                    <label class="block space-y-1"><span class="field-label">地圖距離（繁中）</span><input name="recExplorerDist1Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Map distance (EN)</span><input name="recExplorerDist1En" class="field-input"></label>
+                </div>
+            </section>
+
+            <section class="bg-white border border-hp-border rounded-2xl p-5 shadow-sm space-y-4">
+                <h2 class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-star text-hp-coral"></i> 在地精選 2</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Airbnb 體驗 ID（選填）</span><input name="recExperienceId2" class="field-input font-mono"></label>
+                    <label class="block space-y-1"><span class="field-label">標題（繁中）</span><input name="recTitle2Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Title (EN)</span><input name="recTitle2En" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">封面圖 URL</span><input name="recImg2" class="field-input font-mono text-[11px]"></label>
+                    <label class="block space-y-1"><span class="field-label">標籤（繁中）</span><input name="recBadge2Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Badge (EN)</span><input name="recBadge2En" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">距離（繁中）</span><input name="recDist2Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Distance (EN)</span><input name="recDist2En" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">價格（繁中）</span><input name="recPrice2Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Price (EN)</span><input name="recPrice2En" class="field-input"></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東推薦文案（繁中）</span><textarea name="desc2Zh" rows="2" class="field-input"></textarea></label>
+                    <label class="block space-y-1 sm:col-span-2"><span class="field-label">Description (EN)</span><textarea name="desc2En" rows="2" class="field-input"></textarea></label>
+                    <label class="block space-y-1"><span class="field-label">地圖距離（繁中）</span><input name="recExplorerDist2Zh" class="field-input"></label>
+                    <label class="block space-y-1"><span class="field-label">Map distance (EN)</span><input name="recExplorerDist2En" class="field-input"></label>
+                </div>
+            </section>
+
+            <div class="flex flex-wrap items-center gap-3 sticky bottom-4 bg-white/95 backdrop-blur border border-hp-border rounded-2xl p-4 shadow-lg">
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-hp-coral hover:bg-hp-coral/90 text-white text-xs font-bold transition active:scale-[0.98]">
+                    儲存設定
+                </button>
+                <button type="button" id="previewBtn" class="px-4 py-2.5 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-xs font-bold transition">
+                    預覽 App
+                </button>
+                <button type="button" id="resetBtn" class="px-4 py-2.5 rounded-xl border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-bold transition">
+                    清除自訂
+                </button>
+                <p id="statusMsg" class="text-xs font-bold text-emerald-600 hidden w-full"></p>
+                <p id="errorMsg" class="text-xs font-bold text-red-600 hidden w-full"></p>
+            </div>
+        </form>
+
+        <p class="text-[10px] text-hp-muted leading-relaxed px-1">
+            儲存後，在 App 輸入相同 Listing ID 配對即可看到更新（跨裝置同步，需後端已設定 DATABASE_URL）。
+            清除自訂會恢復示範預設內容。
+            詳見 <a href="host-manual.md" class="text-hp-coral underline">host-manual.md</a>。
+        </p>
+    </main>
+
+    <style>
+        .field-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8C807A; }
+        .field-input { width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.75rem; border: 1px solid #EBE5DF; font-size: 12px; }
+        .field-input:focus { outline: none; border-color: #FF5B3E; }
+    </style>
+
+    <script src="js/guide-defaults.js"></script>
+    <script src="js/listing-settings-api.js"></script>
+    <script src="js/host-guide-settings.js"></script>
+    <script>
+        const listingInput = document.getElementById('listingId');
+        const loadBtn = document.getElementById('loadBtn');
+        const form = document.getElementById('settingsForm');
+        const statusMsg = document.getElementById('statusMsg');
+        const errorMsg = document.getElementById('errorMsg');
+        const savedHint = document.getElementById('savedHint');
+        const previewBtn = document.getElementById('previewBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function showStatus(text) {
+            errorMsg.classList.add('hidden');
+            statusMsg.textContent = text;
+            statusMsg.classList.remove('hidden');
+        }
+
+        function showError(text) {
+            statusMsg.classList.add('hidden');
+            errorMsg.textContent = text;
+            errorMsg.classList.remove('hidden');
+        }
+
+        function fillForm(data) {
+            HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
+                const el = form.elements.namedItem(name);
+                if (el) el.value = data[name] ?? '';
+            });
+            const galleryEl = form.elements.namedItem('roomGalleryText');
+            if (galleryEl) {
+                galleryEl.value = HostGuideSettings.galleryToText(data.roomGallery);
+            }
+        }
+
+        function readForm() {
+            const data = {};
+            HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
+                const el = form.elements.namedItem(name);
+                if (el) data[name] = el.value.trim();
+            });
+            const galleryEl = form.elements.namedItem('roomGalleryText');
+            const gallery = HostGuideSettings.parseGalleryText(galleryEl?.value || '');
+            if (gallery.length) {
+                data.roomGallery = gallery;
+                data.roomImg = gallery[0];
+            }
+            if (data.desc2Zh) {
+                data.targetTitleZh = data.recTitle2Zh;
+                data.targetTitleEn = data.recTitle2En;
+                data.descZh = data.desc2Zh;
+                data.descEn = data.desc2En;
+                data.explorerDistZh = data.recExplorerDist2Zh || data.recDist2Zh;
+                data.explorerDistEn = data.recExplorerDist2En || data.recDist2En;
+            }
+            return data;
+        }
+
+        async function updateSavedHint(id) {
+            await HostGuideSettings.isDatabaseAvailable();
+            const saved = await HostGuideSettings.loadAsync(id);
+            const ids = HostGuideSettings.listSavedIds();
+            const mode = HostGuideSettings.getStorageMode();
+            const modeLabel = mode === 'database' ? 'Neon 資料庫' : 'localStorage（離線備援）';
+            if (saved) {
+                savedHint.textContent = `此房源已有自訂設定（${modeLabel} · ${new Date(saved.updatedAt || Date.now()).toLocaleString('zh-TW')}）`;
+                savedHint.classList.remove('hidden');
+            } else {
+                savedHint.textContent = ids.length
+                    ? `已自訂的房源（本機）：${ids.join('、')}`
+                    : `尚未儲存自訂設定（${modeLabel}）`;
+                savedHint.classList.remove('hidden');
+            }
+        }
+
+        async function loadListing(rawId) {
+            const id = HostGuideSettings.normalizeListingId(rawId);
+            if (!id) {
+                showError('請輸入房源代碼');
+                return;
+            }
+            listingInput.value = id;
+            await HostGuideSettings.ensureLoaded(id);
+            const merged = HostGuideSettings.getMerged(id);
+            fillForm(merged);
+            form.classList.remove('hidden');
+            await updateSavedHint(id);
+            statusMsg.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+        }
+
+        loadBtn.addEventListener('click', () => loadListing(listingInput.value));
+        document.querySelectorAll('.demo-preset').forEach((btn) => {
+            btn.addEventListener('click', () => loadListing(btn.dataset.demoId));
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = HostGuideSettings.normalizeListingId(listingInput.value);
+            if (!id) {
+                showError('請輸入房源代碼');
+                return;
+            }
+            try {
+                await HostGuideSettings.save(id, readForm());
+                await updateSavedHint(id);
+                const mode = HostGuideSettings.getStorageMode() === 'database' ? 'Neon 資料庫' : 'localStorage';
+                showStatus(`已儲存（${mode} · ${id}）`);
+            } catch (error) {
+                console.error(error);
+                showError(error?.message || '儲存失敗');
+            }
+        });
+
+        previewBtn.addEventListener('click', () => {
+            const id = HostGuideSettings.normalizeListingId(listingInput.value);
+            if (!id) {
+                showError('請先載入房源');
+                return;
+            }
+            window.open(`index.html?listing=${encodeURIComponent(id)}`, '_blank');
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            const id = HostGuideSettings.normalizeListingId(listingInput.value);
+            if (!id) return;
+            if (!confirm(`確定清除 ${id} 的自訂設定？`)) return;
+            try {
+                await HostGuideSettings.remove(id);
+                await loadListing(id);
+                showStatus(`已清除 ${id} 的自訂設定，恢復預設內容`);
+            } catch (error) {
+                console.error(error);
+                showError(error?.message || '清除失敗');
+            }
+        });
+
+        const params = new URLSearchParams(location.search);
+        const initial = params.get('listing') || params.get('id') || 'TAIPEI-CITY';
+        loadListing(initial);
+    </script>
+</body>
+</html>

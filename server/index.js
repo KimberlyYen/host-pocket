@@ -5,6 +5,8 @@ const cors = require('cors');
 const { createBooking, isEmailConfigured } = require('./booking');
 const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
 const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = require('./smtp-config');
+const { handleListingSettings } = require('./listing-settings-handler');
+const { isDatabaseConfigured } = require('./listing-settings');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -32,8 +34,21 @@ app.get('/api/health', (_req, res) => {
         ok: true,
         bookingConfigured: isEmailConfigured(),
         resendConfigured,
-        smtpConfigured
+        smtpConfigured,
+        dbConfigured: isDatabaseConfigured()
     });
+});
+
+app.get('/api/listings/:listingId/settings', (req, res) => {
+    handleListingSettings(req, res, req.params.listingId);
+});
+
+app.put('/api/listings/:listingId/settings', (req, res) => {
+    handleListingSettings(req, res, req.params.listingId);
+});
+
+app.delete('/api/listings/:listingId/settings', (req, res) => {
+    handleListingSettings(req, res, req.params.listingId);
 });
 
 app.post('/api/booking', async (req, res) => {

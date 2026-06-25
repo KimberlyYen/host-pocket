@@ -1,5 +1,6 @@
 const { isEmailConfigured } = require('../server/booking');
 const { isSmtpConfigured } = require('../server/smtp-mail');
+const { isDatabaseConfigured } = require('../server/listing-settings');
 
 module.exports = async (_req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,6 +10,7 @@ module.exports = async (_req, res) => {
         ok: true,
         bookingConfigured: isEmailConfigured(),
         resendConfigured,
-        smtpConfigured
+        smtpConfigured,
+        dbConfigured: isDatabaseConfigured()
     });
 };

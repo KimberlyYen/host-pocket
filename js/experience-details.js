@@ -463,7 +463,7 @@
             </div>` : '';
 
         return `
-            <div class="exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
+            <div class="exp-media-hero hp-image-swipe h-[calc(100dvh*5/6)] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
                 ${slides}
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-[15]"></div>
                 ${nav}
@@ -519,6 +519,13 @@
             e.stopPropagation();
             syncSlide(parseInt(dot.dataset.expMediaDot, 10));
         }));
+
+        if (slides.length > 1 && global.HostPocketImageSwipe) {
+            global.HostPocketImageSwipe.bindHorizontalSwipe(hero, {
+                onSwipeLeft: () => syncSlide(index + 1),
+                onSwipeRight: () => syncSlide(index - 1)
+            });
+        }
 
         slides[0]?.querySelector('video')?.play().catch(() => {});
     }
@@ -927,12 +934,20 @@
         return date.toLocaleDateString('en', { weekday: 'short', day: '2-digit' });
     }
 
+    const BOOKING_TIMEZONE_OTHER = '__other__';
+
     const BOOKING_TIMEZONES = [
         { value: 'Asia/Taipei', label: 'Asia/Taipei' },
         { value: 'Asia/Tokyo', label: 'Asia/Tokyo' },
         { value: 'Europe/London', label: 'Europe/London' },
-        { value: 'America/New_York', label: 'America/New_York' }
+        { value: 'America/New_York', label: 'America/New_York' },
+        { value: BOOKING_TIMEZONE_OTHER, labelZh: '其他', labelEn: 'Other' }
     ];
+
+    function bookingTimezoneLabel(tz, isZh) {
+        if (tz.labelZh) return isZh ? tz.labelZh : tz.labelEn;
+        return tz.label;
+    }
 
     function getBookingMeta(payload, options = {}) {
         const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
@@ -999,7 +1014,9 @@
     function renderBookingCalendar(payload, options = {}) {
         const meta = getBookingMeta(payload, options);
         const { isZh, exp, host, availability, title, hostName, hostAvatar, duration, location } = meta;
-        const timezone = options.timezone || 'Asia/Taipei';
+        const timezoneSelect = options.timezoneSelect ?? options.timezone ?? 'Asia/Taipei';
+        const customTimezone = options.customTimezone ?? '';
+        const showCustomTimezone = timezoneSelect === BOOKING_TIMEZONE_OTHER;
         const timeFormat = options.timeFormat || '24';
         const viewDate = options.viewDate instanceof Date ? new Date(options.viewDate) : new Date(2026, 5, 1);
         const year = viewDate.getFullYear();
@@ -1034,7 +1051,7 @@
         }
 
         const tzOptions = BOOKING_TIMEZONES.map(tz =>
-            `<option value="${tz.value}"${tz.value === timezone ? ' selected' : ''}>${tz.label}</option>`
+            `<option value="${tz.value}"${tz.value === timezoneSelect ? ' selected' : ''}>${escapeHtml(bookingTimezoneLabel(tz, isZh))}</option>`
         ).join('');
 
         const hostAvatarHtml = hostAvatar
@@ -1059,12 +1076,20 @@
                             <i class="fa-solid fa-map-location-dot w-4 text-center text-hp-coral shrink-0 mt-0.5"></i>
                             <span class="leading-relaxed">${escapeHtml(location)}</span>
                         </li>
-                        <li class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-globe w-4 text-center text-hp-coral shrink-0"></i>
-                            <select data-action="change->dashboard#changeBookingTimezone"
-                                class="flex-1 min-w-0 bg-hp-bgLight border border-hp-border rounded-lg px-2 py-1.5 text-xs font-semibold text-hp-dark focus:outline-none focus:border-hp-coral">
-                                ${tzOptions}
-                            </select>
+                        <li class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-globe w-4 text-center text-hp-coral shrink-0"></i>
+                                <select data-action="change->dashboard#changeBookingTimezone"
+                                    class="flex-1 min-w-0 bg-hp-bgLight border border-hp-border rounded-lg px-2 py-1.5 text-xs font-semibold text-hp-dark focus:outline-none focus:border-hp-coral">
+                                    ${tzOptions}
+                                </select>
+                            </div>
+                            ${showCustomTimezone ? `
+                                <input type="text" data-action="input->dashboard#changeBookingTimezoneCustom"
+                                    value="${escapeHtml(customTimezone)}"
+                                    placeholder="${isZh ? '輸入時區，如 Pacific/Honolulu' : 'Enter timezone, e.g. Pacific/Honolulu'}"
+                                    class="w-full bg-hp-bgLight border border-hp-border rounded-lg px-2 py-1.5 text-xs font-semibold text-hp-dark focus:outline-none focus:border-hp-coral">
+                            ` : ''}
                         </li>
                     </ul>
                 </div>
@@ -1137,6 +1162,7 @@
 
     global.ExperienceDetailsAPI = {
         FIXTURES,
+        BOOKING_TIMEZONE_OTHER,
         fetchDetails,
         localizePayload,
         renderPanel,
