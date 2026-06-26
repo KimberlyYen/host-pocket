@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>房東設定 · 在地精選 · host-pocket</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -44,46 +47,36 @@
     <main class="max-w-3xl mx-auto p-5 space-y-4 pb-16"
           data-controller="host-settings"
           data-host-settings-listing-selector-outlet="#listing-selector-panel"
-          data-host-settings-content-preset-picker-outlet="#content-preset-picker"
           data-host-settings-host-preview-outlet="#host-preview-drawer"
-          data-action="listing-selector:load->host-settings#loadListingFromEvent content-preset-picker:imported->host-settings#importPresetFromEvent content-preset-picker:error->host-settings#showPresetError">
+          data-action="listing-selector:load->host-settings#loadListingFromEvent host-settings:attraction-selected->host-settings#attractionSelected">
 
-        <!-- partial: listing_selector (Rails _listing_selector.html.erb equivalent) -->
-        <section id="listing-selector-panel" class="hp-card hp-card--stack" data-controller="listing-selector">
-            <div>
-                <label for="listingIdInput" class="block text-[10px] font-bold uppercase tracking-wider text-hp-muted mb-1.5">房源代碼 / Listing ID</label>
-                <div class="flex flex-wrap gap-2">
-                    <input id="listingIdInput" type="text" placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
-                           data-listing-selector-target="input"
-                           data-action="keydown.enter->listing-selector#load"
-                           class="flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
-                    <button type="button" data-action="click->listing-selector#load"
-                            class="px-4 py-2.5 rounded-xl bg-hp-dark text-white text-xs font-bold hover:bg-hp-dark/90 transition">
-                        載入
-                    </button>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-3">
-                    <span class="text-[10px] text-hp-muted w-full">示範主題：</span>
-                    <button type="button" data-demo-id="TAIPEI-CITY" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">台北</button>
-                    <button type="button" data-demo-id="UK-LONDON" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">倫敦</button>
-                    <button type="button" data-demo-id="VILNIUS-OLDTOWN" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">維爾紐斯</button>
-                    <button type="button" data-demo-id="RIO-COPACABANA" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">里約</button>
-                </div>
-                <!-- partial: content_preset_picker -->
-                <div id="content-preset-picker" data-controller="content-preset-picker" class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-hp-border/70">
-                    <span class="text-[10px] text-hp-muted w-full">內容範本（一鍵帶入，與上方示範主題不同）：</span>
-                    <button type="button" data-content-preset-picker-target="button" data-preset-id="TAIPEI-CITY" data-action="click->content-preset-picker#import" aria-pressed="false" class="hp-preset-btn px-2.5 py-1 rounded-lg border border-hp-coral/30 bg-hp-coral/5 text-[10px] font-bold text-hp-coral hover:bg-hp-coral/10 transition disabled:opacity-50 aria-pressed:bg-hp-coral/15 aria-pressed:border-hp-coral/50">台北範本</button>
-                    <button type="button" data-content-preset-picker-target="button" data-preset-id="UK-LONDON" data-action="click->content-preset-picker#import" aria-pressed="false" class="hp-preset-btn px-2.5 py-1 rounded-lg border border-hp-coral/30 bg-hp-coral/5 text-[10px] font-bold text-hp-coral hover:bg-hp-coral/10 transition disabled:opacity-50 aria-pressed:bg-hp-coral/15 aria-pressed:border-hp-coral/50">倫敦範本</button>
-                    <button type="button" data-content-preset-picker-target="button" data-preset-id="VILNIUS-OLDTOWN" data-action="click->content-preset-picker#import" aria-pressed="false" class="hp-preset-btn px-2.5 py-1 rounded-lg border border-hp-coral/30 bg-hp-coral/5 text-[10px] font-bold text-hp-coral hover:bg-hp-coral/10 transition disabled:opacity-50 aria-pressed:bg-hp-coral/15 aria-pressed:border-hp-coral/50">維爾紐斯範本</button>
-                    <button type="button" data-content-preset-picker-target="button" data-preset-id="RIO-COPACABANA" data-action="click->content-preset-picker#import" aria-pressed="false" class="hp-preset-btn px-2.5 py-1 rounded-lg border border-hp-coral/30 bg-hp-coral/5 text-[10px] font-bold text-hp-coral hover:bg-hp-coral/10 transition disabled:opacity-50 aria-pressed:bg-hp-coral/15 aria-pressed:border-hp-coral/50">里約範本</button>
-                </div>
+        <!-- partial: host_settings/listing_selector -->
+        <section id="listing-selector-panel" class="hp-card hp-card--stack hp-card--panel" data-controller="listing-selector">
+            <h2 class="hp-card__title"><i class="fa-solid fa-sliders text-hp-coral"></i> 選擇房源</h2>
+            <label for="listingIdInput" class="block text-[10px] font-bold uppercase tracking-wider text-hp-muted mb-1.5">房源代碼 / Listing ID</label>
+            <div class="flex flex-wrap gap-2">
+                <input id="listingIdInput" type="text" placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
+                       data-listing-selector-target="input"
+                       data-action="keydown.enter->listing-selector#load"
+                       class="flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
+                <button type="button" data-action="click->listing-selector#load"
+                        class="px-4 py-2.5 rounded-xl bg-hp-dark text-white text-xs font-bold hover:bg-hp-dark/90 transition">
+                    載入
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-3">
+                <span class="text-[10px] text-hp-muted w-full">示範主題：</span>
+                <button type="button" data-demo-id="TAIPEI-CITY" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">台北</button>
+                <button type="button" data-demo-id="UK-LONDON" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">倫敦</button>
+                <button type="button" data-demo-id="VILNIUS-OLDTOWN" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">維爾紐斯</button>
+                <button type="button" data-demo-id="RIO-COPACABANA" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">里約</button>
             </div>
         </section>
 
         <turbo-frame id="host_settings_form"
                      data-host-settings-target="formFrame"
-                     data-action="turbo:frame-load->host-settings#formFrameLoaded turbo:frame-missing->host-settings#handleFrameMissing">
-            <div class="hp-card p-6 text-center text-xs text-hp-muted" aria-busy="true">載入設定中…</div>
+                     data-action="turbo:frame-missing->host-settings#handleFrameMissing turbo:frame-load->host-settings#handleFrameLoad">
+            <div class="hp-card hp-card--stack hp-card--panel p-6 text-center text-xs text-hp-muted" aria-busy="true">載入設定中…</div>
         </turbo-frame>
 
         <p class="text-[10px] text-hp-muted leading-relaxed px-1">
@@ -117,10 +110,103 @@
         </aside>
     </div>
 
+    <div id="attraction-picker-modal"
+         data-controller="attraction-picker"
+         data-action="keydown@window->attraction-picker#closeOnEscape"
+         data-attraction-picker-target="modal"
+         class="hp-attraction-picker"
+         aria-hidden="true">
+        <div class="hp-attraction-picker__backdrop" data-attraction-picker-target="backdrop" data-action="click->attraction-picker#closeOnBackdrop"></div>
+        <div class="hp-attraction-picker__panel" role="dialog" aria-modal="true" aria-labelledby="attractionPickerTitle">
+            <header class="hp-attraction-picker__header">
+                <div class="min-w-0">
+                    <h2 id="attractionPickerTitle" data-attraction-picker-target="title" class="text-xs font-black">快速選擇景點</h2>
+                    <p data-attraction-picker-target="subtitle" class="text-[10px] text-hp-muted mt-0.5 truncate"></p>
+                </div>
+                <button type="button" data-action="click->attraction-picker#close" class="shrink-0 w-9 h-9 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-hp-muted hover:text-hp-coral transition" aria-label="關閉">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </header>
+            <div class="hp-attraction-picker__body">
+                <p data-attraction-picker-target="empty" class="hidden text-xs text-hp-muted text-center py-8">此 Listing 尚無景點範本</p>
+                <div data-attraction-picker-target="list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .field-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8C807A; }
         .field-input { width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.75rem; border: 1px solid #EBE5DF; font-size: 12px; }
         .field-input:focus { outline: none; border-color: #FF5B3E; }
+        .field-input--readonly,
+        .field-input:read-only {
+            background: #FAF8F5;
+            color: #8C807A;
+            cursor: not-allowed;
+        }
+        .field-input--readonly:focus,
+        .field-input:read-only:focus { border-color: #EBE5DF; }
+
+        .hp-file-picker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #EBE5DF;
+            background: white;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1F1A18;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+        .hp-file-picker:hover { border-color: #FF5B3E; }
+        .hp-file-picker--ghost {
+            background: #FAF8F5;
+            color: #8C807A;
+        }
+        .hp-file-picker--ghost:hover { color: #FF5B3E; }
+
+        .hp-pick-collapse > summary.hp-pick-collapse__summary {
+            align-items: center;
+            padding-bottom: 0.25rem;
+        }
+        .hp-card > .hp-pick-collapse {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+        .hp-pick-collapse__thumb {
+            position: relative;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.625rem;
+            border: 1px solid #EBE5DF;
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(31, 26, 24, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hp-pick-collapse__thumb-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .hp-pick-collapse__thumb-img.is-loaded {
+            opacity: 1;
+        }
+        .hp-pick-collapse:not([open]) .hp-collapse__body {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: 0;
+        }
 
         .hp-preview-drawer { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
         .hp-preview-drawer.is-open { pointer-events: auto; }
@@ -153,6 +239,45 @@
             box-shadow: 0 8px 24px rgba(31, 26, 24, 0.08);
         }
         body.hp-preview-open { overflow: hidden; }
+
+        .hp-pick-header { margin-bottom: 0.25rem; }
+
+        .hp-attraction-picker { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+        .hp-attraction-picker.is-open { pointer-events: auto; }
+        .hp-attraction-picker__backdrop {
+            position: absolute; inset: 0; background: rgba(31, 26, 24, 0.4);
+            opacity: 0; transition: opacity 0.25s ease;
+        }
+        .hp-attraction-picker.is-open .hp-attraction-picker__backdrop { opacity: 1; }
+        .hp-attraction-picker__panel {
+            position: absolute; left: 50%; top: 50%;
+            width: min(420px, calc(100vw - 2rem));
+            max-height: min(80vh, 640px);
+            background: #FAF8F5;
+            border: 1px solid #EBE5DF;
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 48px rgba(31, 26, 24, 0.18);
+            display: flex; flex-direction: column;
+            transform: translate(-50%, -50%) scale(0.96);
+            opacity: 0;
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+        }
+        .hp-attraction-picker.is-open .hp-attraction-picker__panel {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .hp-attraction-picker__header {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
+            padding: 1rem 1rem 0.75rem;
+            background: white;
+            border-bottom: 1px solid #EBE5DF;
+            border-radius: 1.25rem 1.25rem 0 0;
+        }
+        .hp-attraction-picker__body {
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+        body.hp-attraction-picker-open { overflow: hidden; }
     </style>
 
     <script src="/js/guide-defaults.js"></script>
@@ -160,10 +285,12 @@
     <script src="/js/listing-settings-api.js"></script>
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/host-settings-presets.js"></script>
+    <script src="/js/mock/attractions-by-listing.js"></script>
     <script src="/js/partials-client.js"></script>
     <script src="/js/controllers/application.js"></script>
     <script src="/js/controllers/listing_selector_controller.js"></script>
-    <script src="/js/controllers/content_preset_picker_controller.js"></script>
+    <script src="/js/controllers/experience_pick_controller.js"></script>
+    <script src="/js/controllers/attraction_picker_controller.js"></script>
     <script src="/js/controllers/host_preview_controller.js"></script>
     <script src="/js/controllers/host_settings_controller.js"></script>
 </body>

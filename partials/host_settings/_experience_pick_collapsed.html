@@ -1,0 +1,73 @@
+{{# components/hp_card_section}}
+<details class="hp-collapse hp-pick-collapse" data-controller="experience-pick" data-experience-pick-index-value="{{n}}">
+    <summary class="hp-collapse__trigger hp-pick-collapse__summary">
+        <span class="hp-pick-collapse__peek flex items-center gap-3 min-w-0 flex-1">
+            <span class="hp-pick-collapse__thumb shrink-0">
+                <img data-experience-pick-target="peekImg" alt="" class="hp-pick-collapse__thumb-img">
+                <i data-experience-pick-target="peekPlaceholder" class="fa-regular fa-image text-hp-muted/35 text-sm" aria-hidden="true"></i>
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-star text-hp-coral"></i> 在地精選 {{n}}</span>
+                <span data-experience-pick-target="titlePeek" class="hp-collapse__hint line-clamp-1 mt-0.5">尚未設定</span>
+            </span>
+        </span>
+        <span class="hp-collapse__action" aria-hidden="true">
+            <span class="hp-collapse__label-expand">編輯</span>
+            <span class="hp-collapse__label-collapse">收合</span>
+            <i class="fa-solid fa-chevron-down hp-collapse__chevron"></i>
+        </span>
+    </summary>
+
+    <div class="hp-collapse__body">
+        <div class="flex justify-end mb-3">
+            <button type="button" class="shrink-0 px-2.5 py-1 rounded-lg border border-hp-coral/30 bg-hp-coral/5 text-[10px] font-bold text-hp-coral hover:bg-hp-coral/10 transition whitespace-nowrap"
+                    data-action="click->experience-pick#openPicker">
+                快速選擇景點
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">Airbnb 體驗 ID（選填）</span><input name="recExperienceId{{n}}" class="field-input font-mono" placeholder="3310245"></label>
+            <label class="block space-y-1"><span class="field-label">標題（繁中）</span><input name="recTitle{{n}}Zh" class="field-input" data-experience-pick-target="titleInput" data-action="input->experience-pick#syncPeek change->experience-pick#syncPeek"></label>
+            <label class="block space-y-1"><span class="field-label">Title (EN)</span><input name="recTitle{{n}}En" class="field-input"></label>
+            <div class="sm:col-span-2 space-y-1">
+                <span class="field-label">封面圖</span>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <div class="shrink-0 w-14 h-14 rounded-lg border border-hp-border bg-white overflow-hidden shadow-sm flex items-center justify-center">
+                        <img data-experience-pick-target="imgPreview" alt="" loading="lazy"
+                             class="w-full h-full object-cover hidden">
+                        <i data-experience-pick-target="imgPlaceholder" class="fa-regular fa-image text-hp-muted/35 text-base" aria-hidden="true"></i>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center min-w-0">
+                        <label class="hp-file-picker">
+                            <i class="fa-solid fa-image text-hp-coral text-[10px]" aria-hidden="true"></i>
+                            選擇圖片
+                            <input type="file" accept="image/*" class="sr-only"
+                                   data-experience-pick-target="imgFile"
+                                   data-action="change->experience-pick#pickImg">
+                        </label>
+                        <button type="button"
+                                data-experience-pick-target="imgClearBtn"
+                                data-action="click->experience-pick#clearImg"
+                                class="hidden hp-file-picker hp-file-picker--ghost">
+                            移除
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="recImg{{n}}" data-experience-pick-target="imgInput"
+                       data-action="input->experience-pick#syncImgPreview change->experience-pick#syncImgPreview">
+            </div>
+            <label class="block space-y-1"><span class="field-label">標籤（繁中）</span><input name="recBadge{{n}}Zh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Badge (EN)</span><input name="recBadge{{n}}En" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">距離（繁中）</span><input name="recDist{{n}}Zh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Distance (EN)</span><input name="recDist{{n}}En" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">價格（繁中）</span><input name="recPrice{{n}}Zh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Price (EN)</span><input name="recPrice{{n}}En" class="field-input"></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東推薦文案（繁中）</span><textarea name="desc{{n}}Zh" rows="2" class="field-input"></textarea></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">Description (EN)</span><textarea name="desc{{n}}En" rows="2" class="field-input"></textarea></label>
+            <label class="block space-y-1"><span class="field-label">地圖距離（繁中）</span><input name="recExplorerDist{{n}}Zh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Map distance (EN)</span><input name="recExplorerDist{{n}}En" class="field-input"></label>
+        </div>
+    </div>
+</details>
+{{/ components/hp_card_section}}

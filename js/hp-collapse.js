@@ -130,7 +130,7 @@
                 border: 1px solid #EBE5DF;
                 background: #FAF8F5;
                 font-size: 12px;
-                color: #1F1A18;
+                color: #8C807A;
                 min-height: 2.5rem;
                 display: flex;
                 align-items: center;

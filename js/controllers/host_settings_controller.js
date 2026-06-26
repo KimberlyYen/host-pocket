@@ -9,14 +9,13 @@
     global.registerHostSettingsController('host-settings', class extends Controller {
         static targets = ['formFrame', 'form', 'statusMsg', 'errorMsg', 'basicInfoListingId'];
 
-        static outlets = ['listingSelector', 'contentPresetPicker', 'hostPreview'];
+        static outlets = ['listingSelector', 'hostPreview'];
 
         static values = {
             initialListing: { type: String, default: '' }
         };
 
         connect() {
-            this.lastImportedPreset = null;
             this.reloadFormFrame(this.resolveInitialListing());
         }
 
@@ -41,6 +40,18 @@
         async handleFrameMissing(event) {
             event.preventDefault();
             await this.renderFormClientSide(this.pendingListingId || this.resolveInitialListing());
+        }
+
+        async handleFrameLoad() {
+            const listingId = this.pendingListingId || this.resolveInitialListing();
+            try {
+                const data = await this.loadFormData(listingId);
+                requestAnimationFrame(() => {
+                    if (this.hasFormTarget) this.fillForm(data);
+                });
+            } catch (error) {
+                console.warn('[host-settings] frame load sync failed', error);
+            }
         }
 
         async loadFormData(listingId) {
@@ -92,16 +103,11 @@
                     if (this.hasBasicInfoListingIdTarget) {
                         this.basicInfoListingIdTarget.textContent = id;
                     }
-                    this.formFrameLoaded();
                 });
             } catch (error) {
                 console.error('[host-settings] client form render failed', error);
                 this.formFrameTarget.innerHTML = `<div class="hp-card p-6 text-center text-xs text-red-600">載入失敗：${error?.message || '未知錯誤'}</div>`;
             }
-        }
-
-        formFrameLoaded() {
-            this.lastImportedPreset = null;
         }
 
         getListingId() {
@@ -112,34 +118,11 @@
             void this.loadListing(event.detail?.listingId);
         }
 
-        importPresetFromEvent(event) {
-            void this.applyImportedPreset(event.detail?.preset);
-        }
-
-        showPresetError(event) {
-            console.error(event.detail?.error);
-            this.showError(event.detail?.error?.message || '帶入範本失敗');
-        }
-
-        async applyImportedPreset(preset, options = {}) {
-            if (!preset) return;
-
-            const id = global.HostGuideSettings.normalizeListingId(preset.id);
-            if (this.hasListingSelectorOutlet) this.listingSelectorOutlet.setValue(id);
-            this.lastImportedPreset = { ...preset.data };
-
-            if (this.hasFormTarget) {
-                this.fillForm(preset.data);
+        attractionSelected(event) {
+            const { index, title } = event.detail || {};
+            if (title) {
+                this.showStatus(`已帶入景點至在地精選 ${index}：${title}`);
             }
-            if (this.hasContentPresetPickerOutlet) this.contentPresetPickerOutlet.setSelected(id);
-
-            if (options.autoSave) {
-                await global.HostGuideSettings.save(id, this.readForm());
-                this.showStatus(`已帶入並儲存範本：${preset.label}`);
-                return;
-            }
-
-            this.showStatus(`已帶入範本：${preset.label}（記得按「儲存設定」）`);
         }
 
         showStatus(text) {
@@ -168,10 +151,16 @@
             if (galleryEl) {
                 galleryEl.value = global.HostGuideSettings.galleryToText(data.roomGallery);
             }
+
+            this.formTarget.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            this.formTarget.dispatchEvent(new CustomEvent('host-settings:form-filled', { bubbles: true }));
         }
 
         readForm() {
-            const data = this.lastImportedPreset ? { ...this.lastImportedPreset } : {};
+            const data = {};
 
             if (!this.hasFormTarget) return data;
 
@@ -207,7 +196,6 @@
             }
 
             if (this.hasListingSelectorOutlet) this.listingSelectorOutlet.setValue(id);
-            if (this.hasContentPresetPickerOutlet) this.contentPresetPickerOutlet.clearSelected();
             this.reloadFormFrame(id);
         }
 

@@ -1,0 +1,21 @@
+<section id="listing-selector-panel" class="hp-card hp-card--stack hp-card--panel" data-controller="listing-selector">
+    <h2 class="hp-card__title"><i class="fa-solid fa-sliders text-hp-coral"></i> 選擇房源</h2>
+    <label for="listingIdInput" class="block text-[10px] font-bold uppercase tracking-wider text-hp-muted mb-1.5">房源代碼 / Listing ID</label>
+    <div class="flex flex-wrap gap-2">
+        <input id="listingIdInput" type="text" placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
+               data-listing-selector-target="input"
+               data-action="keydown.enter->listing-selector#load"
+               class="flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
+        <button type="button" data-action="click->listing-selector#load"
+                class="px-4 py-2.5 rounded-xl bg-hp-dark text-white text-xs font-bold hover:bg-hp-dark/90 transition">
+            載入
+        </button>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3">
+        <span class="text-[10px] text-hp-muted w-full">示範主題：</span>
+        <button type="button" data-demo-id="TAIPEI-CITY" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">台北</button>
+        <button type="button" data-demo-id="UK-LONDON" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">倫敦</button>
+        <button type="button" data-demo-id="VILNIUS-OLDTOWN" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">維爾紐斯</button>
+        <button type="button" data-demo-id="RIO-COPACABANA" data-action="click->listing-selector#selectDemo" class="px-2.5 py-1 rounded-lg border border-hp-border bg-hp-bgLight text-[10px] font-bold hover:border-hp-coral">里約</button>
+    </div>
+</section>

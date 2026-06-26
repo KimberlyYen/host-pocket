@@ -3,7 +3,7 @@ const path = require('path');
 
 const PARTIALS_ROOT = path.join(__dirname, '..', 'partials');
 const INCLUDE_RE = /\{\{>\s*([\w/]+)(?:\s+([^}]+))?\s*\}\}/g;
-const BLOCK_RE = /\{\{#\s*([\w/]+)\s*\}\}([\s\S]*?)\{\{\/\s*\1\s*\}\}/g;
+const BLOCK_RE = /\{\{#\s*([\w/]+)(?:\s+([^}]+))?\s*\}\}([\s\S]*?)\{\{\/\s*\1\s*\}\}/g;
 const LOCAL_RE = /\{\{(\w+)\}\}/g;
 const RAW_LOCALS = new Set(['yield']);
 
@@ -43,9 +43,10 @@ function parseIncludeParams(params) {
 }
 
 function applyLocals(html, locals) {
+    const resolved = { variant: 'panel', ...locals };
     return html.replace(LOCAL_RE, (match, key) => {
-        if (!(key in locals)) return match;
-        const value = locals[key] ?? '';
+        if (!(key in resolved)) return match;
+        const value = resolved[key] ?? '';
         if (RAW_LOCALS.has(key)) return String(value);
         return escapeHtml(value);
     });
@@ -59,9 +60,10 @@ function processIncludes(html, locals, stack) {
 }
 
 function processBlocks(html, locals, stack) {
-    return html.replace(BLOCK_RE, (_, partialName, inner) => {
+    return html.replace(BLOCK_RE, (_, partialName, params, inner) => {
         const processedInner = processIncludes(inner, locals, stack);
-        return renderPartial(partialName, { ...locals, yield: processedInner }, stack);
+        const blockLocals = { ...locals, ...parseIncludeParams(params), yield: processedInner };
+        return renderPartial(partialName, blockLocals, stack);
     });
 }
 

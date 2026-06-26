@@ -63,6 +63,30 @@
             .hp-card--stack > :not([hidden]) ~ :not([hidden]) {
                 margin-top: 1rem;
             }
+            .hp-card--panel {
+                border-color: #EBE5DF;
+                background-color: #fff;
+            }
+            .hp-card--pick {
+                border-color: rgba(255, 91, 62, 0.22);
+                border-left-width: 3px;
+                border-left-color: rgba(255, 91, 62, 0.55);
+                background: linear-gradient(135deg, rgba(255, 91, 62, 0.04) 0%, #fff 2.5rem);
+            }
+            .hp-card__title {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 12px;
+                font-weight: 900;
+                color: #1F1A18;
+                margin-bottom: 0.25rem;
+            }
+            .hp-card__title--pick {
+                padding-bottom: 0.75rem;
+                border-bottom: 1px solid rgba(255, 91, 62, 0.12);
+                margin-bottom: 0.75rem;
+            }
         `;
         doc.head.appendChild(style);
     }

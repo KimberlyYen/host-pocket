@@ -1,7 +1,3 @@
-<!--
-  HP Card — Rails 8: render "components/hp_card" do ... end
-  Wrap content with the hp_card block helper in section partials.
--->
-<section class="hp-card hp-card--stack">
+<section class="hp-card hp-card--stack hp-card--{{variant}}">
 {{yield}}
 </section>

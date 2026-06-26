@@ -1,14 +1,16 @@
-{{# components/hp_card}}
-    <h2 class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</h2>
-    <div class="hp-collapse__peek grid grid-cols-1 sm:grid-cols-2 gap-3">
+{{# components/hp_card variant=panel}}
+    <h2 class="hp-card__title"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</h2>
+    <div class="hp-collapse__peek grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">
         <div class="block space-y-1">
             <span class="field-label">房源代碼 / Listing ID</span>
             <p data-host-settings-target="basicInfoListingId" class="hp-collapse__peek-value font-mono uppercase" aria-live="polite">{{listingId}}</p>
         </div>
         <label class="block space-y-1">
             <span class="field-label">房源名稱（繁中）</span>
-            <input name="roomTitleZh" class="field-input">
+            <input name="roomTitleZh" class="field-input field-input--readonly" readonly tabindex="-1" aria-readonly="true">
         </label>
     </div>
-    {{> host_settings/basic_info_details}}
+    <div class="hidden" aria-hidden="true">
+        {{> host_settings/basic_info_details}}
+    </div>
 {{/ components/hp_card}}
