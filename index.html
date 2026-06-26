@@ -880,9 +880,10 @@
                                         <input type="email" id="expBookingConfirmEmail" data-dashboard-target="expBookingConfirmEmail"
                                                inputmode="email" autocomplete="email"
                                                placeholder="you@example.com"
+                                               data-action="input->dashboard#validateBookingEmail blur->dashboard#validateBookingEmail"
                                                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
                                     </div>
-                                    <p class="mt-1.5 text-[10px] text-hp-muted leading-relaxed">
+                                    <p data-dashboard-target="expBookingConfirmEmailHint" class="mt-1.5 text-[10px] text-hp-muted leading-relaxed" aria-live="polite">
                                         <span data-global-lang="zh">確認後將開啟郵件 app，請寄出預定確認信</span>
                                         <span data-global-lang="en" class="hidden">Confirming opens your mail app — review and send the booking email</span>
                                     </p>
@@ -2081,7 +2082,7 @@
                 "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -2826,6 +2827,7 @@
                 }
                 if (this.hasExpBookingConfirmEmailTarget) {
                     this.expBookingConfirmEmailTarget.value = '';
+                    this.resetBookingEmailValidation();
                 }
                 this.setBookingConfirmFeedback(null);
                 this.pendingBookingSlot = slot;
@@ -2880,6 +2882,89 @@
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
             }
 
+            bookingEmailHintCopy(key) {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const copy = {
+                    helper: {
+                        zh: '確認後將開啟郵件 app，請寄出預定確認信',
+                        en: 'Confirming opens your mail app — review and send the booking email'
+                    },
+                    empty: {
+                        zh: '請輸入電子郵件',
+                        en: 'Please enter your email'
+                    },
+                    invalid: {
+                        zh: '請輸入有效的電子郵件',
+                        en: 'Enter a valid email address'
+                    }
+                };
+                return copy[key]?.[isZh ? 'zh' : 'en'] || '';
+            }
+
+            resetBookingEmailValidation() {
+                this.bookingEmailTouched = false;
+                if (!this.hasExpBookingConfirmEmailTarget) return;
+                const input = this.expBookingConfirmEmailTarget;
+                input.classList.remove('border-red-500', 'focus:border-red-500');
+                input.classList.add('border-hp-border');
+                input.setAttribute('aria-invalid', 'false');
+                if (this.hasExpBookingConfirmEmailHintTarget) {
+                    const hint = this.expBookingConfirmEmailHintTarget;
+                    hint.textContent = this.bookingEmailHintCopy('helper');
+                    hint.classList.remove('text-red-600', 'font-medium');
+                    hint.classList.add('text-hp-muted');
+                }
+            }
+
+            validateBookingEmail() {
+                if (!this.hasExpBookingConfirmEmailTarget) return true;
+                const input = this.expBookingConfirmEmailTarget;
+                const email = input.value.trim();
+                const touched = this.bookingEmailTouched === true;
+                this.bookingEmailTouched = true;
+
+                if (!email) {
+                    if (!touched) {
+                        this.resetBookingEmailValidation();
+                        this.bookingEmailTouched = false;
+                        return false;
+                    }
+                    this.setBookingEmailFieldState('empty');
+                    return false;
+                }
+
+                if (!this.isValidBookingEmail(email)) {
+                    this.setBookingEmailFieldState('invalid');
+                    return false;
+                }
+
+                this.setBookingEmailFieldState('valid');
+                return true;
+            }
+
+            setBookingEmailFieldState(state) {
+                if (!this.hasExpBookingConfirmEmailTarget || !this.hasExpBookingConfirmEmailHintTarget) return;
+                const input = this.expBookingConfirmEmailTarget;
+                const hint = this.expBookingConfirmEmailHintTarget;
+
+                if (state === 'valid') {
+                    input.classList.remove('border-red-500', 'focus:border-red-500');
+                    input.classList.add('border-hp-border');
+                    input.setAttribute('aria-invalid', 'false');
+                    hint.textContent = this.bookingEmailHintCopy('helper');
+                    hint.classList.remove('text-red-600', 'font-medium');
+                    hint.classList.add('text-hp-muted');
+                    return;
+                }
+
+                input.classList.remove('border-hp-border');
+                input.classList.add('border-red-500', 'focus:border-red-500');
+                input.setAttribute('aria-invalid', 'true');
+                hint.textContent = this.bookingEmailHintCopy(state === 'empty' ? 'empty' : 'invalid');
+                hint.classList.remove('text-hp-muted');
+                hint.classList.add('text-red-600', 'font-medium');
+            }
+
             closeExpBookingConfirm(animate = true) {
                 if (!this.hasExpBookingConfirmOverlayTarget) return;
                 const hide = () => {
@@ -2891,6 +2976,7 @@
                     this.pendingBookingSlot = null;
                     if (this.hasExpBookingConfirmEmailTarget) {
                         this.expBookingConfirmEmailTarget.value = '';
+                        this.resetBookingEmailValidation();
                     }
                     this.setBookingConfirmFeedback(null);
                 };
@@ -2914,12 +3000,9 @@
                 const email = this.hasExpBookingConfirmEmailTarget
                     ? this.expBookingConfirmEmailTarget.value.trim()
                     : '';
+                this.bookingEmailTouched = true;
                 if (!email || !this.isValidBookingEmail(email)) {
-                    this.triggerToast(
-                        isZh ? '請輸入有效的電子郵件' : 'Enter a valid email',
-                        isZh ? '確認後將以此 Email 開啟郵件 app' : 'Your mail app will open with this address.',
-                        'info'
-                    );
+                    this.setBookingEmailFieldState(!email ? 'empty' : 'invalid');
                     if (this.hasExpBookingConfirmEmailTarget) {
                         this.expBookingConfirmEmailTarget.focus();
                     }
