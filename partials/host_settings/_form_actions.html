@@ -1,0 +1,13 @@
+<div class="flex flex-wrap items-center gap-3 sticky bottom-4 bg-white/95 backdrop-blur border border-hp-border rounded-2xl p-4 shadow-lg">
+    <button type="submit" class="px-4 py-2.5 rounded-xl bg-hp-coral hover:bg-hp-coral/90 text-white text-xs font-bold transition active:scale-[0.98]">
+        儲存設定
+    </button>
+    <button type="button" data-action="click->host-settings#preview" class="px-4 py-2.5 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-xs font-bold transition">
+        預覽 App
+    </button>
+    <button type="button" data-action="click->host-settings#reset" class="px-4 py-2.5 rounded-xl border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 text-xs font-bold transition">
+        清除自訂
+    </button>
+    <p data-host-settings-target="statusMsg" class="text-xs font-bold text-emerald-600 {{statusMsgHidden}} w-full">{{statusMsg}}</p>
+    <p data-host-settings-target="errorMsg" class="text-xs font-bold text-red-600 {{errorMsgHidden}} w-full">{{errorMsg}}</p>
+</div>

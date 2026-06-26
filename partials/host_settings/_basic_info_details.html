@@ -1,0 +1,31 @@
+<details class="hp-collapse">
+    <summary class="hp-collapse__trigger">
+        <span class="hp-collapse__leading min-w-0">
+            <span class="hp-collapse__hint">Wi‑Fi、照片、房東資料等</span>
+        </span>
+        <span class="hp-collapse__action" aria-hidden="true">
+            <span class="hp-collapse__label-expand">展開</span>
+            <span class="hp-collapse__label-collapse">收合</span>
+            <i class="fa-solid fa-chevron-down hp-collapse__chevron"></i>
+        </span>
+    </summary>
+    <div class="hp-collapse__body hp-card--stack">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="block space-y-1"><span class="field-label">Room title (EN)</span><input name="roomTitleEn" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">房東顯示名（繁中）</span><input name="hostNameZh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Host name (EN)</span><input name="hostNameEn" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">地點說明（繁中）</span><input name="locationZh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Location (EN)</span><input name="locationEn" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">標籤（繁中）</span><input name="listingLabelZh" class="field-input"></label>
+            <label class="block space-y-1"><span class="field-label">Label (EN)</span><input name="listingLabelEn" class="field-input"></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">Wi‑Fi</span><input name="wifi" class="field-input" placeholder="NetworkName / pass: xxxx"></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">電子鎖說明（繁中）</span><input name="lockZh" class="field-input"></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">Lock instructions (EN)</span><input name="lockEn" class="field-input"></label>
+            <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東 Email（選填，mailto 用）</span><input name="hostEmail" type="email" class="field-input"></label>
+        </div>
+        <label class="block space-y-1">
+            <span class="field-label">房源輪播照片 URL（每行一張）</span>
+            <textarea name="roomGalleryText" rows="3" class="field-input font-mono text-[11px]" placeholder="https://..."></textarea>
+        </label>
+    </div>
+</details>

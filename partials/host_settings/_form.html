@@ -1,0 +1,14 @@
+<form data-host-settings-target="form"
+      class="space-y-4"
+      action="/host/settings/{{listingId}}"
+      method="post"
+      data-turbo-frame="host_settings_form"
+      data-action="turbo:submit-start->host-settings#beforeSubmit">
+    <input type="hidden" name="_method" value="patch">
+    {{> host_settings/sections/basic_info}}
+    {{> host_settings/sections/experience_pick_1}}
+    {{> host_settings/sections/experience_pick_2}}
+    {{> host_settings/sections/experience_pick_3}}
+    {{> host_settings/sections/experience_pick_4}}
+    {{> host_settings/form_actions}}
+</form>

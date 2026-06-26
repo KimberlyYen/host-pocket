@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/host/settings/:listingId/form", "destination": "/api/host/settings/:listingId/form" },
+    { "source": "/host/settings/:listingId", "destination": "/api/host/settings/:listingId" },
     { "source": "/guide/:listing/experience/:experience", "destination": "/index.html" },
     { "source": "/guide/:listing", "destination": "/index.html" },
     { "source": "/guide/:path*/js/:file*", "destination": "/js/:file*" }

@@ -6,6 +6,7 @@ const { createBooking, isEmailConfigured } = require('./booking');
 const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
 const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = require('./smtp-config');
 const { handleListingSettings } = require('./listing-settings-handler');
+const { handleFormGet, handleFormPost } = require('./host-settings-form');
 const { isDatabaseConfigured } = require('./listing-settings');
 const searchExperiences = require('../api/search/experiences');
 const searchExperienceDetails = require('../api/search/experience-details');
@@ -28,6 +29,7 @@ app.use(cors({
     }
 }));
 app.use(express.json({ limit: '32kb' }));
+app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
 app.get('/api/health', (_req, res) => {
     const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL);
@@ -95,6 +97,14 @@ app.post('/api/smtp-config', (req, res) => {
             error: error?.message || 'Failed to save SMTP config'
         });
     }
+});
+
+app.get('/host/settings/:listingId/form', (req, res) => {
+    void handleFormGet(req, res);
+});
+
+app.post('/host/settings/:listingId', (req, res) => {
+    void handleFormPost(req, res);
 });
 
 app.get('/guide/:listing/experience/:experience', (_req, res) => {
