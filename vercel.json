@@ -1,4 +1,12 @@
 {
+  "functions": {
+    "api/host/settings/[listingId]/form.js": {
+      "includeFiles": "{partials/**,js/presets/**}"
+    },
+    "api/host/settings/[listingId].js": {
+      "includeFiles": "{partials/**,js/presets/**}"
+    }
+  },
   "rewrites": [
     { "source": "/host/settings/:listingId/form", "destination": "/api/host/settings/:listingId/form" },
     { "source": "/host/settings/:listingId", "destination": "/api/host/settings/:listingId" },

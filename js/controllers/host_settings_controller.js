@@ -79,6 +79,7 @@
                 // preset optional for custom listing IDs
             }
 
+            global.HostGuideSettings.invalidateCache(id);
             const overrides = await global.HostGuideSettings.ensureLoaded(id);
             if (overrides) {
                 data = global.HostGuideSettings.merge(data, overrides);

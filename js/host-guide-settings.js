@@ -234,6 +234,10 @@
 
     function seedDemoListing(listingId, options = {}) {
         const id = normalizeListingId(listingId);
+        if (global.HP_MOCK_DATA === false) {
+            return getMerged(id);
+        }
+
         const demoIds = global.GuideDefaults?.DEMO_LISTING_IDS || [];
         if (!demoIds.includes(id)) return getMerged(id);
 
@@ -251,6 +255,11 @@
     }
 
     function seedAllDemoListings(options = {}) {
+        if (global.HP_MOCK_DATA === false) {
+            const demoIds = global.GuideDefaults?.DEMO_LISTING_IDS || [];
+            return demoIds.map((id) => getMerged(id));
+        }
+
         const demoIds = global.GuideDefaults?.DEMO_LISTING_IDS || [];
         return demoIds.map((id) => seedDemoListing(id, options));
     }

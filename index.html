@@ -1228,6 +1228,7 @@
             const id = GuideDefaults.ensureListing(
                 (listingId || hpResolveGuestListingId() || 'TAIPEI-CITY').trim().toUpperCase()
             );
+            if (window.HP_MOCK_DATA === false) return id;
             if (!window.HostGuideSettings || !GuideDefaults.DEMO_LISTING_IDS?.includes(id)) return id;
 
             try {
@@ -1250,6 +1251,15 @@
             const id = hpEnsureGuideSettingsStored(listingId);
             if (window.HostGuideSettings) {
                 return HostGuideSettings.getMerged(id);
+            }
+            return GuideDefaults.getBase(id);
+        }
+
+        async function hpLoadGuideSettingsDataAsync(listingId) {
+            const id = hpEnsureGuideSettingsStored(listingId);
+            if (window.HostGuideSettings) {
+                HostGuideSettings.invalidateCache(id);
+                return HostGuideSettings.getMergedAsync(id);
             }
             return GuideDefaults.getBase(id);
         }
@@ -1350,6 +1360,7 @@
 
         function hpSeedGuestDemoStorage(listingId) {
             if (hpIsHostPreviewMode()) return false;
+            if (window.HP_MOCK_DATA === false) return false;
 
             const id = GuideDefaults.ensureListing(
                 (listingId || hpResolveGuestListingId() || '').trim().toUpperCase()
@@ -1481,6 +1492,22 @@
             return true;
         }
 
+        async function hpHydrateGuestGuideDashboardAsync(listingId) {
+            const id = (listingId || hpResolveGuestListingId() || '').trim().toUpperCase();
+            if (!id) return false;
+
+            const root = document.querySelector('[data-screen="dashboard"]');
+            if (!root) return false;
+
+            const data = window.HP_MOCK_DATA === false
+                ? await hpLoadGuideSettingsDataAsync(id)
+                : getGuestListingData(id);
+            if (!data) return false;
+
+            hpApplyGuideDashboardData(root, data, id);
+            return true;
+        }
+
         function hpResolveGuestExperienceId() {
             const deep = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
                 || window.__hostPocketDeepLink;
@@ -1552,8 +1579,19 @@
         function hpScheduleGuestGuideHydration() {
             const id = hpResolveGuestListingId();
             if (!id) return;
-            hpSeedGuestDemoStorage(id);
+            if (window.HP_MOCK_DATA !== false) {
+                hpSeedGuestDemoStorage(id);
+            }
             hpCloseExperienceOverlayIfNoDeepLink();
+            if (window.HP_MOCK_DATA === false) {
+                void hpHydrateGuestGuideDashboardAsync(id).then(() => {
+                    hpScheduleGuestExperienceHydration();
+                }).catch(() => {
+                    hpHydrateGuestGuideDashboard(id);
+                    hpScheduleGuestExperienceHydration();
+                });
+                return;
+            }
             hpHydrateGuestGuideDashboard(id);
             HostGuideSettings?.ensureLoaded(id).then(() => {
                 hpHydrateGuestGuideDashboard(id);
@@ -1584,6 +1622,7 @@
 
         window.hpNavigateToGuideHome = hpNavigateToGuideHome;
         window.hpHydrateGuestGuideDashboard = hpHydrateGuestGuideDashboard;
+        window.hpHydrateGuestGuideDashboardAsync = hpHydrateGuestGuideDashboardAsync;
         window.hpLoadGuideSettingsData = hpLoadGuideSettingsData;
         window.hpSeedGuestDemoStorage = hpSeedGuestDemoStorage;
         window.hpBootGuestDeepLink = hpBootGuestDeepLink;
