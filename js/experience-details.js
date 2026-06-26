@@ -1649,6 +1649,101 @@
         return listing[`recExperienceId${recIndex}`] || null;
     }
 
+    function hasHostText(val) {
+        return val !== undefined && val !== null && String(val).trim() !== '';
+    }
+
+    function hostFirstName(listingData, isZh) {
+        const raw = isZh ? listingData?.hostNameZh : listingData?.hostNameEn;
+        if (!hasHostText(raw)) return '';
+        return isZh
+            ? String(raw).split(' ')[0]
+            : (String(raw).split("'")[0] || String(raw).split(' ')[0]);
+    }
+
+    /** Merge host listing_settings rec fields into experience detail payload (incl. i18n.zh). */
+    function applyHostListingOverrides(payload, listingData, recIndex, options = {}) {
+        if (!payload?.experience || !listingData) return payload;
+        const num = Number(recIndex);
+        if (num < 1 || num > 4) return payload;
+
+        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const pick = (zh, en, zhMode) => (zhMode ? (zh || en || '') : (en || zh || ''));
+
+        const titleZh = listingData[`recTitle${num}Zh`];
+        const titleEn = listingData[`recTitle${num}En`];
+        const descZh = listingData[`desc${num}Zh`];
+        const descEn = listingData[`desc${num}En`];
+        const priceZh = listingData[`recPrice${num}Zh`];
+        const priceEn = listingData[`recPrice${num}En`];
+        const badgeZh = listingData[`recBadge${num}Zh`];
+        const badgeEn = listingData[`recBadge${num}En`];
+        const distZh = listingData[`recExplorerDist${num}Zh`] || listingData[`recDist${num}Zh`];
+        const distEn = listingData[`recExplorerDist${num}En`] || listingData[`recDist${num}En`];
+        const recImg = listingData[`recImg${num}`];
+
+        const patchLayer = (layer, zhMode) => {
+            if (!layer) return;
+            const title = pick(titleZh, titleEn, zhMode);
+            const desc = pick(descZh, descEn, zhMode) || title;
+            const priceLabel = pick(priceZh, priceEn, zhMode);
+            const badge = pick(badgeZh, badgeEn, zhMode);
+            const dist = pick(distZh, distEn, zhMode);
+            const hostLead = hostFirstName(listingData, zhMode);
+
+            if (hasHostText(title)) layer.title = title;
+            if (hasHostText(desc)) layer.description = desc;
+            if (hasHostText(priceLabel)) {
+                layer.price = { ...(layer.price || {}), price_label: priceLabel, price: priceLabel };
+            }
+            if (hasHostText(dist)) {
+                layer.location = { ...(layer.location || {}), display_label: dist, summary: dist };
+            }
+            if (hasHostText(recImg)) {
+                layer.cover_image = recImg;
+                layer.media = [{ type: 'image', url: recImg }];
+            }
+            if (hasHostText(title) || hasHostText(desc)) {
+                layer.agenda = [{
+                    position: 1,
+                    title: hasHostText(title) ? title : layer.title,
+                    description: hasHostText(desc) ? desc : layer.description
+                }];
+            }
+            if (hasHostText(hostLead) || hasHostText(badge)) {
+                layer.highlights = [{
+                    type: 'PROFILE',
+                    name: hasHostText(hostLead)
+                        ? (zhMode ? `${hostLead} 帶隊` : `Hosted by ${hostLead}`)
+                        : (zhMode ? '房東精選' : 'Host pick'),
+                    description: badge || (hasHostText(desc) ? String(desc).slice(0, 64) : '')
+                }];
+            }
+            if (hasHostText(hostLead) || hasHostText(desc)) {
+                layer.host = {
+                    ...(layer.host || {}),
+                    ...(hasHostText(hostLead) ? { name: hostLead } : {}),
+                    ...(hasHostText(desc) ? { about: desc } : {}),
+                    tagline: zhMode ? '在地精選 · 房東' : 'Local pick · Host'
+                };
+            }
+        };
+
+        patchLayer(payload.experience, false);
+        if (payload.i18n?.zh) patchLayer(payload.i18n.zh, true);
+
+        if (hasHostText(hostFirstName(listingData, isZh)) || hasHostText(pick(descZh, descEn, isZh))) {
+            payload.host = {
+                ...(payload.host || {}),
+                ...(hasHostText(hostFirstName(listingData, isZh)) ? { name: hostFirstName(listingData, isZh) } : {}),
+                ...(hasHostText(pick(descZh, descEn, isZh)) ? { about: pick(descZh, descEn, isZh) } : {}),
+                tagline: isZh ? '在地精選 · 房東' : 'Local pick · Host'
+            };
+        }
+
+        return payload;
+    }
+
     global.ExperienceDetailsAPI = {
         FIXTURES,
         FIXTURES_STORAGE_KEY,
@@ -1674,6 +1769,7 @@
         renderShareSheet,
         initMediaPlayer,
         pauseMediaPlayer,
-        getExperienceIdForRec
+        getExperienceIdForRec,
+        applyHostListingOverrides
     };
 })(window);

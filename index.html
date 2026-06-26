@@ -273,6 +273,17 @@
             } catch (_) { /* ignore */ }
         })();
     </script>
+    <!-- Hotjar Tracking Code for Site 2833502 (name missing) -->
+<script>
+    (function(h,o,t,j,a,r){
+        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+        h._hjSettings={hjid:2833502,hjsv:6};
+        a=o.getElementsByTagName('head')[0];
+        r=o.createElement('script');r.async=1;
+        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+        a.appendChild(r);
+    })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+</script>
 </head>
 <body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
@@ -1284,6 +1295,20 @@
             return data;
         }
 
+        async function hpResolveListingDataAsync(listingId) {
+            if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
+                return hpLoadGuideSettingsDataAsync(listingId);
+            }
+            return getGuestListingData(listingId);
+        }
+
+        function hpFindRecIndexForExperience(listingData, experienceId) {
+            const expId = String(experienceId || '').trim();
+            if (!expId || !listingData) return null;
+            const match = [1, 2, 3, 4].find((i) => String(listingData[`recExperienceId${i}`] || '').trim() === expId);
+            return match || null;
+        }
+
         function getGuestListingData(listingId) {
             return hpLoadGuideSettingsData(listingId);
         }
@@ -1550,7 +1575,7 @@
             if (!listing || !expId || !window.ExperienceDetailsAPI) return false;
 
             hpSeedGuestDemoStorage(listing);
-            hpHydrateGuestGuideDashboard(listing);
+            await hpHydrateGuestGuideDashboardAsync(listing);
 
             const root = document.querySelector('[data-screen="dashboard"]');
             const overlay = root?.querySelector('[data-dashboard-target="expDetailOverlay"]');
@@ -1558,8 +1583,12 @@
             if (!overlay || !body) return false;
 
             try {
+                const listingData = await hpResolveListingDataAsync(listing);
+                const recIndex = hpFindRecIndexForExperience(listingData, expId) || 1;
                 const payload = await ExperienceDetailsAPI.fetchDetails(expId);
                 if (!payload) return false;
+
+                ExperienceDetailsAPI.applyHostListingOverrides(payload, listingData, recIndex);
 
                 const isZh = (window.currentLanguage || 'zh') !== 'en';
                 const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
@@ -2248,13 +2277,25 @@
                     && !this.expDetailOverlayTarget.classList.contains('translate-y-full')
                     && this.currentExpRecIndex
                     && window.ExperienceDetailsAPI) {
-                    const expId = getExperienceIdForRec(id, this.currentExpRecIndex);
-                    if (expId) {
-                        ExperienceDetailsAPI.fetchDetails(expId).then(payload => {
-                            this.renderExperienceDetail(payload, this.currentExpRecIndex);
-                        });
-                    }
+                    void this.loadExperienceDetailForRec(id, this.currentExpRecIndex, data);
                 }
+            }
+
+            async loadExperienceDetailForRec(listingId, recIndex, listingData) {
+                const id = (listingId || this.currentListingId || 'TAIPEI-CITY').trim().toUpperCase();
+                const num = Number(recIndex);
+                if (num < 1 || num > LOCAL_REC_COUNT) return null;
+
+                const resolvedListing = listingData || await hpResolveListingDataAsync(id);
+                const expId = resolvedListing[`recExperienceId${num}`] || getExperienceIdForRec(id, num);
+                if (!expId) return null;
+
+                const payload = await ExperienceDetailsAPI.fetchDetails(expId);
+                if (!payload) return null;
+
+                ExperienceDetailsAPI.applyHostListingOverrides(payload, resolvedListing, num);
+                this.renderExperienceDetail(payload, num);
+                return payload;
             }
 
             resolveDeepLinkContext() {
@@ -2510,8 +2551,11 @@
 
                 window.appNavigate?.('dashboard');
 
-                let recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === expIdNorm);
-                if (!recIndex) recIndex = 1;
+                const listingData = await hpResolveListingDataAsync(id);
+                let recIndex = hpFindRecIndexForExperience(listingData, expIdNorm);
+                if (!recIndex) {
+                    recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === expIdNorm) || 1;
+                }
                 this.currentExpRecIndex = recIndex;
 
                 this.setSlideOverlay(this.expDetailOverlayTarget, true);
@@ -2521,9 +2565,8 @@
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
-                const payload = await ExperienceDetailsAPI.fetchDetails(expIdNorm);
+                const payload = await this.loadExperienceDetailForRec(id, recIndex, listingData);
                 if (payload) {
-                    this.renderExperienceDetail(payload, recIndex);
                     this.syncExperienceBrowserUrl();
                 } else {
                     window.hpHydrateGuestExperienceDetail?.(id, expIdNorm);
@@ -2533,8 +2576,7 @@
             async openExperienceDetail(event) {
                 const recIndex = parseInt(event.currentTarget.dataset.rec, 10);
                 const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const expId = getExperienceIdForRec(listingId, recIndex);
-                if (!expId || !this.hasExpDetailOverlayTarget) return;
+                if (!recIndex || !this.hasExpDetailOverlayTarget) return;
 
                 this.currentExpRecIndex = recIndex;
                 this.setSlideOverlay(this.expDetailOverlayTarget, true);
@@ -2544,35 +2586,8 @@
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
-                const listingData = hpIsHostPreviewMode()
-                    ? await hpLoadGuideSettingsDataAsync(listingId)
-                    : getResolvedListing(listingId);
-                const hostDetail = getRecExplorerDetail(listingData, recIndex);
-                const payload = await ExperienceDetailsAPI.fetchDetails(expId);
-                this.applyHostRecOverrides(payload, hostDetail);
-                this.renderExperienceDetail(payload, recIndex);
+                await this.loadExperienceDetailForRec(listingId, recIndex);
                 this.syncExperienceBrowserUrl();
-            }
-
-            applyHostRecOverrides(payload, hostDetail) {
-                if (!payload?.experience || !hostDetail) return;
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                if (hostDetail.titleZh || hostDetail.titleEn) {
-                    payload.experience.title = isZh
-                        ? (hostDetail.titleZh || hostDetail.titleEn || payload.experience.title)
-                        : (hostDetail.titleEn || hostDetail.titleZh || payload.experience.title);
-                }
-                if (hostDetail.descZh || hostDetail.descEn) {
-                    payload.experience.description = isZh
-                        ? (hostDetail.descZh || hostDetail.descEn || payload.experience.description)
-                        : (hostDetail.descEn || hostDetail.descZh || payload.experience.description);
-                }
-                if (hostDetail.distZh || hostDetail.distEn) {
-                    payload.location = payload.location || {};
-                    payload.location.summary = isZh
-                        ? (hostDetail.distZh || hostDetail.distEn || payload.location.summary)
-                        : (hostDetail.distEn || hostDetail.distZh || payload.location.summary);
-                }
             }
 
             renderExperienceDetail(payload, recIndex) {
