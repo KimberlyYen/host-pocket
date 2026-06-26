@@ -37,7 +37,7 @@
     async function isDatabaseConfigured() {
         try {
             const health = await checkHealth();
-            return Boolean(health.dbConfigured);
+            return Boolean(health.dbConnected ?? health.dbConfigured);
         } catch {
             return false;
         }

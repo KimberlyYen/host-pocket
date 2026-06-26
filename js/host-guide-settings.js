@@ -123,6 +123,12 @@
         return _dbAvailable;
     }
 
+    function invalidateCache(listingId) {
+        const id = normalizeListingId(listingId);
+        delete _cache[id];
+        delete _pending[id];
+    }
+
     async function ensureLoaded(listingId) {
         const id = normalizeListingId(listingId);
         if (getCacheEntry(id) !== undefined) {
@@ -298,6 +304,7 @@
         galleryToText,
         normalizeListingId,
         isDatabaseAvailable,
-        getStorageMode
+        getStorageMode,
+        invalidateCache
     };
 })(window);

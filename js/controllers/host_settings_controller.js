@@ -44,14 +44,28 @@
 
         async handleFrameLoad() {
             const listingId = this.pendingListingId || this.resolveInitialListing();
+            const id = global.HostGuideSettings.normalizeListingId(listingId);
+
+            global.HostGuideSettings.invalidateCache(id);
             try {
-                const data = await this.loadFormData(listingId);
-                requestAnimationFrame(() => {
-                    if (this.hasFormTarget) this.fillForm(data);
-                });
+                await global.HostGuideSettings.ensureLoaded(id);
             } catch (error) {
-                console.warn('[host-settings] frame load sync failed', error);
+                console.warn('[host-settings] cache refresh failed', error);
             }
+
+            requestAnimationFrame(() => {
+                this.syncFormWidgets();
+            });
+        }
+
+        syncFormWidgets() {
+            if (!this.hasFormTarget) return;
+
+            this.formTarget.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            this.formTarget.dispatchEvent(new CustomEvent('host-settings:form-filled', { bubbles: true }));
         }
 
         async loadFormData(listingId) {
@@ -152,11 +166,7 @@
                 galleryEl.value = global.HostGuideSettings.galleryToText(data.roomGallery);
             }
 
-            this.formTarget.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
-                el.dispatchEvent(new Event('input', { bubbles: true }));
-            });
-
-            this.formTarget.dispatchEvent(new CustomEvent('host-settings:form-filled', { bubbles: true }));
+            this.syncFormWidgets();
         }
 
         readForm() {
@@ -213,7 +223,7 @@
 
             try {
                 await global.HostGuideSettings.save(id, this.readForm());
-                this.showStatus(`已儲存（localStorage · ${id}）`);
+                this.showStatus('已儲存');
             } catch (error) {
                 console.error(error);
                 this.showError(error?.message || '儲存失敗');

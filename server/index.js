@@ -7,7 +7,7 @@ const { sendTestEmail, isSmtpConfigured } = require('./smtp-mail');
 const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = require('./smtp-config');
 const { handleListingSettings } = require('./listing-settings-handler');
 const { handleFormGet, handleFormPost } = require('./host-settings-form');
-const { isDatabaseConfigured } = require('./listing-settings');
+const { isDatabaseConfigured, checkDatabaseConnection } = require('./listing-settings');
 const searchExperiences = require('../api/search/experiences');
 const searchExperienceDetails = require('../api/search/experience-details');
 
@@ -31,15 +31,19 @@ app.use(cors({
 app.use(express.json({ limit: '32kb' }));
 app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (_req, res) => {
     const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL);
     const smtpConfigured = isSmtpConfigured();
+    const dbUrlSet = isDatabaseConfigured();
+    const dbCheck = dbUrlSet ? await checkDatabaseConnection() : { ok: false, error: 'Database URL not set' };
     res.json({
         ok: true,
         bookingConfigured: isEmailConfigured(),
         resendConfigured,
         smtpConfigured,
-        dbConfigured: isDatabaseConfigured()
+        dbConfigured: dbUrlSet,
+        dbConnected: dbCheck.ok,
+        dbError: dbCheck.ok ? undefined : dbCheck.error
     });
 });
 

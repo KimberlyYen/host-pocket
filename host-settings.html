@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>房東設定 · 在地精選 · host-pocket</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="/pocket-icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/pocket-icon.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="/pocket-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -78,12 +78,6 @@
                      data-action="turbo:frame-missing->host-settings#handleFrameMissing turbo:frame-load->host-settings#handleFrameLoad">
             <div class="hp-card hp-card--stack hp-card--panel p-6 text-center text-xs text-hp-muted" aria-busy="true">載入設定中…</div>
         </turbo-frame>
-
-        <p class="text-[10px] text-hp-muted leading-relaxed px-1">
-            儲存後，在 App 輸入相同 Listing ID 配對即可看到更新（跨裝置同步，需後端已設定 DATABASE_URL）。
-            清除自訂會恢復示範預設內容。
-            詳見 <a href="host-manual.md" class="text-hp-coral underline">host-manual.md</a>。
-        </p>
     </main>
 
     <!-- partial: host_preview_drawer -->
@@ -281,6 +275,7 @@
     </style>
 
     <script src="/js/guide-defaults.js"></script>
+    <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>
     <script src="/js/listing-settings-api.js"></script>
     <script src="/js/host-guide-settings.js"></script>

@@ -71,13 +71,56 @@ async function getMergedListingData(listingId) {
     return merged;
 }
 
+function findHtmlTagEnd(html, tagStart) {
+    let inQuote = null;
+    for (let i = tagStart; i < html.length; i++) {
+        const ch = html[i];
+        if (inQuote) {
+            if (ch === inQuote) inQuote = null;
+        } else if (ch === '"' || ch === "'") {
+            inQuote = ch;
+        } else if (ch === '>') {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function findInputTagBounds(html, name) {
+    const needle = `name="${name}"`;
+    let searchFrom = 0;
+
+    while (searchFrom < html.length) {
+        const nameIdx = html.indexOf(needle, searchFrom);
+        if (nameIdx === -1) return null;
+
+        const tagStart = html.lastIndexOf('<input', nameIdx);
+        if (tagStart === -1 || tagStart < searchFrom) {
+            searchFrom = nameIdx + 1;
+            continue;
+        }
+
+        const tagEnd = findHtmlTagEnd(html, tagStart);
+        if (tagEnd === -1 || tagEnd < nameIdx) {
+            searchFrom = nameIdx + 1;
+            continue;
+        }
+
+        return { start: tagStart, end: tagEnd };
+    }
+
+    return null;
+}
+
 function setFieldValue(html, name, value) {
-    const inputRe = new RegExp(`(<input\\b[^>]*\\bname="${name}"[^>]*)(\\/?>)`, 'i');
-    if (inputRe.test(html)) {
-        return html.replace(inputRe, (match, start, end) => {
-            const cleaned = start.replace(/\svalue="[^"]*"/i, '');
-            return `${cleaned} value="${escapeAttr(value)}"${end}`;
-        });
+    const bounds = findInputTagBounds(html, name);
+    if (bounds) {
+        const tag = html.slice(bounds.start, bounds.end + 1);
+        const withoutValue = tag.replace(/\svalue="[^"]*"/i, '');
+        const selfClosing = /\/>\s*$/.test(withoutValue);
+        const insertAt = selfClosing ? withoutValue.length - 2 : withoutValue.length - 1;
+        const newTag = `${withoutValue.slice(0, insertAt)} value="${escapeAttr(value)}"${withoutValue.slice(insertAt)}`;
+        return html.slice(0, bounds.start) + newTag + html.slice(bounds.end + 1);
     }
 
     const textareaRe = new RegExp(`(<textarea\\b[^>]*\\bname="${name}"[^>]*>)([\\s\\S]*?)(<\\/textarea>)`, 'i');
@@ -177,17 +220,16 @@ async function handleFormPost(req, res) {
         const payload = parseFormPayload(req.body);
 
         if (isDatabaseConfigured()) {
-            await saveListingSettings(listingId, payload);
-            const mode = 'Postgres 資料庫';
+            const saved = await saveListingSettings(listingId, payload);
             res.status(200).type('text/html; charset=utf-8').send(
-                renderTurboFrame(listingId, payload, { status: `已儲存（${mode} · ${listingId}）` })
+                renderTurboFrame(listingId, saved.data, { status: '已儲存' })
             );
             return;
         }
 
         res.status(200).type('text/html; charset=utf-8').send(
             renderTurboFrame(listingId, payload, {
-                status: `已儲存（localStorage · ${listingId}）`,
+                status: '已儲存',
                 error: '資料庫未設定，請在瀏覽器端使用 localStorage 備援'
             })
         );

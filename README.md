@@ -188,16 +188,7 @@ Health check: `/api/health` should return `"dbConfigured": true`.
 #### Supabase setup (one-time)
 
 1. [Supabase](https://supabase.com) → create a project.
-2. **SQL Editor** → run:
-
-```sql
-CREATE TABLE IF NOT EXISTS listing_settings (
-  listing_id TEXT PRIMARY KEY,
-  data JSONB NOT NULL DEFAULT '{}'::jsonb,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
-
+2. **SQL Editor** → run the SQL in [`supabase/listing_settings.sql`](supabase/listing_settings.sql) (creates `listing_settings` table).
 3. **Project Settings → Database → Connection string** → choose **Transaction pooler** (port `6543`).
 4. Copy the URI into `.env` as `DATABASE_URL=postgresql://...` (local) and Vercel Environment Variables (production).
 5. `npm start` → open `host-settings.html` → save a listing → confirm a row appears in Supabase **Table Editor**.
@@ -475,16 +466,7 @@ npm start
 #### Supabase 設定（一次性）
 
 1. 至 [Supabase](https://supabase.com) 建立專案。
-2. 開啟 **SQL Editor**，執行：
-
-```sql
-CREATE TABLE IF NOT EXISTS listing_settings (
-  listing_id TEXT PRIMARY KEY,
-  data JSONB NOT NULL DEFAULT '{}'::jsonb,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
-
+2. 開啟 **SQL Editor**，執行 [`supabase/listing_settings.sql`](supabase/listing_settings.sql)（建立 `listing_settings` 資料表）。
 3. **Project Settings → Database → Connection string** → 選 **Transaction pooler**（port `6543`）。
 4. 複製 URI 到本機 `.env` 的 `DATABASE_URL=`，以及 Vercel 環境變數。
 5. 本機 `npm start` → 開 `host-settings.html` 儲存一次 → 到 Supabase **Table Editor** 確認有資料列。

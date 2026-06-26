@@ -148,10 +148,24 @@ async function listListingSettingsIds() {
     return rows.map((row) => row.listing_id);
 }
 
+async function checkDatabaseConnection() {
+    if (!isDatabaseConfigured()) {
+        return { ok: false, error: 'Database URL not set (DATABASE_URL or POSTGRES_URL)' };
+    }
+    try {
+        await ensureSchema();
+        await getSql()`SELECT 1 AS ok`;
+        return { ok: true };
+    } catch (error) {
+        return { ok: false, error: error?.message || String(error) };
+    }
+}
+
 module.exports = {
     EDITABLE_FIELDS,
     getDatabaseUrl,
     isDatabaseConfigured,
+    checkDatabaseConnection,
     normalizeListingId,
     pickEditable,
     getListingSettings,
