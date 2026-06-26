@@ -164,7 +164,7 @@ Open [http://localhost:3000/email-test.html](http://localhost:3000/email-test.ht
 
 ---
 
-### Local picks: host settings (Neon Postgres)
+### Local picks: host settings (Supabase Postgres)
 
 #### How to use
 
@@ -178,12 +178,31 @@ Open [http://localhost:3000/email-test.html](http://localhost:3000/email-test.ht
 
 | Environment | Storage |
 |-------------|---------|
-| **Production (Vercel + Neon)** | Postgres table `listing_settings` (syncs across devices) |
+| **Production (Vercel + Supabase)** | Postgres table `listing_settings` (syncs across devices) |
 | **Local** | Set `DATABASE_URL` or `POSTGRES_URL` in `.env`, run `npm start` |
 | **API unavailable** | Falls back to browser localStorage |
 
-One-time admin: add Neon `POSTGRES_URL` in Vercel (or `DATABASE_URL` locally).  
+One-time admin: add Supabase **Transaction pooler** URL as `DATABASE_URL` in Vercel (and locally in `.env`).  
 Health check: `/api/health` should return `"dbConfigured": true`.
+
+#### Supabase setup (one-time)
+
+1. [Supabase](https://supabase.com) → create a project.
+2. **SQL Editor** → run:
+
+```sql
+CREATE TABLE IF NOT EXISTS listing_settings (
+  listing_id TEXT PRIMARY KEY,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+3. **Project Settings → Database → Connection string** → choose **Transaction pooler** (port `6543`).
+4. Copy the URI into `.env` as `DATABASE_URL=postgresql://...` (local) and Vercel Environment Variables (production).
+5. `npm start` → open `host-settings.html` → save a listing → confirm a row appears in Supabase **Table Editor**.
+
+Local picks (`recTitle1–4`, `recImg1–4`, etc.) are stored inside the `data` JSONB column per listing.
 
 #### Prototype limits
 
@@ -217,7 +236,7 @@ New IDs get placeholder picks until you override them in settings.
 | `wifi`, `lockZh` / `lockEn` | Wi‑Fi and lock instructions |
 | `hostEmail` | Optional host email for mailto fallback |
 
-Data: `js/guide-defaults.js` (demo defaults) + Neon `listing_settings` (`GET/PUT /api/listings/:id/settings`).
+Data: `js/guide-defaults.js` (demo defaults) + Supabase `listing_settings` (`GET/PUT /api/listings/:id/settings`).
 
 ---
 
@@ -226,7 +245,7 @@ Data: `js/guide-defaults.js` (demo defaults) + Neon `listing_settings` (`GET/PUT
 | Item | Demo | Production |
 |------|------|------------|
 | Listing ID | Theme buttons like `TAIPEI-CITY` | Real Airbnb `rooms/` number |
-| Local picks | Settings page + Neon Postgres | Host login / access control |
+| Local picks | Settings page + Supabase Postgres | Host login / access control |
 | Confirmation email | Requires Resend/SMTP on Vercel | Same |
 | Share link | Prototype domain | Your deployed domain |
 
@@ -432,7 +451,7 @@ npm start
 
 ---
 
-### 在地精選：房東設定頁（Neon Postgres）
+### 在地精選：房東設定頁（Supabase Postgres）
 
 #### 怎麼用
 
@@ -446,12 +465,31 @@ npm start
 
 | 環境 | 儲存位置 |
 |------|----------|
-| **正式（Vercel + Neon）** | Postgres 資料表 `listing_settings`（跨裝置同步） |
+| **正式（Vercel + Supabase）** | Postgres 資料表 `listing_settings`（跨裝置同步） |
 | **本機** | 需在 `.env` 設定 `DATABASE_URL` 或 `POSTGRES_URL`，並執行 `npm start` |
 | **API 不可用時** | 自動 fallback 至瀏覽器 localStorage（離線備援） |
 
-管理者一次性設定：Vercel → Environment Variables → 貼上 Neon 的 `POSTGRES_URL`（或本機 `.env` 設 `DATABASE_URL`）。  
+管理者一次性設定：Vercel → Environment Variables → 貼上 Supabase **Transaction pooler** 連線字串（port `6543`）為 `DATABASE_URL`（本機 `.env` 同理）。  
 健康檢查：`/api/health` 應回傳 `"dbConfigured": true`。
+
+#### Supabase 設定（一次性）
+
+1. 至 [Supabase](https://supabase.com) 建立專案。
+2. 開啟 **SQL Editor**，執行：
+
+```sql
+CREATE TABLE IF NOT EXISTS listing_settings (
+  listing_id TEXT PRIMARY KEY,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+3. **Project Settings → Database → Connection string** → 選 **Transaction pooler**（port `6543`）。
+4. 複製 URI 到本機 `.env` 的 `DATABASE_URL=`，以及 Vercel 環境變數。
+5. 本機 `npm start` → 開 `host-settings.html` 儲存一次 → 到 Supabase **Table Editor** 確認有資料列。
+
+四格「在地精選」（`recTitle1–4`、`recImg1–4` 等）存在每列的 `data` JSONB 欄位內。
 
 #### 原型限制
 
@@ -485,7 +523,7 @@ npm start
 | `wifi`、`lockZh` | Wi‑Fi 與解鎖說明 |
 | `hostEmail` | mailto 備援時帶入的房東 Email（選填） |
 
-資料來源：`js/guide-defaults.js`（示範預設）+ Neon `listing_settings`（API `/api/listings/:id/settings`）。
+資料來源：`js/guide-defaults.js`（示範預設）+ Supabase `listing_settings`（API `/api/listings/:id/settings`）。
 
 #### 建議的下一步（產品）
 
@@ -503,7 +541,7 @@ npm start
 | 項目 | 示範 | 正式 |
 |------|------|------|
 | 房源代碼 | `TAIPEI-CITY` 等主題按鈕 | 真實 Airbnb `rooms/` 數字 |
-| 在地精選 | 設定頁 + Neon Postgres | 房東登入／權限控管 |
+| 在地精選 | 設定頁 + Supabase Postgres | 房東登入／權限控管 |
 | 確認信 | 需設定 Vercel SMTP／Resend | 同上 |
 | 分享連結 | 原型網域 `host-pocket.example.com` | 部署後實際網域 |
 

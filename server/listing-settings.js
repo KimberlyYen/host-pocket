@@ -1,4 +1,4 @@
-const { neon } = require('@neondatabase/serverless');
+const postgres = require('postgres');
 
 const EDITABLE_FIELDS = [
     'hostNameZh', 'hostNameEn',
@@ -11,18 +11,18 @@ const EDITABLE_FIELDS = [
     'recBadge1Zh', 'recBadge1En', 'recDist1Zh', 'recDist1En',
     'recPrice1Zh', 'recPrice1En', 'desc1Zh', 'desc1En',
     'recExplorerDist1Zh', 'recExplorerDist1En', 'recExplorerEst1Zh', 'recExplorerEst1En',
-        'recExperienceId2', 'recTitle2Zh', 'recTitle2En', 'recImg2',
-        'recBadge2Zh', 'recBadge2En', 'recDist2Zh', 'recDist2En',
-        'recPrice2Zh', 'recPrice2En', 'desc2Zh', 'desc2En',
-        'recExplorerDist2Zh', 'recExplorerDist2En', 'recExplorerEst2Zh', 'recExplorerEst2En',
-        'recExperienceId3', 'recTitle3Zh', 'recTitle3En', 'recImg3',
-        'recBadge3Zh', 'recBadge3En', 'recDist3Zh', 'recDist3En',
-        'recPrice3Zh', 'recPrice3En', 'desc3Zh', 'desc3En',
-        'recExplorerDist3Zh', 'recExplorerDist3En', 'recExplorerEst3Zh', 'recExplorerEst3En',
-        'recExperienceId4', 'recTitle4Zh', 'recTitle4En', 'recImg4',
-        'recBadge4Zh', 'recBadge4En', 'recDist4Zh', 'recDist4En',
-        'recPrice4Zh', 'recPrice4En', 'desc4Zh', 'desc4En',
-        'recExplorerDist4Zh', 'recExplorerDist4En', 'recExplorerEst4Zh', 'recExplorerEst4En',
+    'recExperienceId2', 'recTitle2Zh', 'recTitle2En', 'recImg2',
+    'recBadge2Zh', 'recBadge2En', 'recDist2Zh', 'recDist2En',
+    'recPrice2Zh', 'recPrice2En', 'desc2Zh', 'desc2En',
+    'recExplorerDist2Zh', 'recExplorerDist2En', 'recExplorerEst2Zh', 'recExplorerEst2En',
+    'recExperienceId3', 'recTitle3Zh', 'recTitle3En', 'recImg3',
+    'recBadge3Zh', 'recBadge3En', 'recDist3Zh', 'recDist3En',
+    'recPrice3Zh', 'recPrice3En', 'desc3Zh', 'desc3En',
+    'recExplorerDist3Zh', 'recExplorerDist3En', 'recExplorerEst3Zh', 'recExplorerEst3En',
+    'recExperienceId4', 'recTitle4Zh', 'recTitle4En', 'recImg4',
+    'recBadge4Zh', 'recBadge4En', 'recDist4Zh', 'recDist4En',
+    'recPrice4Zh', 'recPrice4En', 'desc4Zh', 'desc4En',
+    'recExplorerDist4Zh', 'recExplorerDist4En', 'recExplorerEst4Zh', 'recExplorerEst4En',
     'targetTitleZh', 'targetTitleEn', 'descZh', 'descEn',
     'explorerDistZh', 'explorerDistEn', 'explorerEstZh', 'explorerEstEn'
 ];
@@ -35,12 +35,26 @@ function isDatabaseConfigured() {
     return Boolean(getDatabaseUrl());
 }
 
+function getPostgresOptions(url) {
+    const isSupabasePooler = /pooler\.supabase\.com|:6543/.test(url);
+    const needsSsl = /supabase\.com|neon\.tech|sslmode=require/i.test(url);
+
+    return {
+        ssl: needsSsl ? 'require' : 'prefer',
+        // Supabase transaction pooler (port 6543) does not support prepared statements.
+        prepare: !isSupabasePooler,
+        max: 10,
+        idle_timeout: 20,
+        connect_timeout: 10
+    };
+}
+
 let sql;
 function getSql() {
     if (!sql) {
         const url = getDatabaseUrl();
         if (!url) throw new Error('Database not configured (set DATABASE_URL or POSTGRES_URL)');
-        sql = neon(url);
+        sql = postgres(url, getPostgresOptions(url));
     }
     return sql;
 }
@@ -105,7 +119,7 @@ async function saveListingSettings(listingId, source) {
     const updatedAt = new Date().toISOString();
     await getSql()`
         INSERT INTO listing_settings (listing_id, data, updated_at)
-        VALUES (${id}, ${data}, ${updatedAt})
+        VALUES (${id}, ${getSql().json(data)}, ${updatedAt})
         ON CONFLICT (listing_id) DO UPDATE
         SET data = EXCLUDED.data,
             updated_at = EXCLUDED.updated_at

@@ -178,7 +178,7 @@ async function handleFormPost(req, res) {
 
         if (isDatabaseConfigured()) {
             await saveListingSettings(listingId, payload);
-            const mode = 'Neon 資料庫';
+            const mode = 'Postgres 資料庫';
             res.status(200).type('text/html; charset=utf-8').send(
                 renderTurboFrame(listingId, payload, { status: `已儲存（${mode} · ${listingId}）` })
             );
