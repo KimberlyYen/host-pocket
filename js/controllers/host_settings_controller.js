@@ -9,7 +9,7 @@
     global.registerHostSettingsController('host-settings', class extends Controller {
         static targets = ['formFrame', 'form', 'statusMsg', 'errorMsg', 'basicInfoListingId'];
 
-        static outlets = ['listingSelector', 'hostPreview'];
+        static outlets = ['listing-selector', 'host-preview'];
 
         static values = {
             initialListing: { type: String, default: '' }
@@ -126,7 +126,28 @@
         }
 
         getListingId() {
-            return this.hasListingSelectorOutlet ? this.listingSelectorOutlet.getValue() : '';
+            if (this.hasListingSelectorOutlet) {
+                const id = this.listingSelectorOutlet.getValue();
+                if (id) return id;
+            }
+
+            if (this.pendingListingId) {
+                return global.HostGuideSettings.normalizeListingId(this.pendingListingId);
+            }
+
+            const input = global.document.getElementById('listingIdInput');
+            if (input?.value?.trim()) {
+                return global.HostGuideSettings.normalizeListingId(input.value);
+            }
+
+            if (this.hasFormTarget) {
+                const match = String(this.formTarget.action || '').match(/\/host\/settings\/([^/?#]+)/);
+                if (match?.[1]) {
+                    return global.HostGuideSettings.normalizeListingId(decodeURIComponent(match[1]));
+                }
+            }
+
+            return this.resolveInitialListing();
         }
 
         loadListingFromEvent(event) {
@@ -231,26 +252,40 @@
             }
         }
 
-        preview() {
+        async preview() {
             const id = this.getListingId();
             if (!id) {
                 this.showError('請先載入房源');
                 return;
             }
 
-            if (!this.hasHostPreviewOutlet) return;
+            if (!this.hasHostPreviewOutlet) {
+                this.showError('預覽面板未就緒');
+                return;
+            }
 
-            this.hostPreviewOutlet.open({
-                listingId: id,
-                syncPreview: (listingId) => this.syncPreviewToLocalStorage(listingId)
-            });
+            try {
+                const formData = this.readForm();
+                await global.HostGuideSettings.isDatabaseAvailable();
+
+                if (global.HostGuideSettings.getStorageMode() === 'database') {
+                    await global.HostGuideSettings.save(id, formData);
+                    this.writePreviewLocalStorage(id, formData);
+                } else {
+                    this.writePreviewLocalStorage(id, formData);
+                }
+
+                this.hostPreviewOutlet.open({ listingId: id });
+            } catch (error) {
+                console.error(error);
+                this.showError(error?.message || '預覽前儲存失敗');
+            }
         }
 
-        syncPreviewToLocalStorage(id) {
-            const formData = this.readForm();
-            const payload = global.HostGuideSettings.pickEditable(formData);
+        writePreviewLocalStorage(id, formData) {
+            const payload = global.HostGuideSettings.pickEditable(formData || this.readForm());
 
-            if (Array.isArray(formData.roomGallery) && formData.roomGallery.length) {
+            if (Array.isArray(formData?.roomGallery) && formData.roomGallery.length) {
                 payload.roomGallery = formData.roomGallery;
                 payload.roomImg = formData.roomImg || formData.roomGallery[0];
             }
@@ -261,8 +296,9 @@
                 const all = JSON.parse(global.localStorage.getItem(global.HostGuideSettings.STORAGE_KEY) || '{}');
                 all[id] = payload;
                 global.localStorage.setItem(global.HostGuideSettings.STORAGE_KEY, JSON.stringify(all));
+                global.HostGuideSettings.invalidateCache(id);
             } catch (error) {
-                console.warn('[preview] localStorage sync failed', error);
+                console.warn('[preview] localStorage write failed', error);
             }
         }
 

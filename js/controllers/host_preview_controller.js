@@ -22,11 +22,7 @@
             this.close();
         }
 
-        open({ listingId, syncPreview }) {
-            if (typeof syncPreview === 'function') {
-                syncPreview(listingId);
-            }
-
+        open({ listingId }) {
             this.titleTarget.textContent = listingId;
             this.frameTarget.src = `/index.html?listing=${encodeURIComponent(listingId)}&preview=1&t=${Date.now()}`;
             this.drawerTarget.classList.add('is-open');

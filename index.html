@@ -1246,22 +1246,41 @@
             return id;
         }
 
-        /** Read merged guide data from host-pocket-guide-settings (localStorage) + GuideDefaults base. */
+        /** Merge GuideDefaults base + optional preset cache + saved overrides (sync). */
         function hpLoadGuideSettingsData(listingId) {
             const id = hpEnsureGuideSettingsStored(listingId);
-            if (window.HostGuideSettings) {
-                return HostGuideSettings.getMerged(id);
+            let data = GuideDefaults.getBase(id);
+            const presetData = window.HostSettingsPresets?.getCachedPresetData?.(id);
+            if (presetData && window.HostGuideSettings) {
+                data = HostGuideSettings.merge(data, presetData);
+            } else if (presetData) {
+                data = { ...data, ...presetData };
             }
-            return GuideDefaults.getBase(id);
+            if (window.HostGuideSettings) {
+                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
+            }
+            return data;
         }
 
         async function hpLoadGuideSettingsDataAsync(listingId) {
             const id = hpEnsureGuideSettingsStored(listingId);
-            if (window.HostGuideSettings) {
-                HostGuideSettings.invalidateCache(id);
-                return HostGuideSettings.getMergedAsync(id);
+            let data = GuideDefaults.getBase(id);
+
+            try {
+                const preset = await window.HostSettingsPresets?.fetchPreset(id);
+                if (preset?.data) {
+                    data = HostGuideSettings.merge(data, preset.data);
+                }
+            } catch {
+                // preset optional for custom listing IDs
             }
-            return GuideDefaults.getBase(id);
+
+            if (window.HostGuideSettings) {
+                await HostGuideSettings.ensureLoaded(id);
+                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
+            }
+
+            return data;
         }
 
         function getGuestListingData(listingId) {
@@ -1499,12 +1518,20 @@
             const root = document.querySelector('[data-screen="dashboard"]');
             if (!root) return false;
 
-            const data = window.HP_MOCK_DATA === false
+            const data = window.HP_MOCK_DATA === false || hpIsHostPreviewMode()
                 ? await hpLoadGuideSettingsDataAsync(id)
                 : getGuestListingData(id);
             if (!data) return false;
 
             hpApplyGuideDashboardData(root, data, id);
+
+            const dashEl = document.querySelector('[data-controller~="dashboard"]');
+            const dashCtrl = window.__hpStimulusApp?.getControllerForElementAndIdentifier?.(dashEl, 'dashboard');
+            if (dashCtrl?.renderDashboard) {
+                dashCtrl.currentListingId = id;
+                dashCtrl.renderDashboard(data, id);
+            }
+
             return true;
         }
 
@@ -1583,7 +1610,7 @@
                 hpSeedGuestDemoStorage(id);
             }
             hpCloseExperienceOverlayIfNoDeepLink();
-            if (window.HP_MOCK_DATA === false) {
+            if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
                 void hpHydrateGuestGuideDashboardAsync(id).then(() => {
                     hpScheduleGuestExperienceHydration();
                 }).catch(() => {
@@ -1837,6 +1864,12 @@
                 );
             }
 
+            syncControllersWithData(id, data) {
+                const targetId = id.trim().toUpperCase() || 'TAIPEI-CITY';
+                GuideDefaults.ensureListing(targetId);
+                window.dispatchEvent(new CustomEvent("experience:updated", { detail: { id: targetId, data } }));
+            }
+
             // Controller state synchronization method (Like server-side Turbo Stream updates)
             syncControllers(id) {
                 const targetId = id.trim().toUpperCase() || 'TAIPEI-CITY';
@@ -1844,7 +1877,15 @@
                 const data = document.documentElement.classList.contains('hp-boot-dashboard')
                     ? getGuestListingData(targetId)
                     : getResolvedListing(targetId);
-                window.dispatchEvent(new CustomEvent("experience:updated", { detail: { id: targetId, data } }));
+                this.syncControllersWithData(targetId, data);
+            }
+
+            async syncControllersAsync(id) {
+                const targetId = id.trim().toUpperCase() || 'TAIPEI-CITY';
+                GuideDefaults.ensureListing(targetId);
+                const data = await hpLoadGuideSettingsDataAsync(targetId);
+                this.syncControllersWithData(targetId, data);
+                return data;
             }
 
             navigateToPairing(intent = 'switch') {
@@ -1981,9 +2022,23 @@
                 dashCtrl?.closeExperienceDetail?.();
 
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, "global");
-                globalController?.syncControllers(val);
-
                 if (dashCtrl) dashCtrl.currentListingId = val;
+
+                try {
+                    const data = window.HP_MOCK_DATA === false
+                        ? await hpLoadGuideSettingsDataAsync(val)
+                        : getGuestListingData(val);
+                    globalController?.syncControllersWithData(val, data);
+                    if (dashCtrl && dashCtrl.currentListingId === val) {
+                        dashCtrl.renderDashboard(data, val);
+                    }
+                } catch (error) {
+                    console.warn('[pairing] settings preload failed', error);
+                    globalController?.syncControllers(val);
+                    if (dashCtrl && dashCtrl.currentListingId === val) {
+                        dashCtrl.renderDashboard(getGuestListingData(val), val);
+                    }
+                }
 
                 this.triggerToast(
                     isZh ? '連結成功' : 'Listing Linked',
@@ -2002,15 +2057,6 @@
                 }
 
                 dashCtrl?.syncGuideBrowserUrl?.();
-
-                try {
-                    await HostGuideSettings.ensureLoaded(val);
-                    if (dashCtrl && dashCtrl.currentListingId === val) {
-                        globalController?.syncControllers(val);
-                    }
-                } catch (error) {
-                    console.warn('[pairing] settings preload failed', error);
-                }
             }
 
             quickPair(event) {
@@ -2060,33 +2106,43 @@
                 this.bootFromDeepLink();
 
                 const { listingId: bootListingId, hasDeepLink, experienceId: urlExperience } = this.resolveDeepLinkContext();
+                this.currentListingId = this.currentListingId || bootListingId;
 
-                HostGuideSettings.ensureLoaded(bootListingId).then(() => {
-                    if (this.currentListingId !== bootListingId) return;
-                    const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
-                    const listingData = hasDeepLink ? getGuestListingData(bootListingId) : getResolvedListing(bootListingId);
-                    if (hasDeepLink) {
-                        global?.syncControllers(bootListingId);
-                        this.renderDashboard(listingData, bootListingId);
+                const loadAndRender = (listingId) => {
+                    const id = listingId || bootListingId;
+                    const apply = (data) => {
+                        if (this.currentListingId !== id) return;
+                        this.currentListingId = id;
+                        const global = this.application.getControllerForElementAndIdentifier(document.body, 'global');
+                        global?.syncControllersWithData(id, data);
+                        this.renderDashboard(data, id);
                         if (urlExperience) {
-                            void this.openExperienceFromShareLink(bootListingId, urlExperience);
-                        } else {
+                            void this.openExperienceFromShareLink(id, urlExperience);
+                        } else if (hasDeepLink) {
                             this.syncGuideBrowserUrl();
                         }
-                    } else {
-                        this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
+                    };
+                    if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
+                        return hpLoadGuideSettingsDataAsync(id).then(apply).catch((error) => {
+                            console.warn('[dashboard] settings load failed', error);
+                            apply(getGuestListingData(id));
+                        });
                     }
-                }).catch((error) => {
-                    console.warn('[dashboard] settings preload failed', error);
-                    if (this.currentListingId !== bootListingId) return;
-                    this.renderDashboard(getResolvedListing(bootListingId), bootListingId);
-                    window.hpHydrateGuestGuideDashboard?.(bootListingId);
-                    if (urlExperience) {
-                        void this.openExperienceFromShareLink(bootListingId, urlExperience);
-                    } else if (hasDeepLink) {
-                        this.syncGuideBrowserUrl();
-                    }
-                });
+                    return HostGuideSettings.ensureLoaded(id).then(() => {
+                        apply(hasDeepLink ? getGuestListingData(id) : getResolvedListing(id));
+                    }).catch((error) => {
+                        console.warn('[dashboard] settings preload failed', error);
+                        apply(getResolvedListing(id));
+                        window.hpHydrateGuestGuideDashboard?.(id);
+                    });
+                };
+
+                if (hpIsHostPreviewMode() || window.HP_MOCK_DATA === false) {
+                    void loadAndRender(this.currentListingId || bootListingId);
+                    return;
+                }
+
+                void loadAndRender(bootListingId);
             }
 
             disconnect() {
@@ -2262,9 +2318,13 @@
                 const pairingInput = document.querySelector('[data-pairing-target="input"]');
                 if (pairingInput) pairingInput.value = listingId;
 
-                hpSeedGuestDemoStorage(listingId);
-                this.renderDashboard(getGuestListingData(listingId), listingId);
-                window.hpHydrateGuestGuideDashboard?.(listingId);
+                if (hpIsHostPreviewMode() || window.HP_MOCK_DATA === false) {
+                    void hpHydrateGuestGuideDashboardAsync(listingId);
+                } else {
+                    hpSeedGuestDemoStorage(listingId);
+                    this.renderDashboard(getGuestListingData(listingId), listingId);
+                    window.hpHydrateGuestGuideDashboard?.(listingId);
+                }
 
                 if (experienceId) {
                     void this.openExperienceFromShareLink(listingId, experienceId);
@@ -2283,10 +2343,6 @@
                 if (!data) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const id = listingId || this.currentListingId || 'TAIPEI-CITY';
-                if (this.isGuestGuideRoute()) {
-                    data = getGuestListingData(id);
-                }
-                if (!data) return;
                 
                 // Update Room photo and Room title targets dynamically (Fulfills User Story details)
                 this.setRoomGallery(data);
@@ -2487,9 +2543,35 @@
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
 
+                const listingData = hpIsHostPreviewMode()
+                    ? await hpLoadGuideSettingsDataAsync(listingId)
+                    : getResolvedListing(listingId);
+                const hostDetail = getRecExplorerDetail(listingData, recIndex);
                 const payload = await ExperienceDetailsAPI.fetchDetails(expId);
+                this.applyHostRecOverrides(payload, hostDetail);
                 this.renderExperienceDetail(payload, recIndex);
                 this.syncExperienceBrowserUrl();
+            }
+
+            applyHostRecOverrides(payload, hostDetail) {
+                if (!payload?.experience || !hostDetail) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                if (hostDetail.titleZh || hostDetail.titleEn) {
+                    payload.experience.title = isZh
+                        ? (hostDetail.titleZh || hostDetail.titleEn || payload.experience.title)
+                        : (hostDetail.titleEn || hostDetail.titleZh || payload.experience.title);
+                }
+                if (hostDetail.descZh || hostDetail.descEn) {
+                    payload.experience.description = isZh
+                        ? (hostDetail.descZh || hostDetail.descEn || payload.experience.description)
+                        : (hostDetail.descEn || hostDetail.descZh || payload.experience.description);
+                }
+                if (hostDetail.distZh || hostDetail.distEn) {
+                    payload.location = payload.location || {};
+                    payload.location.summary = isZh
+                        ? (hostDetail.distZh || hostDetail.distEn || payload.location.summary)
+                        : (hostDetail.distEn || hostDetail.distZh || payload.location.summary);
+                }
             }
 
             renderExperienceDetail(payload, recIndex) {
@@ -3215,14 +3297,23 @@
                 window.addEventListener("explorer:selectRec", this.onSelectRec);
                 window.addEventListener("resize", this.onResize);
                 const bootListingId = hpResolveGuestListingId() || 'TAIPEI-CITY';
-                HostGuideSettings.ensureLoaded(bootListingId).then(() => {
-                    this.updateDetails(getGuestListingData(bootListingId));
+                const applyExplorer = (data) => {
+                    this.updateDetails(data);
                     requestAnimationFrame(() => this.centerMapOnRoute());
-                }).catch((error) => {
-                    console.warn('[explorer] settings preload failed', error);
-                    this.updateDetails(getGuestListingData(bootListingId));
-                    requestAnimationFrame(() => this.centerMapOnRoute());
-                });
+                };
+                if (window.HP_MOCK_DATA === false) {
+                    void hpLoadGuideSettingsDataAsync(bootListingId).then(applyExplorer).catch((error) => {
+                        console.warn('[explorer] settings load failed', error);
+                        applyExplorer(getGuestListingData(bootListingId));
+                    });
+                } else {
+                    HostGuideSettings.ensureLoaded(bootListingId).then(() => {
+                        applyExplorer(getGuestListingData(bootListingId));
+                    }).catch((error) => {
+                        console.warn('[explorer] settings preload failed', error);
+                        applyExplorer(getGuestListingData(bootListingId));
+                    });
+                }
             }
 
             disconnect() {

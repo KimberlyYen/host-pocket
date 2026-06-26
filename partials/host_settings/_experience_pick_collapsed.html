@@ -27,7 +27,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="block space-y-1 sm:col-span-2"><span class="field-label">Airbnb 體驗 ID（選填）</span><input name="recExperienceId{{n}}" class="field-input font-mono" placeholder="3310245"></label>
+            <input type="hidden" name="recExperienceId{{n}}">
             <label class="block space-y-1"><span class="field-label">標題（繁中）</span><input name="recTitle{{n}}Zh" class="field-input" data-experience-pick-target="titleInput" data-action="input->experience-pick#syncPeek change->experience-pick#syncPeek"></label>
             <label class="block space-y-1"><span class="field-label">Title (EN)</span><input name="recTitle{{n}}En" class="field-input"></label>
             <div class="sm:col-span-2 space-y-1">

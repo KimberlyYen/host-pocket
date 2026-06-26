@@ -51,6 +51,11 @@
         return _cache[id]?.label || PRESET_LABELS[id] || id;
     }
 
+    function getCachedPresetData(listingId) {
+        const id = normalizeListingId(listingId);
+        return _cache[id]?.data || null;
+    }
+
     global.HostSettingsPresets = {
         PRESET_BASE,
         PRESET_IDS,
@@ -58,6 +63,7 @@
         PRESET_BUTTON_LABELS,
         presetUrl,
         fetchPreset,
-        getPresetLabel
+        getPresetLabel,
+        getCachedPresetData
     };
 })(window);
