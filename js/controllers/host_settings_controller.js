@@ -175,6 +175,17 @@
             this.errorMsgTarget.classList.remove('hidden');
         }
 
+        collapseAllPanels() {
+            const root = this.hasFormTarget ? this.formTarget : this.element;
+            if (global.HostPocketCollapse?.collapseAll) {
+                global.HostPocketCollapse.collapseAll(root);
+                return;
+            }
+            root.querySelectorAll('.hp-collapse[open]').forEach((el) => {
+                el.open = false;
+            });
+        }
+
         fillForm(data) {
             if (!this.hasFormTarget) return;
 
@@ -233,7 +244,10 @@
 
         async beforeSubmit(event) {
             await global.HostGuideSettings.isDatabaseAvailable();
-            if (global.HostGuideSettings.getStorageMode() === 'database') return;
+            if (global.HostGuideSettings.getStorageMode() === 'database') {
+                this.collapseAllPanels();
+                return;
+            }
 
             event.preventDefault();
 
@@ -246,6 +260,7 @@
             try {
                 await global.HostGuideSettings.save(id, this.readForm());
                 this.showStatus('已儲存');
+                this.collapseAllPanels();
             } catch (error) {
                 console.error(error);
                 this.showError(error?.message || '儲存失敗');

@@ -111,6 +111,11 @@
         html.hp-boot-dashboard [data-dashboard-target="bottomNavBar"] {
             display: none !important;
         }
+        /* 體驗詳情：保留指南主頁 + 求助房東 */
+        html.hp-boot-dashboard.hp-boot-experience [data-dashboard-target="bottomNavBar"] {
+            display: grid !important;
+            z-index: 55;
+        }
         html.hp-boot-dashboard [data-dashboard-target="scrollContainer"] {
             padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important;
         }
@@ -242,109 +247,8 @@
             -webkit-user-select: none;
             user-select: none;
         }
-
-        /* --- Desktop RWD (≥768px tablet / ≥1024px PC) --- */
-        @media (min-width: 768px) {
-            html, body {
-                height: auto;
-                min-height: 100%;
-                overflow: auto;
-            }
-            #app-root.hp-app-shell--wide {
-                max-width: 48rem;
-                height: min(920px, calc(100dvh - 2rem));
-                border-radius: 1.5rem;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-            }
-            #app-root.hp-app-shell--wide [data-dashboard-target="expDetailOverlay"],
-            #app-root.hp-app-shell--wide [data-dashboard-target="helpOverlay"],
-            #app-root.hp-app-shell--wide [data-dashboard-target="lockOverlay"],
-            #app-root.hp-app-shell--wide [data-dashboard-target="roomOverlay"] {
-                inset: 0.75rem;
-                border-radius: 1.25rem;
-                overflow: hidden;
-            }
-            .hp-desktop-stage {
-                min-height: 100dvh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 1rem;
-            }
-            #app-root.hp-app-shell {
-                margin-left: auto;
-                margin-right: auto;
-            }
-            #app-root.hp-app-shell:not(.hp-app-shell--wide) {
-                max-width: 26rem;
-                height: min(920px, calc(100dvh - 2rem));
-                border-radius: 3rem;
-                border: 6px solid #2a2220;
-                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
-            }
-        }
-        @media (min-width: 1024px) {
-            .hp-desktop-stage {
-                min-height: 100dvh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 2.5rem;
-                padding: 1.5rem 2rem;
-                background:
-                    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(255, 91, 62, 0.14), transparent 55%),
-                    radial-gradient(ellipse 60% 45% at 90% 100%, rgba(46, 125, 111, 0.08), transparent 50%),
-                    linear-gradient(180deg, #151110 0%, #1a1412 100%);
-            }
-            .hp-desktop-brand {
-                max-width: 22rem;
-            }
-            #app-root.hp-app-shell {
-                flex-shrink: 0;
-                width: 100%;
-                max-width: 26rem;
-                height: min(920px, calc(100dvh - 3rem));
-                margin-left: auto;
-                margin-right: auto;
-                border-radius: 3rem;
-                border: 6px solid #2a2220;
-                box-shadow:
-                    0 32px 80px rgba(0, 0, 0, 0.55),
-                    0 0 0 1px rgba(255, 255, 255, 0.04);
-            }
-            #app-root.hp-app-shell--wide {
-                max-width: 72rem;
-                height: min(920px, calc(100dvh - 3rem));
-                border-radius: 1.75rem;
-                border-width: 1px;
-                border-color: rgba(255, 255, 255, 0.1);
-            }
-            #app-root.hp-app-shell--wide [data-screen="dashboard"] [data-dashboard-target="scrollContainer"] {
-                padding-bottom: 1.5rem;
-            }
-            #app-root.hp-app-shell--wide [data-dashboard-target="bottomNavBar"] {
-                position: sticky;
-                bottom: 0;
-                border-radius: 0 0 1.75rem 1.75rem;
-            }
-            #app-root.hp-app-shell--wide [data-dashboard-target="scrollToTopBtn"] {
-                bottom: calc(4.25rem + env(safe-area-inset-bottom));
-            }
-            #app-root.hp-app-shell--wide [data-dashboard-target="expDetailOverlay"] {
-                inset: 0.75rem;
-                border-radius: 1.25rem;
-                overflow: hidden;
-                box-shadow: 0 24px 64px rgba(31, 26, 24, 0.18);
-            }
-            #app-root.hp-app-shell--wide [data-dashboard-target="helpOverlay"],
-            #app-root.hp-app-shell--wide [data-dashboard-target="lockOverlay"],
-            #app-root.hp-app-shell--wide [data-dashboard-target="roomOverlay"] {
-                inset: 0.75rem;
-                border-radius: 1.25rem;
-                overflow: hidden;
-            }
-        }
     </style>
+    <link rel="stylesheet" href="/css/guest-desktop-v4.css">
     <script>
         (function () {
             try {
@@ -387,33 +291,78 @@
     })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 </head>
-<body class="bg-[#151110] text-[#EFECE9] h-dvh lg:min-h-dvh lg:h-auto font-sans antialiased selection:bg-hp-coral selection:text-white"
+<body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
       data-global-lang-value="zh">
 
-    <div class="hp-desktop-stage w-full" data-controller="app">
-        <!-- PC 左側品牌說明（僅 xl + 配對畫面） -->
-        <aside data-app-target="desktopBrand" class="hp-desktop-brand hidden xl:flex flex-col justify-center gap-5 shrink-0 opacity-0 pointer-events-none transition-opacity duration-300">
-            <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-[0.2em] text-hp-coral">host-pocket</p>
-                <h1 class="text-3xl font-black text-white leading-tight">
-                    <span data-global-lang="zh">房東私藏<br>入住指南</span>
-                    <span data-global-lang="en" class="hidden">Your stay guide<br>from the host</span>
-                </h1>
-                <p class="text-sm text-[#B8AEA8] leading-relaxed max-w-sm">
-                    <span data-global-lang="zh">連結房源代碼後，旅客可在電腦或手機上查看 Wi‑Fi、門禁與在地體驗推薦。</span>
-                    <span data-global-lang="en" class="hidden">Link a listing code so guests can view Wi‑Fi, access codes, and local picks on desktop or mobile.</span>
+    <div id="hp-v4-layout" class="hp-v4-layout hp-v4-sidebar-collapsed">
+        <!-- v4 Desktop sidebar (hidden below 1024px via CSS) -->
+        <aside id="hp-v4-sidebar" class="hp-v4-sidebar hp-v4-sidebar--collapsed" aria-label="Main navigation">
+            <div class="hp-v4-sidebar__brand">
+                <button type="button" id="hp-v4-sidebar-brand-toggle" class="hp-v4-sidebar__logo" aria-label="展開側邊欄">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                        <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                            <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#ffffff"/>
+                            <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#FF5B3E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#FF5B3E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </svg>
+                </button>
+                <div class="hp-v4-sidebar__title">
+                    <span data-global-lang="zh">房東私藏</span>
+                    <span data-global-lang="en" class="hidden">host-pocket</span>
+                </div>
+                <p class="hp-v4-sidebar__subtitle">
+                    <span data-global-lang="zh">房客入住指南</span>
+                    <span data-global-lang="en" class="hidden">Guest stay guide</span>
                 </p>
             </div>
-            <ul class="space-y-2.5 text-xs text-[#9A908A]">
-                <li class="flex items-center gap-2"><i class="fa-solid fa-wifi text-hp-coral w-4 text-center"></i><span data-global-lang="zh">一鍵複製 Wi‑Fi 帳密</span><span data-global-lang="en" class="hidden">One-tap Wi‑Fi copy</span></li>
-                <li class="flex items-center gap-2"><i class="fa-solid fa-door-open text-hp-coral w-4 text-center"></i><span data-global-lang="zh">大門解鎖步驟說明</span><span data-global-lang="en" class="hidden">Door access walkthrough</span></li>
-                <li class="flex items-center gap-2"><i class="fa-solid fa-compass text-hp-coral w-4 text-center"></i><span data-global-lang="zh">房東精選在地體驗</span><span data-global-lang="en" class="hidden">Host-curated experiences</span></li>
-            </ul>
+            <nav class="hp-v4-sidebar__nav" aria-label="App sections">
+                <p class="hp-v4-sidebar__nav-label">
+                    <span data-global-lang="zh">導覽</span>
+                    <span data-global-lang="en" class="hidden">Navigate</span>
+                </p>
+                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="home" title="回到首頁">
+                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-house" aria-hidden="true"></i></span>
+                    <span class="hp-v4-sidebar__label" data-global-lang="zh">回到首頁</span>
+                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Home</span>
+                </button>
+                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="pairing" title="連結房源">
+                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
+                    <span class="hp-v4-sidebar__label" data-global-lang="zh">連結房源</span>
+                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Link listing</span>
+                </button>
+                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="dashboard" title="指南主頁">
+                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-compass" aria-hidden="true"></i></span>
+                    <span class="hp-v4-sidebar__label" data-global-lang="zh">指南主頁</span>
+                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Stay guide</span>
+                </button>
+                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="contact" title="求助房東">
+                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></span>
+                    <span class="hp-v4-sidebar__label" data-global-lang="zh">求助房東</span>
+                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Contact host</span>
+                </button>
+            </nav>
+            <button type="button" id="hp-v4-sidebar-toggle" class="hp-v4-sidebar__toggle" aria-expanded="false" aria-controls="hp-v4-sidebar">
+                <i class="fa-solid fa-angles-right hp-v4-sidebar__toggle-icon" aria-hidden="true"></i>
+                <span class="hp-v4-sidebar__toggle-text" data-global-lang="zh">收合選單</span>
+                <span class="hp-v4-sidebar__toggle-text hidden" data-global-lang="en">Collapse menu</span>
+            </button>
+            <div class="hp-v4-sidebar__footer">
+                <div class="hp-v4-sidebar__lang" role="group" aria-label="Language">
+                    <button type="button" class="hp-v4-sidebar__lang-btn is-active" data-hp-v4-lang="zh">繁中</button>
+                    <button type="button" class="hp-v4-sidebar__lang-btn" data-hp-v4-lang="en">EN</button>
+                </div>
+                <div class="hp-v4-sidebar__partners">
+                    <a href="https://github.com/KimberlyYen/host-pocket" target="_blank" rel="noopener noreferrer" class="hp-v4-sidebar__partner" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://www.linkedin.com/company/searchapi/" target="_blank" rel="noopener noreferrer" class="hp-v4-sidebar__partner hp-v4-sidebar__partner--searchapi" aria-label="SearchAPI"><img src="/searchapi-icon.png" alt="" aria-hidden="true"></a>
+                    <a href="https://www.airbnb.com.tw/" target="_blank" rel="noopener noreferrer" class="hp-v4-sidebar__partner" aria-label="Airbnb"><i class="fa-brands fa-airbnb"></i></a>
+                </div>
+            </div>
         </aside>
 
     <!-- App Shell：三支畫面切換，全螢幕可操作 -->
-    <div id="app-root" data-app-target="shell" class="hp-app-shell h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
+    <div id="app-root" data-controller="app" class="h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
 
             <!-- 語言切換（配對畫面；absolute 置於 app 框內，桌面版不跑版） -->
             <div data-global-target="langBar" class="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
@@ -435,7 +384,7 @@
             <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
                     <div class="flex-1 flex flex-col p-5 pt-[max(2.5rem,env(safe-area-inset-top))] min-h-0 overflow-y-auto">
 
-                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2 lg:justify-center lg:max-w-md lg:mx-auto lg:w-full">
+                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2">
                         <!-- Central Pairing Core -->
                         <div class="space-y-5 shrink-0 w-full">
                             
@@ -511,17 +460,20 @@
                         <button type="button" data-hp-share-button data-dashboard-target="shareLink"
                                 data-action="click->dashboard#copyGuideShareLink"
                                 data-share-url="index.html?listing=TAIPEI-CITY"
-                                aria-label="Share guide"
-                                class="hp-share-btn hp-share-btn--icon inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-coral shadow-md border border-hp-border/60 transition active:scale-95">
+                                aria-label="分享"
+                                class="hp-share-btn hp-share-btn--pill inline-flex items-center gap-1 text-xs font-bold text-white px-3 py-2 rounded-xl bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm">
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
+                            <span data-global-lang="zh">分享</span>
+                            <span data-global-lang="en" class="hidden">Share</span>
                         </button>
                     </div>
-                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 lg:pb-28">
+                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
+                        <div class="hp-v4-dashboard-left" data-hp-v4-dashboard-left>
                         <!-- Room Hero & Connection Card -->
-                        <div class="px-5 py-4 lg:px-8 lg:py-6">
-                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group md:grid md:grid-cols-2">
+                        <div class="px-5 py-4">
+                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
                                 <!-- Room Image Cover -->
-                                <div data-dashboard-target="roomHero" class="hp-image-swipe h-52 md:h-full md:min-h-[14rem] lg:min-h-[17rem] relative overflow-hidden">
+                                <div data-dashboard-target="roomHero" class="hp-image-swipe h-52 relative overflow-hidden">
                                     <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
 
@@ -551,7 +503,7 @@
                                 </div>
                                 
                                 <!-- Connection Area -->
-                                <div class="p-4 bg-white space-y-3 lg:p-6 lg:flex lg:flex-col lg:justify-center">
+                                <div class="p-4 bg-white space-y-3">
                                     <div class="flex justify-between items-start gap-2">
                                         <div class="min-w-0">
                                             <span class="text-xs uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">房東體驗指南</span>
@@ -574,133 +526,14 @@
                             </div>
                         </div>
 
-                        <!-- Local Recommendations Cards -->
-                        <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
-                            <div class="px-5 flex justify-between items-center mb-3">
-                                <div>
-                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
-                                        <span data-global-lang="zh">在地體驗</span>
-                                        <span data-global-lang="en" class="hidden">Local Experiences</span>
-                                    </h4>
-                                    <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh"><span data-dashboard-target="hostRecLabelZh">Mia 的精選私藏行程</span></p>
-                                    <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en"><span data-dashboard-target="hostRecLabelEn">Mia's Handpicked Escapes</span></p>
-                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片查看 Airbnb 體驗詳情</p>
-                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card for experience details</p>
-                                </div>
-                            </div>
-
-                            <!-- Carousel -->
-                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-6 md:snap-none lg:grid-cols-4 lg:px-8">
-                                
-                                <!-- Card 1 -->
-                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="1"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🌟 <span data-dashboard-target="recBadge1"></span>
-                                        </span>
-                                        <span data-dashboard-target="recRating1" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
-                                        <p data-dashboard-target="recDist1" class="text-xs text-[#8C807A] mt-0.5"></p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p data-dashboard-target="recPrice1" class="text-xs text-hp-coral font-bold"></p>
-                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
-                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
-                                        </div>
-                                    </div>
-                                    </button>
-                                </div>
-
-                                <!-- Card 2 -->
-                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="2"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🏮 <span data-dashboard-target="recBadge2"></span>
-                                        </span>
-                                        <span data-dashboard-target="recRating2" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
-                                        <p data-dashboard-target="recDist2" class="text-xs text-[#8C807A] mt-0.5"></p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p data-dashboard-target="recPrice2" class="text-xs text-hp-coral font-bold"></p>
-                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
-                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
-                                        </div>
-                                    </div>
-                                    </button>
-                                </div>
-
-                                <!-- Card 3 -->
-                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="3"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg3" src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80" alt="Spot 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🍜 <span data-dashboard-target="recBadge3"></span>
-                                        </span>
-                                        <span data-dashboard-target="recRating3" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle3" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
-                                        <p data-dashboard-target="recDist3" class="text-xs text-[#8C807A] mt-0.5"></p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p data-dashboard-target="recPrice3" class="text-xs text-hp-coral font-bold"></p>
-                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
-                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
-                                        </div>
-                                    </div>
-                                    </button>
-                                </div>
-
-                                <!-- Card 4 -->
-                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="4"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg4" src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=300&q=80" alt="Spot 4" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🍵 <span data-dashboard-target="recBadge4"></span>
-                                        </span>
-                                        <span data-dashboard-target="recRating4" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
-                                    </div>
-                                    <div class="p-3">
-                                        <h5 data-dashboard-target="recTitle4" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
-                                        <p data-dashboard-target="recDist4" class="text-xs text-[#8C807A] mt-0.5"></p>
-                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
-                                            <p data-dashboard-target="recPrice4" class="text-xs text-hp-coral font-bold"></p>
-                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
-                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
-                                        </div>
-                                    </div>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Stay Guides Section (Wi-Fi, Keys) -->
-                        <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300 lg:px-8 lg:py-4">
+                        <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
                                     <span data-global-lang="zh">入住必備</span>
                                     <span data-global-lang="en" class="hidden">Essential Stays</span>
                                 </h4>
-                                <span class="text-xs text-hp-coral font-bold flex items-center gap-0.5">
-                                    <i class="fa-solid fa-shield-check"></i>
-                                    <span data-global-lang="zh">已驗證</span>
-                                    <span data-global-lang="en" class="hidden">Verified</span>
-                                </span>
                             </div>
-
-                            <div class="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-2">
                             
                             <!-- Wifi Card (Stimulus Clipboard Trigger) -->
                             <div class="bg-white rounded-2xl p-4 border border-hp-border shadow-sm flex items-center justify-between group cursor-pointer hover:border-hp-coral transition">
@@ -734,6 +567,119 @@
                                 </div>
                                 <i class="fa-solid fa-angle-right text-xs text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
                             </button>
+                        </div>
+                        </div>
+
+                        <!-- Local Recommendations Cards -->
+                        <div id="localRecs" data-dashboard-target="localRecs" class="py-4 transition-all duration-300">
+                            <div class="px-5 flex justify-between items-center mb-3">
+                                <div>
+                                    <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
+                                        <span data-global-lang="zh">在地體驗</span>
+                                        <span data-global-lang="en" class="hidden">Local Experiences</span>
+                                    </h4>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5" data-global-lang="zh"><span data-dashboard-target="hostRecLabelZh">Mia 的精選私藏行程</span></p>
+                                    <p class="text-xs text-hp-dark font-bold mt-0.5 hidden" data-global-lang="en"><span data-dashboard-target="hostRecLabelEn">Mia's Handpicked Escapes</span></p>
+                                    <p class="text-xs text-hp-muted mt-0.5" data-global-lang="zh">點選卡片查看 Airbnb 體驗詳情</p>
+                                    <p class="text-xs text-hp-muted mt-0.5 hidden" data-global-lang="en">Tap a card for experience details</p>
+                                </div>
+                                <div data-hp-v4-share-slot class="hidden shrink-0" aria-hidden="true"></div>
+                            </div>
+
+                            <!-- Carousel -->
+                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
+                                
+                                <!-- Card 1 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="1"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🌟 <span data-dashboard-target="recBadge1"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating1" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle1" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist1" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice1" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="2"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🏮 <span data-dashboard-target="recBadge2"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating2" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle2" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist2" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice2" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                </div>
+
+                                <!-- Card 3 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="3"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg3" src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80" alt="Spot 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🍜 <span data-dashboard-target="recBadge3"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating3" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle3" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist3" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice3" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                </div>
+
+                                <!-- Card 4 -->
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="4"
+                                            class="w-full text-left active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative">
+                                        <img data-dashboard-target="recImg4" src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=300&q=80" alt="Spot 4" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
+                                            🍵 <span data-dashboard-target="recBadge4"></span>
+                                        </span>
+                                        <span data-dashboard-target="recRating4" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 data-dashboard-target="recTitle4" class="font-bold text-xs text-hp-dark line-clamp-1 leading-snug"></h5>
+                                        <p data-dashboard-target="recDist4" class="text-xs text-[#8C807A] mt-0.5"></p>
+                                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-hp-bgLight">
+                                            <p data-dashboard-target="recPrice4" class="text-xs text-hp-coral font-bold"></p>
+                                            <span class="text-xs text-hp-muted font-bold" data-global-lang="zh">詳情</span>
+                                            <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
+                                        </div>
+                                    </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1056,9 +1002,9 @@
 
             <!-- 畫面 3：實境探索 -->
             <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-[#EADCC9] text-hp-dark overflow-hidden">
-                    <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden md:flex-row md:pb-0 lg:flex-row lg:pb-0">
+                    <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden">
                         <!-- Map View -->
-                        <div class="relative flex-1 min-h-[38%] md:min-h-0 md:min-w-0 lg:min-h-0 lg:min-w-0 overflow-hidden">
+                        <div class="relative flex-1 min-h-[38%] overflow-hidden">
                             <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
                             <div data-explorer-target="mapLayer" class="absolute inset-0 transition-transform duration-300 ease-out will-change-transform">
                             
@@ -1119,7 +1065,7 @@
                         </div>
 
                         <!-- Details card - bottom sheet -->
-                        <div class="shrink-0 max-h-[min(48%,20rem)] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4 z-10 md:max-h-none md:w-[min(22rem,42%)] md:shrink-0 md:rounded-none md:rounded-tl-[32px] md:shadow-[-8px_0_24px_rgba(31,26,24,0.06)] lg:max-h-none lg:w-[min(26rem,38%)] lg:rounded-tl-[32px] lg:flex lg:flex-col">
+                        <div class="shrink-0 max-h-[min(48%,20rem)] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4 z-10">
                             
                             <div class="flex justify-between items-start gap-3">
                                 <div class="min-w-0 flex-1">
@@ -1179,7 +1125,7 @@
                     </div>
 
                     <!-- Bottom Nav mapping -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20 md:hidden lg:hidden">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
                         <button data-action="click->global#navigateToDashboard" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
@@ -1189,7 +1135,7 @@
             </div>
 
     </div><!-- /#app-root -->
-    </div><!-- /.hp-desktop-stage -->
+    </div><!-- /#hp-v4-layout -->
 
     <!-- Simulated Backend Database within Hotwire Client -->
     <script src="/js/toast.js"></script>
@@ -1203,6 +1149,7 @@
     <script src="/js/booking-api.js"></script>
     <script src="/js/experience-details.js"></script>
     <script src="/js/guest-router.js"></script>
+    <script src="/js/guest-desktop-v4.js"></script>
     <script src="/js/pairing-link-card.js"></script>
     <script src="/js/pairing-quick-start.js"></script>
     <script src="/js/pairing-tabs.js"></script>
@@ -1467,6 +1414,12 @@
             const listingId = hpResolveGuestListingId();
             if (!listingId) return;
             hpSeedGuestDemoStorage(listingId);
+            if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
+                void hpHydrateGuestGuideDashboardAsync(listingId).then(() => {
+                    hpScheduleGuestExperienceHydration();
+                });
+                return;
+            }
             hpHydrateGuestGuideDashboard(listingId);
             hpScheduleGuestExperienceHydration();
         }
@@ -1571,6 +1524,11 @@
         function hpHydrateGuestGuideDashboard(listingId) {
             const id = (listingId || hpResolveGuestListingId() || '').trim().toUpperCase();
             if (!id) return false;
+
+            if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
+                void hpHydrateGuestGuideDashboardAsync(id);
+                return false;
+            }
 
             const root = document.querySelector('[data-screen="dashboard"]');
             if (!root) return false;
@@ -1833,7 +1791,7 @@
 
         // --- APP SHELL：三支畫面切換 ---
         stimulusApp.register("app", class extends Controller {
-            static targets = ["screen", "desktopBrand", "shell"]
+            static targets = ["screen"]
             static values = { current: { type: String, default: "pairing" } }
 
             connect() {
@@ -1854,26 +1812,6 @@
                 const dashEl = this.screenTargets.find(el => el.dataset.screen === 'dashboard');
                 const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
                 dashCtrl?.bootFromDeepLink?.();
-
-                this._onResizeShell = () => this.syncShellLayout(this.currentValue);
-                window.addEventListener('resize', this._onResizeShell);
-            }
-
-            disconnect() {
-                window.removeEventListener('resize', this._onResizeShell);
-            }
-
-            syncShellLayout(name) {
-                const shell = this.hasShellTarget ? this.shellTarget : document.getElementById('app-root');
-                const wide = window.matchMedia('(min-width: 768px)').matches;
-                const useWide = wide && (name === 'dashboard' || name === 'explorer');
-                shell?.classList.toggle('hp-app-shell--wide', useWide);
-
-                const showBrand = window.matchMedia('(min-width: 1280px)').matches && name === 'pairing';
-                if (this.hasDesktopBrandTarget) {
-                    this.desktopBrandTarget.classList.toggle('opacity-0', !showBrand);
-                    this.desktopBrandTarget.classList.toggle('pointer-events-none', !showBrand);
-                }
             }
 
             show(name) {
@@ -1881,7 +1819,6 @@
                     el.classList.toggle("is-active", el.dataset.screen === name);
                 });
                 this.currentValue = name;
-                this.syncShellLayout(name);
 
                 const langBar = document.querySelector('[data-global-target="langBar"]');
                 if (langBar) langBar.classList.toggle('hidden', name !== 'pairing');
@@ -1901,6 +1838,8 @@
                         dashCtrl.scrollContainerTarget.scrollTo({ top: 0, behavior: "instant" });
                     }
                 }
+
+                window.dispatchEvent(new CustomEvent('hp:v4-screen', { detail: { screen: name } }));
             }
         });
 
@@ -1974,6 +1913,7 @@
             updateActiveLangUI() {
                 // Broadcast language change to other parts
                 window.currentLanguage = this.langValue;
+                window.dispatchEvent(new CustomEvent('hp:v4-lang'));
             }
 
             // Quick Demo Injector
@@ -3439,7 +3379,9 @@
             }
 
             contactHost(event) {
-                this.setActiveBottomNav(event.currentTarget);
+                if (event?.currentTarget) {
+                    this.setActiveBottomNav(event.currentTarget);
+                }
                 if (this.hasHelpOverlayTarget) {
                     this.setSlideOverlay(this.helpOverlayTarget, true);
                 }
@@ -3632,8 +3574,22 @@
 
             setSlideOverlay(element, isOpen) {
                 if (!element) return;
+                if (isOpen) {
+                    [
+                        this.roomOverlayTarget,
+                        this.helpOverlayTarget,
+                        this.lockOverlayTarget
+                    ].filter((el) => el && el !== element).forEach((el) => {
+                        el.classList.add('translate-y-full', 'pointer-events-none');
+                    });
+                }
                 element.classList.toggle('translate-y-full', !isOpen);
                 element.classList.toggle('pointer-events-none', !isOpen);
+
+                if (this.hasExpDetailOverlayTarget && element === this.expDetailOverlayTarget) {
+                    document.documentElement.classList.toggle('hp-boot-experience', isOpen);
+                    window.dispatchEvent(new CustomEvent('hp:v4-experience-detail', { detail: { open: isOpen } }));
+                }
             }
 
             triggerToast(title, msg, type, options) {

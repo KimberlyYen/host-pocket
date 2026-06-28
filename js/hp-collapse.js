@@ -144,6 +144,13 @@
         doc.head.appendChild(style);
     }
 
+    function collapseAll(root) {
+        const scope = root && root.querySelectorAll ? root : global.document;
+        scope.querySelectorAll(`.${ROOT_CLASS}[open]`).forEach((el) => {
+            el.open = false;
+        });
+    }
+
     global.HostPocketCollapse = {
         ROOT_CLASS,
         TRIGGER_CLASS,
@@ -153,6 +160,7 @@
         setOpen,
         isOpen,
         bind,
+        collapseAll,
         injectStyles
     };
 

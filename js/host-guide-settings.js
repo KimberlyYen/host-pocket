@@ -107,20 +107,19 @@
 
     async function isDatabaseAvailable() {
         if (global.HP_MOCK_DATA !== false) {
-            _dbAvailable = false;
             return false;
         }
-        if (_dbAvailable !== null) return _dbAvailable;
+        if (_dbAvailable === true) return true;
         if (!global.ListingSettingsAPI) {
-            _dbAvailable = false;
             return false;
         }
         try {
-            _dbAvailable = await ListingSettingsAPI.isDatabaseConfigured();
+            const ok = await ListingSettingsAPI.isDatabaseConfigured();
+            if (ok) _dbAvailable = true;
+            return ok;
         } catch {
-            _dbAvailable = false;
+            return false;
         }
-        return _dbAvailable;
     }
 
     function invalidateCache(listingId) {

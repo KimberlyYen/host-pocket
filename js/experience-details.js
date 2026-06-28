@@ -791,7 +791,7 @@
                 listingId,
                 positionClass: 'absolute top-0 right-0 z-10'
             })
-            : `<button type="button" data-hp-share-button data-action="click->dashboard#copyGuideShareLink" data-share-stay="true" data-share-url="${escapeHtml(shareHref)}" class="hp-share-btn hp-share-btn--pill absolute top-0 right-0 z-10 inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm"><i class="fa-solid fa-arrow-up-from-bracket mr-1"></i>${isZh ? '分享' : 'Share'}</button>`;
+            : `<button type="button" data-hp-share-button data-action="click->dashboard#copyGuideShareLink" data-share-stay="true" data-share-url="${escapeHtml(shareHref)}" class="hp-share-btn hp-share-btn--pill absolute top-0 right-0 z-10 inline-flex items-center gap-1 text-xs font-bold text-white px-3 py-2 rounded-xl bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm"><i class="fa-solid fa-arrow-up-from-bracket text-sm"></i><span data-global-lang="zh">分享</span><span data-global-lang="en" class="hidden">Share</span></button>`;
 
         return `
             <div class="p-5 space-y-4">

@@ -27,8 +27,8 @@
             showLabel: false
         },
         pill: {
-            className: 'hp-share-btn hp-share-btn--pill inline-flex items-center text-xs font-bold text-white px-2.5 py-1.5 rounded-lg bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm',
-            iconClass: 'fa-solid fa-arrow-up-from-bracket mr-1',
+            className: 'hp-share-btn hp-share-btn--pill inline-flex items-center gap-1 text-xs font-bold text-white px-3 py-2 rounded-xl bg-hp-coral hover:bg-hp-coral/90 whitespace-nowrap shrink-0 transition active:scale-[0.98] shadow-sm',
+            iconClass: 'fa-solid fa-arrow-up-from-bracket text-sm',
             showLabel: true
         }
     };
@@ -61,7 +61,9 @@
         ].filter(Boolean).join(' ');
 
         const icon = `<i class="${variant.iconClass}"></i>`;
-        const content = variant.showLabel ? `${icon}${label}` : icon;
+        const content = variant.showLabel
+            ? `${icon}<span data-global-lang="zh">分享</span><span data-global-lang="en" class="hidden">Share</span>`
+            : icon;
 
         return `<button ${attrs}>${content}</button>`;
     }
