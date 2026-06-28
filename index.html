@@ -586,7 +586,7 @@
                                     <div>
                                         <h5 class="text-xs font-bold text-hp-dark" data-global-lang="zh">Wi-Fi 機密與連接</h5>
                                         <h5 class="text-xs font-bold text-hp-dark hidden" data-global-lang="en">Wi-Fi Settings</h5>
-                                        <p data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5"></p>
+                                        <div data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5"></div>
                                     </div>
                                 </div>
                                 <button data-action="click->dashboard#copyWifi" class="w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition">
@@ -714,6 +714,7 @@
                             <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                         <div data-dashboard-target="expDetailBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar"></div>
+                        <div data-dashboard-target="expDetailBookingBar" class="shrink-0"></div>
                         <!-- Share Sheet (Google Maps / Airbnb style) -->
                         <div data-dashboard-target="expShareOverlay" class="absolute inset-0 bg-black/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col justify-end">
                             <button type="button" data-action="click->dashboard#closeExpShareSheet" aria-label="Close share sheet"
@@ -1074,6 +1075,7 @@
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/booking-api.js"></script>
     <script src="/js/experience-details.js"></script>
+    <script src="/js/guest-router.js"></script>
     <script src="/js/pairing-link-card.js"></script>
     <script src="/js/pairing-quick-start.js"></script>
     <script src="/js/pairing-tabs.js"></script>
@@ -1240,7 +1242,7 @@
             if (passMatch) {
                 return {
                     full: raw,
-                    label: `${passMatch[1].trim()} / pass:`,
+                    account: passMatch[1].trim(),
                     password: passMatch[2].trim(),
                     hasSecret: true
                 };
@@ -1249,12 +1251,12 @@
             if (slashMatch) {
                 return {
                     full: raw,
-                    label: `${slashMatch[1].trim()} / `,
+                    account: slashMatch[1].trim(),
                     password: slashMatch[2].trim(),
                     hasSecret: true
                 };
             }
-            return { full: raw, label: raw, password: '', hasSecret: false };
+            return { full: raw, account: '', password: '', hasSecret: false };
         }
 
         function hpApplyWifiDisplay(container, wifi, visible = false) {
@@ -1265,36 +1267,47 @@
 
             let labelEl = container.querySelector('[data-hp-wifi-label]');
             let passEl = container.querySelector('[data-hp-wifi-password]');
+            let passRowEl = container.querySelector('[data-hp-wifi-pass-row]');
+            let passPrefixEl = container.querySelector('[data-hp-wifi-pass-prefix]');
             let toggleEl = container.querySelector('[data-hp-wifi-toggle]');
 
-            if (!labelEl) {
+            if (!passRowEl || !passPrefixEl) {
                 container.innerHTML = `
-                    <span class="inline-flex items-center gap-1.5 flex-wrap">
-                        <span data-hp-wifi-label></span>
-                        <span data-hp-wifi-password class="font-bold"></span>
-                        <button type="button" data-hp-wifi-toggle data-action="click->dashboard#toggleWifiPassword"
-                                class="w-6 h-6 rounded-md bg-hp-bgLight hover:bg-hp-coral/10 inline-flex items-center justify-center shrink-0 transition active:scale-95"
-                                aria-pressed="false">
-                            <i class="fa-regular fa-eye text-[10px] text-[#8C807A]"></i>
-                        </button>
+                    <span class="flex flex-col gap-0.5 items-start">
+                        <span data-hp-wifi-label class="leading-snug"></span>
+                        <span data-hp-wifi-pass-row class="inline-flex items-center gap-1.5">
+                            <span class="leading-snug font-bold">
+                                <span data-hp-wifi-pass-prefix></span><span data-hp-wifi-password></span>
+                            </span>
+                            <button type="button" data-hp-wifi-toggle data-action="click->dashboard#toggleWifiPassword"
+                                    class="w-6 h-6 rounded-md bg-hp-bgLight hover:bg-hp-coral/10 inline-flex items-center justify-center shrink-0 transition active:scale-95"
+                                    aria-pressed="false">
+                                <i class="fa-regular fa-eye text-[10px] text-[#8C807A]"></i>
+                            </button>
+                        </span>
                     </span>`;
                 labelEl = container.querySelector('[data-hp-wifi-label]');
                 passEl = container.querySelector('[data-hp-wifi-password]');
+                passRowEl = container.querySelector('[data-hp-wifi-pass-row]');
+                passPrefixEl = container.querySelector('[data-hp-wifi-pass-prefix]');
                 toggleEl = container.querySelector('[data-hp-wifi-toggle]');
             }
 
             const isZh = (window.currentLanguage || 'zh') === 'zh';
+            const accountLabel = isZh ? '帳號: ' : 'account: ';
+            const passLabel = isZh ? '密碼: ' : 'pass: ';
             if (!parsed.hasSecret) {
                 labelEl.textContent = parsed.full;
                 passEl.textContent = '';
-                passEl.classList.add('hidden');
+                passRowEl.classList.add('hidden');
                 toggleEl.classList.add('hidden');
                 return;
             }
 
-            labelEl.textContent = parsed.label;
+            labelEl.textContent = `${accountLabel}${parsed.account}`;
+            passPrefixEl.textContent = passLabel;
             passEl.textContent = parsed.password;
-            passEl.classList.remove('hidden');
+            passRowEl.classList.remove('hidden');
             passEl.classList.toggle('hp-secret-blurred', !visible);
             toggleEl.classList.remove('hidden');
             toggleEl.setAttribute('aria-pressed', visible ? 'true' : 'false');
@@ -1500,18 +1513,30 @@
                     isZh,
                     listingId: listing
                 });
-                body.innerHTML = mediaHtml + contentHtml + bookingHtml;
+                body.innerHTML = mediaHtml + contentHtml;
+                const bookingBar = root?.querySelector('[data-dashboard-target="expDetailBookingBar"]');
+                if (bookingBar) bookingBar.innerHTML = bookingHtml;
                 body.scrollTop = 0;
                 ExperienceDetailsAPI.initMediaPlayer(body);
 
                 overlay.classList.remove('translate-y-full', 'pointer-events-none');
                 overlay.classList.add('pointer-events-auto');
                 document.documentElement.classList.add('hp-boot-experience');
+
+                const dashCtrl = root && window.__hpStimulusApp?.getControllerForElementAndIdentifier(root, 'dashboard');
+                if (dashCtrl) {
+                    dashCtrl.currentListingId = listing;
+                    dashCtrl.currentExpRecIndex = recIndex;
+                    dashCtrl.currentExpPayload = payload;
+                    dashCtrl.pushExperienceBrowserUrl?.();
+                }
                 return true;
             } catch (error) {
                 console.error('[host-pocket] guest experience hydrate failed', error);
                 const isZh = (window.currentLanguage || 'zh') !== 'en';
                 body.innerHTML = `<p class="p-5 text-center text-xs text-hp-muted">${isZh ? '無法載入體驗詳情，請稍後再試。' : 'Could not load experience details.'}</p>`;
+                const bookingBar = root?.querySelector('[data-dashboard-target="expDetailBookingBar"]');
+                if (bookingBar) bookingBar.innerHTML = '';
                 overlay.classList.remove('translate-y-full', 'pointer-events-none');
                 overlay.classList.add('pointer-events-auto');
                 return false;
@@ -1535,6 +1560,8 @@
             overlay.classList.remove('pointer-events-auto');
             const body = document.querySelector('[data-dashboard-target="expDetailBody"]');
             if (body) body.innerHTML = '';
+            const bookingBar = document.querySelector('[data-dashboard-target="expDetailBookingBar"]');
+            if (bookingBar) bookingBar.innerHTML = '';
             document.documentElement.classList.remove('hp-boot-experience');
         }
 
@@ -1693,6 +1720,8 @@
                 this.show(hasDeepLink ? 'dashboard' : this.currentValue);
                 if (hasDeepLink) {
                     document.documentElement.classList.add('hp-boot-dashboard');
+                } else {
+                    window.HostPocketGuestRouter?.replacePairing?.();
                 }
 
                 const dashEl = this.screenTargets.find(el => el.dataset.screen === 'dashboard');
@@ -1753,34 +1782,45 @@
 
             // Handles the dynamic language toggle in true declarative Hotwire spirit
             switchLanguage(event) {
-                const chosenLang = event.currentTarget.dataset.lang;
+                this.setLanguage(event.currentTarget.dataset.lang);
+            }
+
+            setLanguage(chosenLang, options = {}) {
+                if (chosenLang !== 'zh' && chosenLang !== 'en') return;
+                if (this.langValue === chosenLang && options.force !== true) return;
+
                 this.langValue = chosenLang;
 
-                // Update standard CSS variables and elements
                 const zhElements = document.querySelectorAll('[data-global-lang="zh"]');
                 const enElements = document.querySelectorAll('[data-global-lang="en"]');
 
                 if (chosenLang === 'zh') {
                     zhElements.forEach(el => el.classList.remove('hidden'));
                     enElements.forEach(el => el.classList.add('hidden'));
-                    this.zhBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
-                    this.enBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
                 } else {
                     zhElements.forEach(el => el.classList.add('hidden'));
                     enElements.forEach(el => el.classList.remove('hidden'));
-                    this.zhBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
-                    this.enBtnTarget.className = 'px-3.5 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
                 }
 
                 this.updateActiveLangUI();
                 document.title = chosenLang === 'zh' ? '房東私藏' : 'host-pocket';
+                const wifiEl = document.querySelector('[data-dashboard-target="wifiValue"]');
+                if (wifiEl?.dataset.wifiFull) {
+                    hpApplyWifiDisplay(wifiEl, wifiEl.dataset.wifiFull, wifiEl.dataset.wifiRevealed === 'true');
+                }
                 this.syncControllers(this.getCurrentExperienceId());
 
-                this.dispatchNotification(
-                    chosenLang === 'zh' ? '語言切換成功' : 'Language Switched',
-                    chosenLang === 'zh' ? '系統已全面語意翻譯為繁體中文' : 'Interface localized into English',
-                    'success'
-                );
+                if (!options.silent) {
+                    this.dispatchNotification(
+                        chosenLang === 'zh' ? '語言切換成功' : 'Language Switched',
+                        chosenLang === 'zh' ? '系統已全面語意翻譯為繁體中文' : 'Interface localized into English',
+                        'success'
+                    );
+                }
             }
 
             updateActiveLangUI() {
@@ -1832,9 +1872,7 @@
 
                 if (window.appNavigate) {
                     window.appNavigate("pairing");
-                    if (typeof history !== 'undefined' && /^\/guide\//.test(location.pathname)) {
-                        history.replaceState({ hp: 'pairing' }, '', '/');
-                    }
+                    window.HostPocketGuestRouter?.navigateToPairingHistory?.();
                     this.dispatchNotification(copy.title, copy.msg, 'info');
                     return;
                 }
@@ -1997,7 +2035,7 @@
 
                 const dashEl = document.querySelector('[data-controller="dashboard"]');
                 const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
-                dashCtrl?.closeExperienceDetail?.();
+                dashCtrl?.closeExperienceDetail?.({ skipHistory: true });
 
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 if (dashCtrl) dashCtrl.currentListingId = val;
@@ -2034,11 +2072,16 @@
                     }
                 }
 
-                dashCtrl?.syncGuideBrowserUrl?.();
+                dashCtrl?.pushGuideBrowserUrl?.();
             }
 
             quickPair(event) {
-                this.inputTarget.value = event.currentTarget.dataset.id;
+                const btn = event.currentTarget;
+                const lang = btn.dataset.lang === 'en' ? 'en' : 'zh';
+                const globalController = this.application.getControllerForElementAndIdentifier(document.body, 'global');
+                globalController?.setLanguage?.(lang, { silent: true, force: true });
+
+                this.inputTarget.value = btn.dataset.id;
                 this.performPairing();
             }
 
@@ -2059,7 +2102,7 @@
                 "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -2080,6 +2123,12 @@
                 this.bookingTimezone = 'Asia/Taipei';
                 this.bookingTimezoneIsOther = false;
                 this.bookingCustomTimezone = '';
+                this.closingDetailViaHistory = false;
+
+                window.__hpHandleGuestRoutePop = (event, route) => this.handleGuestRoutePop(event, route);
+                window.HostPocketGuestRouter?.install?.((_event, route) => {
+                    window.__hpHandleGuestRoutePop?.(_event, route);
+                });
 
                 this.bootFromDeepLink();
 
@@ -2096,8 +2145,6 @@
                         this.renderDashboard(data, id);
                         if (urlExperience) {
                             void this.openExperienceFromShareLink(id, urlExperience);
-                        } else if (hasDeepLink) {
-                            this.syncGuideBrowserUrl();
                         }
                     };
                     if (window.HP_MOCK_DATA === false || hpIsHostPreviewMode()) {
@@ -2126,6 +2173,7 @@
             disconnect() {
                 window.removeEventListener("experience:updated", this.onExperienceUpdated);
                 window.removeEventListener('pageshow', this.onPageShow);
+                if (window.__hpHandleGuestRoutePop) window.__hpHandleGuestRoutePop = null;
                 if (this.hasScrollContainerTarget && this.onScrollContainerScroll) {
                     this.scrollContainerTarget.removeEventListener('scroll', this.onScrollContainerScroll);
                 }
@@ -2319,8 +2367,8 @@
                 if (experienceId) {
                     void this.openExperienceFromShareLink(listingId, experienceId);
                 } else {
-                    this.closeExperienceDetail();
-                    this.syncGuideBrowserUrl();
+                    this.closeExperienceDetail({ skipHistory: true });
+                    window.HostPocketGuestRouter?.seedGuideStack?.(listingId);
                 }
             }
 
@@ -2440,9 +2488,114 @@
             }
 
             goBackToPairing() {
-                this.closeExperienceDetail();
+                this.closeExperienceDetail({ skipHistory: true });
                 const global = this.application.getControllerForElementAndIdentifier(document.body, "global");
                 if (global) global.navigateToPairing('switch');
+            }
+
+            isExperienceDetailOpen() {
+                return this.hasExpDetailOverlayTarget
+                    && !this.expDetailOverlayTarget.classList.contains('translate-y-full');
+            }
+
+            parseListingIdFromLocation() {
+                const deep = ExperienceDetailsAPI.parseDeepLinkFromLocation();
+                if (deep?.listing) return deep.listing;
+                return this.currentListingId || 'TAIPEI-CITY';
+            }
+
+            activateGuideHome(listingId) {
+                const id = String(listingId || this.parseListingIdFromLocation()).trim().toUpperCase();
+
+                window.appNavigate?.('dashboard');
+                document.documentElement.classList.add('hp-boot-dashboard');
+                document.documentElement.classList.remove('hp-boot-experience');
+                document.documentElement.dataset.hpListing = id;
+                delete document.documentElement.dataset.hpExperience;
+
+                if (this.currentListingId !== id || !this.hasRoomTitleTarget) {
+                    this.currentListingId = id;
+                    if (window.HP_MOCK_DATA === false) {
+                        void hpLoadGuideSettingsDataAsync(id).then((data) => {
+                            if (this.currentListingId === id) this.renderDashboard(data, id);
+                        }).catch(() => {
+                            if (this.currentListingId === id) {
+                                this.renderDashboard(getGuestListingData(id), id);
+                            }
+                        });
+                    } else {
+                        this.renderDashboard(getGuestListingData(id), id);
+                    }
+                }
+
+                this.updateDeepLinkChrome(this.isGuestGuideRoute());
+
+                if (this.hasScrollContainerTarget) {
+                    this.scrollContainerTarget.scrollTo({ top: 0, behavior: 'instant' });
+                }
+                if (this.hasTabBtnTarget && this.tabBtnTargets.length) {
+                    this.setActiveTab(this.tabBtnTargets[0]);
+                }
+            }
+
+            activatePairingHome() {
+                if (this.isExperienceDetailOpen()) {
+                    this.finishCloseExperienceDetail({ skipHistory: true, fromPopstate: true });
+                } else {
+                    window.HostPocketGuestRouter?.clearDetailHistory?.();
+                }
+
+                window.appNavigate?.('pairing');
+                document.documentElement.classList.remove('hp-boot-dashboard');
+                document.documentElement.classList.remove('hp-boot-experience');
+                delete document.documentElement.dataset.hpListing;
+                delete document.documentElement.dataset.hpExperience;
+                window.__hostPocketDeepLink = null;
+            }
+
+            handleGuestRoutePop(_event, route) {
+                if (this.closingDetailViaHistory) {
+                    this.closingDetailViaHistory = false;
+                }
+
+                if (this.isExperienceDetailOpen() && route.screen !== 'experience') {
+                    this.finishCloseExperienceDetail({ fromPopstate: true });
+                    window.HostPocketGuestRouter?.clearDetailHistory?.();
+                }
+
+                const locRoute = window.HostPocketGuestRouter?.parseRoute?.() || route;
+
+                if (locRoute.screen === 'pairing' || route.screen === 'pairing') {
+                    this.activatePairingHome();
+                    return;
+                }
+
+                if (route.screen === 'guide' || locRoute.screen === 'guide') {
+                    window.HostPocketGuestRouter?.clearDetailHistory?.();
+                    this.activateGuideHome(route.listingId || locRoute.listingId);
+                }
+            }
+
+            pushGuideBrowserUrl() {
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                if (this.hasShareLinkTarget) {
+                    HostPocketShareButton.setUrl(this.shareLinkTarget, ExperienceDetailsAPI.getGuideShareHref(listingId));
+                }
+                window.HostPocketGuestRouter?.seedGuideStack?.(listingId);
+            }
+
+            pushExperienceBrowserUrl() {
+                const { listingId, experienceId } = this.getShareLinkOptions();
+                if (!listingId || !experienceId) return;
+                window.HostPocketGuestRouter?.pushExperience?.(listingId, experienceId);
+            }
+
+            syncGuideBrowserUrl() {
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                if (this.hasShareLinkTarget) {
+                    HostPocketShareButton.setUrl(this.shareLinkTarget, ExperienceDetailsAPI.getGuideShareHref(listingId));
+                }
+                window.HostPocketGuestRouter?.syncGuideUrl?.(listingId);
             }
 
             syncRecCardRatings(listingId) {
@@ -2470,27 +2623,6 @@
                 return { listingId, experienceId };
             }
 
-            syncExperienceBrowserUrl() {
-                const { listingId, experienceId } = this.getShareLinkOptions();
-                if (!listingId || !experienceId) return;
-                const url = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, experienceId });
-                if (window.location.href.split('#')[0] !== url) {
-                    history.replaceState({ hp: 'experience', listingId, experienceId }, '', url);
-                }
-            }
-
-            syncGuideBrowserUrl() {
-                const listingId = this.currentListingId || 'TAIPEI-CITY';
-                const shareUrl = ExperienceDetailsAPI.getGuideShareHref(listingId);
-                const browserUrl = ExperienceDetailsAPI.buildGuideBrowserUrl({ listingId, guideOnly: true });
-                if (this.hasShareLinkTarget) {
-                    HostPocketShareButton.setUrl(this.shareLinkTarget, shareUrl);
-                }
-                if (window.location.href.split('#')[0] !== browserUrl) {
-                    history.replaceState({ hp: 'guide', listingId }, '', browserUrl);
-                }
-            }
-
             async openExperienceFromShareLink(listingId, experienceId) {
                 const expIdNorm = String(experienceId || '').trim();
                 if (!expIdNorm || !this.hasExpDetailOverlayTarget) return;
@@ -2512,10 +2644,13 @@
                     this.expDetailBodyTarget.scrollTop = 0;
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
+                if (this.hasExpDetailBookingBarTarget) {
+                    this.expDetailBookingBarTarget.innerHTML = '';
+                }
 
                 const payload = await this.loadExperienceDetailForRec(id, recIndex, listingData);
                 if (payload) {
-                    this.syncExperienceBrowserUrl();
+                    this.pushExperienceBrowserUrl();
                 } else {
                     window.hpHydrateGuestExperienceDetail?.(id, expIdNorm);
                 }
@@ -2533,9 +2668,12 @@
                     this.expDetailBodyTarget.scrollTop = 0;
                     this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
                 }
+                if (this.hasExpDetailBookingBarTarget) {
+                    this.expDetailBookingBarTarget.innerHTML = '';
+                }
 
                 await this.loadExperienceDetailForRec(listingId, recIndex);
-                this.syncExperienceBrowserUrl();
+                this.pushExperienceBrowserUrl();
             }
 
             renderExperienceDetail(payload, recIndex) {
@@ -2548,16 +2686,34 @@
                         isZh,
                         listingId: this.currentListingId || 'TAIPEI-CITY'
                     });
-                    this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml + bookingHtml;
+                    this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml;
+                    if (this.hasExpDetailBookingBarTarget) {
+                        this.expDetailBookingBarTarget.innerHTML = bookingHtml;
+                    }
                     this.expDetailBodyTarget.scrollTop = 0;
                     ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
                 } catch (error) {
                     console.error('[dashboard] renderExperienceDetail failed', error);
                     this.expDetailBodyTarget.innerHTML = `<p class="p-5 text-center text-xs text-hp-muted">${isZh ? '無法載入體驗詳情，請稍後再試。' : 'Could not load experience details.'}</p>`;
+                    if (this.hasExpDetailBookingBarTarget) {
+                        this.expDetailBookingBarTarget.innerHTML = '';
+                    }
                 }
             }
 
-            closeExperienceDetail() {
+            closeExperienceDetail(arg = {}) {
+                const options = arg?.preventDefault ? {} : (arg || {});
+
+                if (!options.fromPopstate && !options.skipHistory && window.HostPocketGuestRouter?.isDetailHistoryActive?.()) {
+                    this.closingDetailViaHistory = true;
+                    window.HostPocketGuestRouter.backFromDetail();
+                    return;
+                }
+
+                this.finishCloseExperienceDetail(options);
+            }
+
+            finishCloseExperienceDetail(options = {}) {
                 this.closeExpBookingCalendar();
                 this.closeExpBookingConfirm(false);
                 this.closeExpShareSheet(false);
@@ -2565,12 +2721,24 @@
                     ExperienceDetailsAPI.pauseMediaPlayer?.(this.expDetailBodyTarget);
                     this.expDetailBodyTarget.innerHTML = '';
                 }
+                if (this.hasExpDetailBookingBarTarget) {
+                    this.expDetailBookingBarTarget.innerHTML = '';
+                }
                 this.currentExpPayload = null;
                 this.selectedBookingDate = null;
                 if (this.hasExpDetailOverlayTarget) {
                     this.setSlideOverlay(this.expDetailOverlayTarget, false);
                 }
-                this.syncGuideBrowserUrl();
+                window.HostPocketGuestRouter?.clearDetailHistory?.();
+                if (!options.fromPopstate) {
+                    this.syncGuideBrowserUrl();
+                } else if (this.hasShareLinkTarget) {
+                    const listingId = this.currentListingId || 'TAIPEI-CITY';
+                    HostPocketShareButton.setUrl(
+                        this.shareLinkTarget,
+                        ExperienceDetailsAPI.getGuideShareHref(listingId)
+                    );
+                }
             }
 
             openExpShareSheet() {

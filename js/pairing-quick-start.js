@@ -7,6 +7,7 @@
     const PRESETS = [
         {
             id: 'TAIPEI-CITY',
+            lang: 'zh',
             icon: 'fa-city',
             primaryZh: '台北',
             primaryEn: 'Taipei',
@@ -15,6 +16,7 @@
         },
         {
             id: 'UK-LONDON',
+            lang: 'en',
             icon: 'fa-landmark',
             primaryZh: '英國',
             primaryEn: 'UK',
@@ -23,6 +25,7 @@
         },
         {
             id: 'VILNIUS-OLDTOWN',
+            lang: 'en',
             icon: 'fa-archway',
             primaryZh: '立陶宛',
             primaryEn: 'Lithuania',
@@ -31,6 +34,7 @@
         },
         {
             id: 'RIO-COPACABANA',
+            lang: 'en',
             icon: 'fa-umbrella-beach',
             primaryZh: '巴西',
             primaryEn: 'Brazil',
@@ -50,7 +54,8 @@
     function renderPresetButton(preset) {
         const id = escapeHtml(preset.id);
         const icon = escapeHtml(preset.icon || 'fa-location-dot');
-        return `<button type="button" data-action="click->pairing#quickPair" data-id="${id}"
+        const lang = escapeHtml(preset.lang === 'en' ? 'en' : 'zh');
+        return `<button type="button" data-action="click->pairing#quickPair" data-id="${id}" data-lang="${lang}"
                 class="hp-pairing-quick-start__item bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-center py-3.5 px-3 rounded-2xl transition group flex flex-col items-center gap-2 min-h-[5.5rem] active:scale-[0.98]">
             <span class="hp-pairing-quick-start__icon flex shrink-0 w-9 h-9 rounded-xl bg-hp-dark border border-[#3A2F2C] items-center justify-center text-hp-coral group-hover:text-white group-hover:border-hp-coral/40 transition" aria-hidden="true">
                 <i class="fa-solid ${icon} text-sm"></i>

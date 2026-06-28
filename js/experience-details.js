@@ -903,11 +903,11 @@
     }
 
     function renderBookingBar(isZh) {
-        return `<div class="px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        return `<div class="hp-exp-booking-bar px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-hp-border/60 bg-[#FAF8F5]">
             <button type="button" data-action="click->dashboard#openExpBookingCalendar"
-                    class="w-full bg-hp-coral hover:bg-hp-coral/90 text-white text-sm font-bold py-3 rounded-xl transition active:scale-[0.98] shadow-md">
-                <i class="fa-regular fa-calendar-check mr-1.5"></i>
-                ${isZh ? '預定' : 'Book'}
+                    class="hp-exp-booking-bar__btn w-full bg-hp-coral hover:bg-hp-coral/90 text-white font-bold py-3.5 rounded-2xl transition active:scale-[0.98] shadow-md shadow-hp-coral/20 flex flex-row items-center justify-center gap-2">
+                <i class="fa-regular fa-calendar-check text-base leading-none" aria-hidden="true"></i>
+                <span class="text-sm leading-none">${isZh ? '預定' : 'Book'}</span>
             </button>
         </div>`;
     }
