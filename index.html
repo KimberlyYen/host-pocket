@@ -242,6 +242,108 @@
             -webkit-user-select: none;
             user-select: none;
         }
+
+        /* --- Desktop RWD (≥768px tablet / ≥1024px PC) --- */
+        @media (min-width: 768px) {
+            html, body {
+                height: auto;
+                min-height: 100%;
+                overflow: auto;
+            }
+            #app-root.hp-app-shell--wide {
+                max-width: 48rem;
+                height: min(920px, calc(100dvh - 2rem));
+                border-radius: 1.5rem;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            #app-root.hp-app-shell--wide [data-dashboard-target="expDetailOverlay"],
+            #app-root.hp-app-shell--wide [data-dashboard-target="helpOverlay"],
+            #app-root.hp-app-shell--wide [data-dashboard-target="lockOverlay"],
+            #app-root.hp-app-shell--wide [data-dashboard-target="roomOverlay"] {
+                inset: 0.75rem;
+                border-radius: 1.25rem;
+                overflow: hidden;
+            }
+            .hp-desktop-stage {
+                min-height: 100dvh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            }
+            #app-root.hp-app-shell {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            #app-root.hp-app-shell:not(.hp-app-shell--wide) {
+                max-width: 26rem;
+                height: min(920px, calc(100dvh - 2rem));
+                border-radius: 3rem;
+                border: 6px solid #2a2220;
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+            }
+        }
+        @media (min-width: 1024px) {
+            .hp-desktop-stage {
+                min-height: 100dvh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 2.5rem;
+                padding: 1.5rem 2rem;
+                background:
+                    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(255, 91, 62, 0.14), transparent 55%),
+                    radial-gradient(ellipse 60% 45% at 90% 100%, rgba(46, 125, 111, 0.08), transparent 50%),
+                    linear-gradient(180deg, #151110 0%, #1a1412 100%);
+            }
+            .hp-desktop-brand {
+                max-width: 22rem;
+            }
+            #app-root.hp-app-shell {
+                flex-shrink: 0;
+                width: 100%;
+                max-width: 26rem;
+                height: min(920px, calc(100dvh - 3rem));
+                margin-left: auto;
+                margin-right: auto;
+                border-radius: 3rem;
+                border: 6px solid #2a2220;
+                box-shadow:
+                    0 32px 80px rgba(0, 0, 0, 0.55),
+                    0 0 0 1px rgba(255, 255, 255, 0.04);
+            }
+            #app-root.hp-app-shell--wide {
+                max-width: 72rem;
+                height: min(920px, calc(100dvh - 3rem));
+                border-radius: 1.75rem;
+                border-width: 1px;
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+            #app-root.hp-app-shell--wide [data-screen="dashboard"] [data-dashboard-target="scrollContainer"] {
+                padding-bottom: 1.5rem;
+            }
+            #app-root.hp-app-shell--wide [data-dashboard-target="bottomNavBar"] {
+                position: sticky;
+                bottom: 0;
+                border-radius: 0 0 1.75rem 1.75rem;
+            }
+            #app-root.hp-app-shell--wide [data-dashboard-target="scrollToTopBtn"] {
+                bottom: calc(4.25rem + env(safe-area-inset-bottom));
+            }
+            #app-root.hp-app-shell--wide [data-dashboard-target="expDetailOverlay"] {
+                inset: 0.75rem;
+                border-radius: 1.25rem;
+                overflow: hidden;
+                box-shadow: 0 24px 64px rgba(31, 26, 24, 0.18);
+            }
+            #app-root.hp-app-shell--wide [data-dashboard-target="helpOverlay"],
+            #app-root.hp-app-shell--wide [data-dashboard-target="lockOverlay"],
+            #app-root.hp-app-shell--wide [data-dashboard-target="roomOverlay"] {
+                inset: 0.75rem;
+                border-radius: 1.25rem;
+                overflow: hidden;
+            }
+        }
     </style>
     <script>
         (function () {
@@ -285,12 +387,33 @@
     })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 </head>
-<body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
+<body class="bg-[#151110] text-[#EFECE9] h-dvh lg:min-h-dvh lg:h-auto font-sans antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
       data-global-lang-value="zh">
 
+    <div class="hp-desktop-stage w-full" data-controller="app">
+        <!-- PC 左側品牌說明（僅 xl + 配對畫面） -->
+        <aside data-app-target="desktopBrand" class="hp-desktop-brand hidden xl:flex flex-col justify-center gap-5 shrink-0 opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-hp-coral">host-pocket</p>
+                <h1 class="text-3xl font-black text-white leading-tight">
+                    <span data-global-lang="zh">房東私藏<br>入住指南</span>
+                    <span data-global-lang="en" class="hidden">Your stay guide<br>from the host</span>
+                </h1>
+                <p class="text-sm text-[#B8AEA8] leading-relaxed max-w-sm">
+                    <span data-global-lang="zh">連結房源代碼後，旅客可在電腦或手機上查看 Wi‑Fi、門禁與在地體驗推薦。</span>
+                    <span data-global-lang="en" class="hidden">Link a listing code so guests can view Wi‑Fi, access codes, and local picks on desktop or mobile.</span>
+                </p>
+            </div>
+            <ul class="space-y-2.5 text-xs text-[#9A908A]">
+                <li class="flex items-center gap-2"><i class="fa-solid fa-wifi text-hp-coral w-4 text-center"></i><span data-global-lang="zh">一鍵複製 Wi‑Fi 帳密</span><span data-global-lang="en" class="hidden">One-tap Wi‑Fi copy</span></li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-door-open text-hp-coral w-4 text-center"></i><span data-global-lang="zh">大門解鎖步驟說明</span><span data-global-lang="en" class="hidden">Door access walkthrough</span></li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-compass text-hp-coral w-4 text-center"></i><span data-global-lang="zh">房東精選在地體驗</span><span data-global-lang="en" class="hidden">Host-curated experiences</span></li>
+            </ul>
+        </aside>
+
     <!-- App Shell：三支畫面切換，全螢幕可操作 -->
-    <div id="app-root" data-controller="app" class="h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
+    <div id="app-root" data-app-target="shell" class="hp-app-shell h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
 
             <!-- 語言切換（配對畫面；absolute 置於 app 框內，桌面版不跑版） -->
             <div data-global-target="langBar" class="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
@@ -312,7 +435,7 @@
             <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
                     <div class="flex-1 flex flex-col p-5 pt-[max(2.5rem,env(safe-area-inset-top))] min-h-0 overflow-y-auto">
 
-                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2">
+                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2 lg:justify-center lg:max-w-md lg:mx-auto lg:w-full">
                         <!-- Central Pairing Core -->
                         <div class="space-y-5 shrink-0 w-full">
                             
@@ -393,12 +516,12 @@
                             <i class="fa-solid fa-arrow-up-from-bracket text-sm"></i>
                         </button>
                     </div>
-                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24">
+                    <div data-dashboard-target="scrollContainer" class="flex-grow overflow-y-auto hide-scrollbar pb-24 lg:pb-28">
                         <!-- Room Hero & Connection Card -->
-                        <div class="px-5 py-4">
-                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
+                        <div class="px-5 py-4 lg:px-8 lg:py-6">
+                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group md:grid md:grid-cols-2">
                                 <!-- Room Image Cover -->
-                                <div data-dashboard-target="roomHero" class="hp-image-swipe h-52 relative overflow-hidden">
+                                <div data-dashboard-target="roomHero" class="hp-image-swipe h-52 md:h-full md:min-h-[14rem] lg:min-h-[17rem] relative overflow-hidden">
                                     <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
 
@@ -428,7 +551,7 @@
                                 </div>
                                 
                                 <!-- Connection Area -->
-                                <div class="p-4 bg-white space-y-3">
+                                <div class="p-4 bg-white space-y-3 lg:p-6 lg:flex lg:flex-col lg:justify-center">
                                     <div class="flex justify-between items-start gap-2">
                                         <div class="min-w-0">
                                             <span class="text-xs uppercase font-bold tracking-widest text-hp-muted" data-global-lang="zh">房東體驗指南</span>
@@ -467,10 +590,10 @@
                             </div>
 
                             <!-- Carousel -->
-                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
+                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-6 md:snap-none lg:grid-cols-4 lg:px-8">
                                 
                                 <!-- Card 1 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
                                     <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="1"
                                             class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
@@ -493,7 +616,7 @@
                                 </div>
 
                                 <!-- Card 2 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
                                     <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="2"
                                             class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
@@ -516,7 +639,7 @@
                                 </div>
 
                                 <!-- Card 3 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
                                     <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="3"
                                             class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
@@ -539,7 +662,7 @@
                                 </div>
 
                                 <!-- Card 4 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start md:min-w-0 md:w-auto lg:min-w-0 lg:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
                                     <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="4"
                                             class="w-full text-left active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative">
@@ -564,7 +687,7 @@
                         </div>
 
                         <!-- Stay Guides Section (Wi-Fi, Keys) -->
-                        <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300">
+                        <div id="stayGuides" data-dashboard-target="stayGuides" class="px-5 py-2 space-y-3 transition-all duration-300 lg:px-8 lg:py-4">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#8C807A]">
                                     <span data-global-lang="zh">入住必備</span>
@@ -576,6 +699,8 @@
                                     <span data-global-lang="en" class="hidden">Verified</span>
                                 </span>
                             </div>
+
+                            <div class="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-2">
                             
                             <!-- Wifi Card (Stimulus Clipboard Trigger) -->
                             <div class="bg-white rounded-2xl p-4 border border-hp-border shadow-sm flex items-center justify-between group cursor-pointer hover:border-hp-coral transition">
@@ -609,6 +734,7 @@
                                 </div>
                                 <i class="fa-solid fa-angle-right text-xs text-[#8C807A] mr-2 group-hover:text-hp-coral transition"></i>
                             </button>
+                            </div>
                         </div>
 
                     </div>
@@ -930,9 +1056,9 @@
 
             <!-- 畫面 3：實境探索 -->
             <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-[#EADCC9] text-hp-dark overflow-hidden">
-                    <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden">
+                    <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden md:flex-row md:pb-0 lg:flex-row lg:pb-0">
                         <!-- Map View -->
-                        <div class="relative flex-1 min-h-[38%] overflow-hidden">
+                        <div class="relative flex-1 min-h-[38%] md:min-h-0 md:min-w-0 lg:min-h-0 lg:min-w-0 overflow-hidden">
                             <div data-explorer-target="mapContainer" class="absolute inset-0 overflow-hidden">
                             <div data-explorer-target="mapLayer" class="absolute inset-0 transition-transform duration-300 ease-out will-change-transform">
                             
@@ -993,7 +1119,7 @@
                         </div>
 
                         <!-- Details card - bottom sheet -->
-                        <div class="shrink-0 max-h-[min(48%,20rem)] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4 z-10">
+                        <div class="shrink-0 max-h-[min(48%,20rem)] overflow-y-auto hide-scrollbar bg-white rounded-t-[32px] shadow-[0_-8px_24px_rgba(31,26,24,0.08)] p-5 pb-4 z-10 md:max-h-none md:w-[min(22rem,42%)] md:shrink-0 md:rounded-none md:rounded-tl-[32px] md:shadow-[-8px_0_24px_rgba(31,26,24,0.06)] lg:max-h-none lg:w-[min(26rem,38%)] lg:rounded-tl-[32px] lg:flex lg:flex-col">
                             
                             <div class="flex justify-between items-start gap-3">
                                 <div class="min-w-0 flex-1">
@@ -1053,7 +1179,7 @@
                     </div>
 
                     <!-- Bottom Nav mapping -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20">
+                    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-around items-center text-xs font-bold text-[#8C807A] select-none z-20 md:hidden lg:hidden">
                         <button data-action="click->global#navigateToDashboard" class="flex flex-col items-center gap-1 hover:text-hp-dark transition">
                             <i class="fa-solid fa-compass text-base"></i>
                             <span data-global-lang="zh">指南主頁</span>
@@ -1062,7 +1188,8 @@
                     </div>
             </div>
 
-    </div>
+    </div><!-- /#app-root -->
+    </div><!-- /.hp-desktop-stage -->
 
     <!-- Simulated Backend Database within Hotwire Client -->
     <script src="/js/toast.js"></script>
@@ -1706,7 +1833,7 @@
 
         // --- APP SHELL：三支畫面切換 ---
         stimulusApp.register("app", class extends Controller {
-            static targets = ["screen"]
+            static targets = ["screen", "desktopBrand", "shell"]
             static values = { current: { type: String, default: "pairing" } }
 
             connect() {
@@ -1727,6 +1854,26 @@
                 const dashEl = this.screenTargets.find(el => el.dataset.screen === 'dashboard');
                 const dashCtrl = dashEl && this.application.getControllerForElementAndIdentifier(dashEl, 'dashboard');
                 dashCtrl?.bootFromDeepLink?.();
+
+                this._onResizeShell = () => this.syncShellLayout(this.currentValue);
+                window.addEventListener('resize', this._onResizeShell);
+            }
+
+            disconnect() {
+                window.removeEventListener('resize', this._onResizeShell);
+            }
+
+            syncShellLayout(name) {
+                const shell = this.hasShellTarget ? this.shellTarget : document.getElementById('app-root');
+                const wide = window.matchMedia('(min-width: 768px)').matches;
+                const useWide = wide && (name === 'dashboard' || name === 'explorer');
+                shell?.classList.toggle('hp-app-shell--wide', useWide);
+
+                const showBrand = window.matchMedia('(min-width: 1280px)').matches && name === 'pairing';
+                if (this.hasDesktopBrandTarget) {
+                    this.desktopBrandTarget.classList.toggle('opacity-0', !showBrand);
+                    this.desktopBrandTarget.classList.toggle('pointer-events-none', !showBrand);
+                }
             }
 
             show(name) {
@@ -1734,6 +1881,7 @@
                     el.classList.toggle("is-active", el.dataset.screen === name);
                 });
                 this.currentValue = name;
+                this.syncShellLayout(name);
 
                 const langBar = document.querySelector('[data-global-target="langBar"]');
                 if (langBar) langBar.classList.toggle('hidden', name !== 'pairing');
