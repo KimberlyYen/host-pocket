@@ -312,120 +312,22 @@
             <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
                     <div class="flex-1 flex flex-col p-5 pt-[max(2.5rem,env(safe-area-inset-top))] min-h-0 overflow-y-auto">
 
-                        <div class="flex-1 flex flex-col justify-center min-h-0">
+                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2">
                         <!-- Central Pairing Core -->
-                        <div class="space-y-5 shrink-0">
+                        <div class="space-y-5 shrink-0 w-full">
                             
-                            <!-- Brand Text Area -->
-                            <div class="space-y-2 text-center">
-                                <h2 class="text-3xl font-black tracking-tight text-white font-sans">
+                            <!-- Brand Text Area（固定頂部，切 Tab 不位移） -->
+                            <div class="space-y-2 text-center shrink-0">
+                                <h2 class="text-3xl font-black tracking-tight text-white font-sans leading-tight">
                                     <span data-global-lang="zh">房東私藏</span>
                                     <span data-global-lang="en" class="hidden">host-pocket</span>
                                 </h2>
                                 <div class="w-10 h-1 bg-hp-coral mx-auto rounded-full"></div>
                             </div>
 
-                            <!-- 一體式配對卡片 -->
-                            <div class="space-y-4">
-                                <div class="bg-[#292220] border border-[#3E3430] rounded-3xl overflow-hidden shadow-2xl">
-                                    <!-- Header -->
-                                    <div class="flex items-center gap-2 px-5 pt-5 pb-3">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        <span class="text-xs font-bold tracking-wider text-hp-coral" data-global-lang="zh">連結您的 Airbnb 房源</span>
-                                        <span class="text-xs uppercase font-bold tracking-wider text-hp-coral hidden" data-global-lang="en">Link Your Airbnb Listing</span>
-                                    </div>
+                            <!-- 配對 Tab：連接房源 / 快速開始（HostPocketPairingTabs） -->
+                            <div data-hp-pairing-tabs></div>
 
-                                    <!-- Input -->
-                                    <div class="px-5 pb-3">
-                                        <label class="text-xs font-semibold text-hp-muted mb-1 block">
-                                            <span data-global-lang="zh">Airbnb 房源編號</span>
-                                            <span data-global-lang="en" class="hidden">Airbnb Listing ID</span>
-                                        </label>
-                                        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">打開 Airbnb 房源頁，複製網址中 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
-                                        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Open your Airbnb listing page and copy the numbers after <span class="text-hp-coral font-semibold">rooms/</span> in the URL</p>
-                                        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
-                                        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
-                                        <div class="bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
-                                            <input type="text"
-                                                   data-pairing-target="input"
-                                                   placeholder="12345678"
-                                                   value=""
-                                                   class="bg-transparent text-base font-mono font-bold text-white focus:outline-none w-full uppercase tracking-widest placeholder:text-hp-muted/40">
-                                        </div>
-                                    </div>
-
-                                    <!-- Full-width CTA -->
-                                    <div class="px-5 pb-5">
-                                        <button data-action="click->pairing#performPairing"
-                                                class="w-full bg-hp-coral hover:bg-hp-coralDark text-white text-xs font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-hp-coral/25 flex items-center justify-center gap-2 active:scale-[0.98]">
-                                            <i class="fa-solid fa-link text-xs"></i>
-                                            <span data-global-lang="zh">連結房源並建立指南</span>
-                                            <span data-global-lang="en" class="hidden">Link Listing & Build Guide</span>
-                                            <i class="fa-solid fa-arrow-right text-xs opacity-70"></i>
-                                        </button>
-                                    </div>
-
-                                    <!-- Tagline inside same card -->
-                                    <div class="border-t border-[#3E3430] bg-gradient-to-b from-hp-coral/[0.04] to-transparent px-5 py-4 text-center">
-                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85" data-global-lang="zh">專為 Airbnb 房東打造的自動化在地指南</p>
-                                        <p class="text-xs font-medium leading-relaxed text-[#EFECE9]/85 italic hidden" data-global-lang="en">"Automated local experience guide for Airbnb hosts."</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- Active presets helper -->
-                        <div class="space-y-3 shrink-0 mt-4">
-                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center" data-global-lang="zh">快速切換測試主題</p>
-                            <p class="text-xs font-bold text-hp-muted uppercase tracking-widest text-center hidden" data-global-lang="en">Quick Demo Themes</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" data-action="click->pairing#quickPair" data-id="TAIPEI-CITY" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
-                                    <div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">台北</div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Taipei</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">大安設計複層</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Designer loft stay</div>
-                                    </div>
-                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
-                                </button>
-                                <button type="button" data-action="click->pairing#quickPair" data-id="UK-LONDON" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
-                                    <div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">英國</div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">UK</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">倫敦</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">London</div>
-                                    </div>
-                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
-                                </button>
-                                <button type="button" data-action="click->pairing#quickPair" data-id="VILNIUS-OLDTOWN" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
-                                    <div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">立陶宛</div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Lithuania</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">維爾紐斯</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Vilnius</div>
-                                    </div>
-                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
-                                </button>
-                                <button type="button" data-action="click->pairing#quickPair" data-id="RIO-COPACABANA" class="bg-hp-lightDark hover:bg-[#2C2422] border border-[#3E3430] text-left p-2.5 rounded-2xl transition group flex items-center justify-between">
-                                    <div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white" data-global-lang="zh">巴西</div>
-                                        <div class="text-xs text-hp-coral font-bold group-hover:text-white hidden" data-global-lang="en">Brazil</div>
-                                        <div class="text-xs text-hp-muted truncate" data-global-lang="zh">里約</div>
-                                        <div class="text-xs text-hp-muted truncate hidden" data-global-lang="en">Rio</div>
-                                    </div>
-                                    <i class="fa-solid fa-angle-right text-xs text-hp-muted group-hover:text-hp-coral transition"></i>
-                                </button>
-                            </div>
-                            <div class="text-center pt-1">
-                                <a href="/host-settings.html"
-                                   data-pairing-target="settingsLink"
-                                   class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
-                                    <i class="fa-solid fa-sliders"></i>
-                                    <span data-global-lang="zh">房東設定 · 在地精選</span>
-                                    <span data-global-lang="en" class="hidden">Host settings · Local picks</span>
-                                </a>
-                            </div>
                         </div>
                         </div>
                     </div>
@@ -1172,6 +1074,9 @@
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/booking-api.js"></script>
     <script src="/js/experience-details.js"></script>
+    <script src="/js/pairing-link-card.js"></script>
+    <script src="/js/pairing-quick-start.js"></script>
+    <script src="/js/pairing-tabs.js"></script>
     <script>
         try {
             window.__hostPocketDeepLink = ExperienceDetailsAPI?.parseDeepLinkFromLocation?.()
@@ -1767,6 +1672,7 @@
         if (typeof Stimulus === 'undefined') {
             console.error('[host-pocket] Stimulus failed to load');
         } else {
+        window.HostPocketPairingTabs?.mount?.();
         const { Application, Controller } = Stimulus;
         const stimulusApp = Application.start();
         window.__hpStimulusApp = stimulusApp;
@@ -2014,16 +1920,58 @@
 
         // 2. PHONE 1 PAIRING CONTROLLER
         stimulusApp.register("pairing", class extends Controller {
-            static targets = ["input", "settingsLink"]
+            static targets = ["input", "settingsLink", "pairingTabBtn", "pairingTabPanel"]
 
             connect() {
+                if (window.HostPocketPairingTabs?.ensureMounted?.()) {
+                    queueMicrotask(() => {
+                        this.disconnect();
+                        this.connect();
+                    });
+                    return;
+                }
+
                 this.updateSettingsLink = this.updateSettingsLink.bind(this);
-                this.inputTarget.addEventListener('input', this.updateSettingsLink);
+                if (this.hasInputTarget) {
+                    this.inputTarget.addEventListener('input', this.updateSettingsLink);
+                }
                 this.updateSettingsLink();
+                const tab = window.HostPocketPairingTabs?.getSavedTab?.() || 'link';
+                this.showPairingTab({ params: { tab } });
             }
 
             disconnect() {
-                this.inputTarget.removeEventListener('input', this.updateSettingsLink);
+                if (this.hasInputTarget) {
+                    this.inputTarget.removeEventListener('input', this.updateSettingsLink);
+                }
+            }
+
+            showPairingTab(event) {
+                const tab = event?.params?.tab
+                    || event?.currentTarget?.dataset?.pairingTab
+                    || 'link';
+
+                window.HostPocketPairingTabs?.saveTab?.(tab);
+
+                if (this.hasPairingTabPanelTarget) {
+                    this.pairingTabPanelTargets.forEach((panel) => {
+                        const active = panel.dataset.pairingTab === tab;
+                        panel.classList.toggle('hidden', !active);
+                        panel.toggleAttribute('hidden', !active);
+                    });
+                }
+
+                if (this.hasPairingTabBtnTarget) {
+                    this.pairingTabBtnTargets.forEach((btn) => {
+                        const active = btn.dataset.pairingTab === tab;
+                        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+                        btn.classList.toggle('hp-pairing-tabs__tab--active', active);
+                        btn.classList.toggle('bg-hp-coral', active);
+                        btn.classList.toggle('text-white', active);
+                        btn.classList.toggle('shadow-md', active);
+                        btn.classList.toggle('text-hp-muted', !active);
+                    });
+                }
             }
 
             updateSettingsLink() {
