@@ -1254,17 +1254,26 @@
             const id = hpEnsureGuideSettingsStored(listingId);
             let data = GuideDefaults.getBase(id);
 
-            try {
-                const preset = await window.HostSettingsPresets?.fetchPreset(id);
-                if (preset?.data) {
-                    data = HostGuideSettings.merge(data, preset.data);
+            const loadPreset = async () => {
+                try {
+                    const preset = await window.HostSettingsPresets?.fetchPreset(id);
+                    return preset?.data || null;
+                } catch {
+                    return null;
                 }
-            } catch {
-                // preset optional for custom listing IDs
+            };
+
+            const loadSettings = window.HostGuideSettings
+                ? () => HostGuideSettings.ensureLoaded(id)
+                : () => Promise.resolve();
+
+            const [presetData] = await Promise.all([loadPreset(), loadSettings()]);
+
+            if (presetData) {
+                data = HostGuideSettings.merge(data, presetData);
             }
 
             if (window.HostGuideSettings) {
-                await HostGuideSettings.ensureLoaded(id);
                 return HostGuideSettings.merge(data, HostGuideSettings.load(id));
             }
 

@@ -147,15 +147,17 @@
 
         _pending[id] = (async () => {
             let overrides = null;
-            try {
-                if (await isDatabaseAvailable()) {
+            if (global.HP_MOCK_DATA === false && global.ListingSettingsAPI) {
+                try {
                     const record = await ListingSettingsAPI.fetchSettings(id);
+                    _dbAvailable = true;
                     if (record?.data && Object.keys(record.data).length) {
                         overrides = { ...record.data, updatedAt: record.updatedAt };
                     }
+                } catch (error) {
+                    console.warn('[HostGuideSettings] API load failed, using local fallback', error);
+                    if (_dbAvailable !== true) _dbAvailable = false;
                 }
-            } catch (error) {
-                console.warn('[HostGuideSettings] API load failed, using local fallback', error);
             }
             if (!overrides) {
                 overrides = loadLocal(id);
