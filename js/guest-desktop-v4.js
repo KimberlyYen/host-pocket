@@ -271,24 +271,10 @@
         });
     }
 
-    function resolveIndexHtmlUrl() {
-        try {
-            const url = new URL(window.location.href);
-            const dir = url.pathname.endsWith('/')
-                ? url.pathname
-                : url.pathname.replace(/[^/]+$/, '');
-            url.pathname = `${dir}index.html`.replace(/\/{2,}/g, '/');
-            url.search = '';
-            url.hash = '';
-            return url.href;
-        } catch {
-            return 'index.html';
-        }
-    }
-
-    /** Always return to pairing entry (clean index.html, no deep-link params). */
+    /** Return to pairing entry (/) without a full reload on /guide deep links. */
     function navigateHome() {
         const dash = getDashboardController();
+        const global = getGlobalController();
 
         if (dash?.isExperienceDetailOpen?.()) {
             dash.finishCloseExperienceDetail?.({ skipHistory: true });
@@ -297,7 +283,17 @@
         dash?.closeLockGuide?.();
         dash?.closeRoomOverlay?.();
 
-        window.location.assign(resolveIndexHtmlUrl());
+        if (dash?.activatePairingHome) {
+            dash.activatePairingHome();
+            window.HostPocketGuestRouter?.navigateToPairingHistory?.();
+        } else if (global?.navigateToPairing) {
+            global.navigateToPairing('switch');
+        } else {
+            window.HostPocketGuestRouter?.navigateToPairingHistory?.();
+            window.location.assign(window.HostPocketGuestRouter?.HOME_PATH || '/');
+        }
+
+        syncSidebarActive('pairing');
     }
 
     function navigate(nav) {
@@ -352,6 +348,7 @@
     function observeGuestBoot() {
         const observer = new MutationObserver(() => {
             syncGuestChrome();
+            syncSidebarActive(getActiveScreen());
         });
         observer.observe(document.documentElement, {
             attributes: true,
