@@ -1337,6 +1337,90 @@
             </div>`;
     }
 
+    function renderShareActions(ctx, labels) {
+        const { shareUrl, mapsUrl } = ctx;
+        return `
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-action="click->dashboard#copyExpShareLink"
+                            class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-hp-bgLight border border-hp-border flex items-center justify-center text-hp-dark"><i class="fa-regular fa-copy"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.copy}</span>
+                    </button>
+                    <a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-brands fa-google"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark text-center leading-tight">${labels.openMaps}</span>
+                    </a>
+                    <button type="button" data-action="click->dashboard#shareExpViaWhatsApp"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-600"><i class="fa-brands fa-whatsapp"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.whatsapp}</span>
+                    </button>
+                    <button type="button" data-action="click->dashboard#shareExpViaEmail"
+                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
+                        <span class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><i class="fa-regular fa-envelope"></i></span>
+                        <span class="text-[10px] font-bold text-hp-dark">${labels.email}</span>
+                    </button>
+                </div>
+
+                <button type="button" data-action="click->dashboard#shareExpNative"
+                        class="w-full py-3 rounded-xl border border-hp-border bg-white text-xs font-bold text-hp-dark hover:border-hp-coral transition active:scale-[0.99]">
+                    <i class="fa-solid fa-share-nodes mr-1.5 text-hp-coral"></i>${labels.more}
+                </button>`;
+    }
+
+    function renderGuideShareSheet(listingData, options = {}) {
+        const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
+        const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : 'TAIPEI-CITY';
+        const data = listingData || {};
+        const displayTitle = isZh
+            ? (data.roomTitleZh || data.listingLabelZh || listingId)
+            : (data.roomTitleEn || data.listingLabelEn || listingId);
+        const locationLabel = isZh ? data.locationZh : data.locationEn;
+        const cover = data.roomImg || IMAGE_FALLBACK;
+        const shareUrl = buildGuideShareUrl(null, { listingId, guideOnly: true });
+        const query = encodeURIComponent(locationLabel || displayTitle || listingId);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        const labels = isZh ? {
+            link: '分享連結', copy: '複製', copied: '已複製',
+            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式'
+        } : {
+            link: 'Share link', copy: 'Copy', copied: 'Copied',
+            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options'
+        };
+        const ctx = { shareUrl, mapsUrl };
+
+        return `
+            <div class="space-y-4">
+                <div class="flex gap-3 bg-white border border-hp-border rounded-2xl p-3 shadow-sm">
+                    <img src="${escapeHtml(cover)}" alt="" class="w-16 h-16 rounded-xl object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold text-hp-dark leading-snug">${escapeHtml(displayTitle)}</p>
+                        ${locationLabel ? `
+                        <p class="text-xs text-hp-muted mt-1 flex items-start gap-1">
+                            <i class="fa-solid fa-location-dot text-hp-coral mt-0.5 shrink-0"></i>
+                            <span class="line-clamp-2">${escapeHtml(locationLabel)}</span>
+                        </p>` : ''}
+                    </div>
+                </div>
+
+                <div class="bg-hp-bgLight border border-hp-border rounded-2xl p-3">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-2">${labels.link}</p>
+                    <div class="flex gap-2 items-stretch">
+                        <div class="flex-1 min-w-0 bg-white border border-hp-border rounded-xl px-3 py-2.5 text-xs text-hp-dark truncate font-mono">
+                            <a href="${escapeHtml(shareUrl)}" target="_blank" rel="noopener noreferrer" class="text-hp-coral hover:underline">${escapeHtml(shareUrl)}</a>
+                        </div>
+                        <button type="button" data-action="click->dashboard#copyExpShareLink"
+                                class="shrink-0 px-3 py-2.5 rounded-xl bg-hp-dark hover:bg-hp-lightDark text-white text-xs font-bold transition active:scale-95">
+                            ${labels.copy}
+                        </button>
+                    </div>
+                </div>
+
+                ${renderShareActions(ctx, labels)}
+            </div>`;
+    }
+
     function pad2(n) { return String(n).padStart(2, '0'); }
 
     function bookingDateKey(year, month, day) {
@@ -1926,6 +2010,7 @@
         getGuideShareHref,
         parseDeepLinkFromLocation,
         renderShareSheet,
+        renderGuideShareSheet,
         initMediaPlayer,
         pauseMediaPlayer,
         getExperienceIdForRec,

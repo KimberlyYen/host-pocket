@@ -83,10 +83,7 @@
             ? 'hp-pairing-quick-start space-y-3 shrink-0'
             : 'hp-pairing-quick-start space-y-3 shrink-0 mt-4';
 
-        return `<section class="${sectionClass}" aria-label="Quick start">${heading}
-    <div class="hp-pairing-quick-start__grid grid grid-cols-2 gap-2">
-        ${grid}
-    </div>
+        const footer = hideHeading ? '' : `
     <div class="hp-pairing-quick-start__footer text-center pt-1">
         <a href="${escapeHtml(settingsHref)}"
            data-pairing-target="settingsLink"
@@ -95,7 +92,12 @@
             <span data-global-lang="zh">房東設定 · 在地精選</span>
             <span data-global-lang="en" class="hidden">Host settings · Local picks</span>
         </a>
-    </div>
+    </div>`;
+
+        return `<section class="${sectionClass}" aria-label="Quick start">${heading}
+    <div class="hp-pairing-quick-start__grid grid grid-cols-2 gap-2">
+        ${grid}
+    </div>${footer}
 </section>`;
     }
 

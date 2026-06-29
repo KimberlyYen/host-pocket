@@ -5,6 +5,7 @@
     const MOUNT_SELECTOR = '[data-hp-pairing-tabs]';
     const DEFAULT_TAB = 'link';
     const TAB_STORAGE_KEY = 'hp-pairing-tab';
+    const INPUT_STORAGE_KEY = 'hp-pairing-listing-input';
 
     function escapeHtml(value) {
         return String(value ?? '')
@@ -52,6 +53,15 @@
          class="hp-pairing-tabs__panel ${quickActive ? '' : 'hidden'}" ${quickActive ? '' : 'hidden'}>
         <div data-hp-pairing-quick-start></div>
     </div>
+    </div>
+    <div class="hp-pairing-tabs__settings text-center pt-2">
+        <a href="/host-settings.html"
+           data-pairing-target="settingsLink"
+           class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <span data-global-lang="zh">房東設定 · 在地精選</span>
+            <span data-global-lang="en" class="hidden">Host settings · Local picks</span>
+        </a>
     </div>
 </div>`;
     }
@@ -117,6 +127,29 @@
         } catch (_) { /* ignore */ }
     }
 
+    function getSavedListingInput() {
+        try {
+            return sessionStorage.getItem(INPUT_STORAGE_KEY) || '';
+        } catch (_) {
+            return '';
+        }
+    }
+
+    function saveListingInput(value) {
+        try {
+            sessionStorage.setItem(INPUT_STORAGE_KEY, String(value || '').trim());
+        } catch (_) { /* ignore */ }
+    }
+
+    function restoreListingInput() {
+        const saved = getSavedListingInput();
+        if (!saved) return;
+        const input = global.document?.querySelector('[data-pairing-target="input"]');
+        if (input && !input.value.trim()) {
+            input.value = saved;
+        }
+    }
+
     function isMounted(target) {
         const el = resolveMountEl(target);
         return Boolean(el?.querySelector('.hp-pairing-tabs'));
@@ -147,6 +180,7 @@
         const root = el.querySelector('.hp-pairing-tabs') || el.firstElementChild;
         if (root) {
             mountChildComponents(root, options);
+            restoreListingInput();
             syncPanelsMinHeight(root);
         }
         return root;
@@ -159,7 +193,7 @@
 
         if (isMounted(el)) return false;
 
-        const savedInput = readPairingInputValue();
+        const savedInput = readPairingInputValue() || getSavedListingInput();
         mount(el, { activeTab: options.activeTab || getSavedTab(), ...options });
         if (savedInput) {
             const input = global.document?.querySelector('[data-pairing-target="input"]');
@@ -172,7 +206,7 @@
         const mountEl = resolveMountEl();
         if (!mountEl) return;
 
-        const savedInput = readPairingInputValue();
+        const savedInput = readPairingInputValue() || getSavedListingInput();
         const activeTab = getSavedTab();
         const needsRemount = options.forceRemount || !isMounted(mountEl);
 
@@ -236,11 +270,15 @@
         MOUNT_SELECTOR,
         DEFAULT_TAB,
         TAB_STORAGE_KEY,
+        INPUT_STORAGE_KEY,
         shellTemplate,
         mount,
         isMounted,
         getSavedTab,
         saveTab,
+        getSavedListingInput,
+        saveListingInput,
+        restoreListingInput,
         ensureMounted,
         refreshPairingController,
         restoreAfterBackNavigation

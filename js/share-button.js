@@ -17,7 +17,7 @@
     }
 
     function copyMessage() {
-        return isZh() ? '已複製' : 'copied';
+        return isZh() ? '已複製' : 'Copied';
     }
 
     const VARIANTS = {
@@ -100,10 +100,11 @@
         if (!shareUrl) return false;
 
         try {
-            const ok = await global.hpCopyText?.(shareUrl);
+            const ok = global.hpCopyTextSync?.(shareUrl) || await global.hpCopyText?.(shareUrl);
             if (ok === false) throw new Error('copy failed');
 
-            global.hpShowCopyHint?.(copyMessage(), button);
+            global.hpShowCopyHint?.(copyMessage(), button, { durationMs: 2000 });
+            global.hpCelebrate?.({ fullScreen: true });
 
             if (button.dataset.shareStay === 'true') return true;
 
@@ -145,6 +146,7 @@
         VARIANTS,
         render,
         setUrl,
+        resolveShareUrl,
         handleClick,
         init
     };

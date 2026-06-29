@@ -3,53 +3,77 @@
         // General toasts disabled — use hpShowCopyHint for share copy feedback.
     }
 
-    async function copyText(text) {
+    function copyTextSync(text) {
         const value = String(text || '');
         if (!value) return false;
-        if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(value);
-            return true;
-        }
         const temp = document.createElement('textarea');
         temp.value = value;
         temp.setAttribute('readonly', '');
         temp.style.position = 'fixed';
         temp.style.left = '-9999px';
+        temp.style.top = '0';
         document.body.appendChild(temp);
+        temp.focus();
         temp.select();
-        const ok = document.execCommand('copy');
+        temp.setSelectionRange(0, value.length);
+        let ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch {
+            ok = false;
+        }
         document.body.removeChild(temp);
         return ok;
     }
 
-    function showCopyHint(message, anchorEl) {
+    async function copyText(text) {
+        const value = String(text || '');
+        if (!value) return false;
+        if (copyTextSync(value)) return true;
+        if (navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(value);
+                return true;
+            } catch {
+                return copyTextSync(value);
+            }
+        }
+        return false;
+    }
+
+    function showCopyHint(message, anchorEl, options = {}) {
         document.querySelector('.hp-copy-hint')?.remove();
 
         const hint = document.createElement('div');
         hint.className = 'hp-copy-hint';
         hint.setAttribute('role', 'status');
+        hint.setAttribute('aria-live', 'polite');
         hint.textContent = message;
 
-        if (anchorEl?.getBoundingClientRect) {
+        if (options.centered) {
+            hint.classList.add('hp-copy-hint--centered');
+        } else if (anchorEl?.getBoundingClientRect) {
             const rect = anchorEl.getBoundingClientRect();
-            hint.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - 48)}px`;
+            hint.classList.add('hp-copy-hint--below');
+            hint.style.top = `${rect.bottom + 8}px`;
             hint.style.left = `${rect.left + rect.width / 2}px`;
         } else {
-            hint.style.top = '50%';
-            hint.style.left = '50%';
-            hint.style.transform = 'translate(-50%, -50%)';
+            hint.classList.add('hp-copy-hint--centered');
         }
 
         document.body.appendChild(hint);
-        requestAnimationFrame(() => hint.classList.add('hp-copy-hint--show'));
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => hint.classList.add('hp-copy-hint--show'));
+        });
         window.setTimeout(() => {
             hint.classList.remove('hp-copy-hint--show');
             window.setTimeout(() => hint.remove(), 220);
-        }, 1400);
+        }, options.durationMs || 1800);
     }
 
     global.hpTriggerToast = show;
     global.hpCopyText = copyText;
+    global.hpCopyTextSync = copyTextSync;
     global.hpShowCopyHint = showCopyHint;
-    global.HostPocketToast = { show, copyText, showCopyHint };
+    global.HostPocketToast = { show, copyText, copyTextSync, showCopyHint };
 })(window);
