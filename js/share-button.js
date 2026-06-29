@@ -104,7 +104,7 @@
             if (ok === false) throw new Error('copy failed');
 
             global.hpShowCopyHint?.(copyMessage(), button, { durationMs: 2000 });
-            global.hpCelebrate?.({ fullScreen: true });
+            global.hpCelebrateOnce?.('share', { fullScreen: true });
 
             if (button.dataset.shareStay === 'true') return true;
 

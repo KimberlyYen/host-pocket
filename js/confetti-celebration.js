@@ -218,5 +218,31 @@
         global.addEventListener('resize', resizeCanvas, { once: true, passive: true });
     }
 
+    const ONCE_KEYS = {
+        share: 'hp-confetti-once-share',
+        booking: 'hp-confetti-once-booking'
+    };
+
+    function hasCelebrated(kind) {
+        const key = ONCE_KEYS[kind];
+        if (!key) return true;
+        try {
+            return sessionStorage.getItem(key) === '1';
+        } catch {
+            return false;
+        }
+    }
+
+    /** Full-screen confetti at most once per kind per browser tab session. */
+    function celebrateOnce(kind, options = {}) {
+        if (!kind || hasCelebrated(kind)) return false;
+        try {
+            sessionStorage.setItem(ONCE_KEYS[kind], '1');
+        } catch { /* ignore */ }
+        celebrate(options);
+        return true;
+    }
+
     global.hpCelebrate = celebrate;
+    global.hpCelebrateOnce = celebrateOnce;
 })(window);
