@@ -1424,13 +1424,28 @@
             hpScheduleGuestExperienceHydration();
         }
 
-        function hpSyncRecCardRatings(root, listingId) {
+        function hpSyncRecCardRatings(root, listingId, listingData) {
             if (!window.ExperienceDetailsAPI) return;
+            const data = listingData || getGuestListingData(listingId);
             [1, 2, 3, 4].forEach((recIndex) => {
-                const expId = getExperienceIdForRec(listingId, recIndex);
-                const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                 const target = root.querySelector(`[data-dashboard-target="recRating${recIndex}"]`);
                 if (!target) return;
+
+                const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
+                if (fromListing?.rating) {
+                    target.textContent = `★ ${fromListing.rating}`;
+                    target.title = fromListing.reviews ? `${fromListing.reviews} reviews` : '';
+                    return;
+                }
+
+                if (window.HP_MOCK_DATA === false) {
+                    target.textContent = '';
+                    target.title = '';
+                    return;
+                }
+
+                const expId = getExperienceIdForRec(listingId, recIndex);
+                const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                 if (!fixture?.experience) {
                     target.textContent = '';
                     return;
@@ -1489,7 +1504,7 @@
                     setImgWithFallback(recImg, data[`recImg${i}`], IMAGE_FALLBACKS.rec);
                 }
             }
-            hpSyncRecCardRatings(root, id);
+            hpSyncRecCardRatings(root, id, data);
 
             const hostFirst = isZh
                 ? (data.hostNameZh || '').split(' ')[0]
@@ -1588,10 +1603,8 @@
             try {
                 const listingData = await hpResolveListingDataAsync(listing);
                 const recIndex = hpFindRecIndexForExperience(listingData, expId) || 1;
-                const payload = await ExperienceDetailsAPI.fetchDetails(expId);
+                const payload = await ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex);
                 if (!payload) return false;
-
-                ExperienceDetailsAPI.applyHostListingOverrides(payload, listingData, recIndex);
 
                 const isZh = (window.currentLanguage || 'zh') !== 'en';
                 const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
@@ -2370,16 +2383,45 @@
                 const num = Number(recIndex);
                 if (num < 1 || num > LOCAL_REC_COUNT) return null;
 
-                const resolvedListing = listingData || await hpResolveListingDataAsync(id);
-                const expId = resolvedListing[`recExperienceId${num}`] || getExperienceIdForRec(id, num);
-                if (!expId) return null;
+                let resolvedListing = listingData;
+                try {
+                    if (!resolvedListing) {
+                        resolvedListing = await hpResolveListingDataAsync(id);
+                    }
+                } catch (error) {
+                    console.warn('[dashboard] listing load failed', error);
+                    this.showExperienceDetailError();
+                    return null;
+                }
 
-                const payload = await ExperienceDetailsAPI.fetchDetails(expId);
-                if (!payload) return null;
+                if (!resolvedListing) return null;
 
-                ExperienceDetailsAPI.applyHostListingOverrides(payload, resolvedListing, num);
+                let payload;
+                try {
+                    payload = await ExperienceDetailsAPI.fetchDetailsForRec(resolvedListing, num);
+                } catch (error) {
+                    console.warn('[dashboard] experience detail load failed', error);
+                    this.showExperienceDetailError();
+                    return null;
+                }
+
+                if (!payload) {
+                    this.showExperienceDetailError();
+                    return null;
+                }
+
                 this.renderExperienceDetail(payload, num);
                 return payload;
+            }
+
+            showExperienceDetailError(message) {
+                if (!this.hasExpDetailBodyTarget) return;
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const text = message || (isZh ? '無法載入體驗詳情，請稍後再試。' : 'Could not load experience details.');
+                this.expDetailBodyTarget.innerHTML = `<p class="p-5 text-center text-xs text-hp-muted">${text}</p>`;
+                if (this.hasExpDetailBookingBarTarget) {
+                    this.expDetailBookingBarTarget.innerHTML = '';
+                }
             }
 
             resolveDeepLinkContext() {
@@ -2469,6 +2511,7 @@
                 if (!data) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const id = listingId || this.currentListingId || 'TAIPEI-CITY';
+                this.currentListingData = data;
                 
                 // Update Room photo and Room title targets dynamically (Fulfills User Story details)
                 this.setRoomGallery(data);
@@ -2527,7 +2570,7 @@
                     const priceTarget = this[`recPrice${recIndex}Target`];
                     if (this[`hasRecPrice${recIndex}Target`]) priceTarget.innerText = isZh ? data[`recPrice${recIndex}Zh`] : data[`recPrice${recIndex}En`];
                 });
-                this.syncRecCardRatings(id);
+                this.syncRecCardRatings(id, data);
 
                 // Also sync targets of the hidden/connectable Airbnb room details overlay!
                 this.updateRoomHeroPhoto();
@@ -2686,14 +2729,29 @@
                 window.HostPocketGuestRouter?.syncGuideUrl?.(listingId);
             }
 
-            syncRecCardRatings(listingId) {
+            syncRecCardRatings(listingId, listingData) {
                 if (!window.ExperienceDetailsAPI) return;
+                const data = listingData || this.currentListingData || getGuestListingData(listingId);
                 [1, 2, 3, 4].forEach(recIndex => {
-                    const expId = getExperienceIdForRec(listingId, recIndex);
-                    const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                     const target = this[`recRating${recIndex}Target`];
                     const hasTarget = this[`hasRecRating${recIndex}Target`];
                     if (!hasTarget || !target) return;
+
+                    const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
+                    if (fromListing?.rating) {
+                        target.innerText = `★ ${fromListing.rating}`;
+                        target.title = fromListing.reviews ? `${fromListing.reviews} reviews` : '';
+                        return;
+                    }
+
+                    if (window.HP_MOCK_DATA === false) {
+                        target.innerText = '';
+                        target.title = '';
+                        return;
+                    }
+
+                    const expId = getExperienceIdForRec(listingId, recIndex);
+                    const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                     if (!fixture?.experience) {
                         target.innerText = '';
                         return;
@@ -2760,7 +2818,11 @@
                     this.expDetailBookingBarTarget.innerHTML = '';
                 }
 
-                await this.loadExperienceDetailForRec(listingId, recIndex);
+                await this.loadExperienceDetailForRec(listingId, recIndex).then((payload) => {
+                    if (!payload) this.showExperienceDetailError();
+                }).catch(() => {
+                    this.showExperienceDetailError();
+                });
                 this.pushExperienceBrowserUrl();
             }
 
@@ -3373,8 +3435,14 @@
             openSimilarExperience(event) {
                 const expId = event.currentTarget.dataset.experienceId;
                 if (!expId) return;
-                ExperienceDetailsAPI.fetchDetails(expId).then(payload => {
-                    this.renderExperienceDetail(payload, this.currentExpRecIndex || 1);
+                const listingId = this.currentListingId || 'TAIPEI-CITY';
+                const listingData = this.currentListingData || getGuestListingData(listingId);
+                const recIndex = hpFindRecIndexForExperience(listingData, expId)
+                    || [1, 2, 3, 4].find(i => getExperienceIdForRec(listingId, i) === expId)
+                    || this.currentExpRecIndex
+                    || 1;
+                ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex).then((payload) => {
+                    if (payload) this.renderExperienceDetail(payload, recIndex);
                 });
             }
 

@@ -3,7 +3,9 @@ const { handleFormPost } = require('../../../server/host-settings-form');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
-        res.status(405).type('text/plain').send('Method not allowed');
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.end('Method not allowed');
         return;
     }
 

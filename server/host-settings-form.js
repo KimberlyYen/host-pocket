@@ -15,6 +15,22 @@ const ROOT = path.join(__dirname, '..');
 const LOADING_PARTIAL = path.join(ROOT, 'partials/host_settings/_form_loading.html');
 const FRAME_ID = 'host_settings_form';
 
+function sendResponse(res, statusCode, body, contentType) {
+    if (typeof res.status === 'function') res.status(statusCode);
+    else res.statusCode = statusCode;
+    res.setHeader('Content-Type', contentType);
+    if (typeof res.send === 'function') res.send(body);
+    else res.end(body);
+}
+
+function sendHtml(res, statusCode, body) {
+    sendResponse(res, statusCode, body, 'text/html; charset=utf-8');
+}
+
+function sendPlain(res, statusCode, body) {
+    sendResponse(res, statusCode, body, 'text/plain; charset=utf-8');
+}
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -188,12 +204,17 @@ function parseFormPayload(body) {
 async function handleFormGet(req, res) {
     const listingId = normalizeListingId(req.params.listingId);
     if (!listingId) {
-        res.status(400).type('text/html').send(renderTurboFrame('', {}, { error: '請輸入房源代碼' }));
+        sendHtml(res, 400, renderTurboFrame('', {}, { error: '請輸入房源代碼' }));
         return;
     }
 
-    const data = await getMergedListingData(listingId);
-    res.status(200).type('text/html; charset=utf-8').send(renderTurboFrame(listingId, data));
+    try {
+        const data = await getMergedListingData(listingId);
+        sendHtml(res, 200, renderTurboFrame(listingId, data));
+    } catch (error) {
+        console.error('[host-settings-form] GET failed', error);
+        sendHtml(res, 500, renderTurboFrame(listingId, {}, { error: error?.message || '載入失敗' }));
+    }
 }
 
 async function handleFormPost(req, res) {
@@ -201,7 +222,7 @@ async function handleFormPost(req, res) {
     const method = String(req.body?._method || 'patch').toLowerCase();
 
     if (!listingId) {
-        res.status(400).type('text/html').send(renderTurboFrame('', {}, { error: '請輸入房源代碼' }));
+        sendHtml(res, 400, renderTurboFrame('', {}, { error: '請輸入房源代碼' }));
         return;
     }
 
@@ -211,9 +232,7 @@ async function handleFormPost(req, res) {
                 await deleteListingSettings(listingId);
             }
             const data = await loadPresetDefaults(listingId);
-            res.status(200).type('text/html; charset=utf-8').send(
-                renderTurboFrame(listingId, data, { status: `已清除 ${listingId} 的自訂設定，恢復預設內容` })
-            );
+            sendHtml(res, 200, renderTurboFrame(listingId, data, { status: `已清除 ${listingId} 的自訂設定，恢復預設內容` }));
             return;
         }
 
@@ -221,24 +240,18 @@ async function handleFormPost(req, res) {
 
         if (isDatabaseConfigured()) {
             const saved = await saveListingSettings(listingId, payload);
-            res.status(200).type('text/html; charset=utf-8').send(
-                renderTurboFrame(listingId, saved.data, { status: '已儲存' })
-            );
+            sendHtml(res, 200, renderTurboFrame(listingId, saved.data, { status: '已儲存' }));
             return;
         }
 
-        res.status(200).type('text/html; charset=utf-8').send(
-            renderTurboFrame(listingId, payload, {
-                status: '已儲存',
-                error: '資料庫未設定，請在瀏覽器端使用 localStorage 備援'
-            })
-        );
+        sendHtml(res, 200, renderTurboFrame(listingId, payload, {
+            status: '已儲存',
+            error: '資料庫未設定，請在瀏覽器端使用 localStorage 備援'
+        }));
     } catch (error) {
         console.error('[host-settings-form]', error);
         const data = await getMergedListingData(listingId);
-        res.status(422).type('text/html; charset=utf-8').send(
-            renderTurboFrame(listingId, data, { error: error?.message || '儲存失敗' })
-        );
+        sendHtml(res, 422, renderTurboFrame(listingId, data, { error: error?.message || '儲存失敗' }));
     }
 }
 

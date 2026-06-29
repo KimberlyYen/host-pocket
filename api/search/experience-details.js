@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
     if (req.query.airbnb_domain) url.searchParams.set('airbnb_domain', String(req.query.airbnb_domain));
 
     try {
-        const upstream = await fetch(url.toString());
+        const upstream = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) });
         const data = await upstream.json().catch(() => ({}));
         if (!upstream.ok) {
             res.status(upstream.status).json({

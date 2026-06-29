@@ -25,11 +25,26 @@
         return encodeURIComponent(String(listingId || '').trim().toUpperCase());
     }
 
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            return await fetch(url, { ...options, signal: controller.signal });
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                throw new Error(`Request timed out (${timeoutMs}ms)`);
+            }
+            throw error;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
     async function checkHealth() {
         if (global.HP_MOCK_DATA !== false) {
             return { ok: true, mock: true, dbConfigured: false, bookingConfigured: false };
         }
-        const res = await fetch(`${getApiBase()}/api/health`);
+        const res = await fetchWithTimeout(`${getApiBase()}/api/health`, {}, 5000);
         if (!res.ok) throw new Error('Health check failed');
         return res.json();
     }
@@ -47,7 +62,7 @@
         if (global.HP_MOCK_DATA !== false) return null;
         const base = getApiBase();
         const id = encodeListingId(listingId);
-        const res = await fetch(`${base}/api/listings/${id}/settings`);
+        const res = await fetchWithTimeout(`${base}/api/listings/${id}/settings`, {}, 8000);
         if (res.status === 404) return null;
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) {
@@ -91,6 +106,7 @@
 
     global.ListingSettingsAPI = {
         getApiBase,
+        fetchWithTimeout,
         checkHealth,
         isDatabaseConfigured,
         fetchSettings,

@@ -627,6 +627,13 @@
     }
 
     function normalizeMedia(exp) {
+        if (exp._mediaImagesOnly) {
+            const items = (exp.media && exp.media.length)
+                ? exp.media.filter(m => m?.url)
+                : (exp.cover_image ? [{ type: 'image', url: exp.cover_image }] : []);
+            return items.length ? items : [{ type: 'image', url: IMAGE_FALLBACK }];
+        }
+
         const items = (exp.media && exp.media.length)
             ? exp.media.filter(m => m?.url)
             : (exp.cover_image ? [{ type: 'image', url: exp.cover_image }] : []);
@@ -986,6 +993,24 @@
             : (typeof window !== 'undefined' ? window.location.origin : '');
     }
 
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+        if (global.ListingSettingsAPI?.fetchWithTimeout) {
+            return global.ListingSettingsAPI.fetchWithTimeout(url, options, timeoutMs);
+        }
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            return await fetch(url, { ...options, signal: controller.signal });
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                throw new Error(`Request timed out (${timeoutMs}ms)`);
+            }
+            throw error;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
     function isValidExperiencePayload(data) {
         return Boolean(data?.experience?.id) && !data?.error;
     }
@@ -1091,14 +1116,20 @@
 
         for (const endpoint of endpoints) {
             try {
-                const res = await fetch(endpoint);
+                const res = await fetchWithTimeout(endpoint, {}, 6000);
                 if (!res.ok) continue;
                 const data = await res.json();
                 if (isValidExperiencePayload(data)) return data;
-            } catch (_) { /* try next endpoint */ }
+            } catch (error) {
+                console.warn('[ExperienceDetails] fetchDetails failed', endpoint, error?.message || error);
+            }
         }
 
-        return FIXTURES[id] ? { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } } : null;
+        if (FIXTURES[id]) {
+            console.warn('[ExperienceDetails] using local fixture fallback for', id);
+            return { ...FIXTURES[id], search_parameters: { engine: 'airbnb_experience_details', experience_id: id } };
+        }
+        return null;
     }
 
     function extractSimilarExperiences(payload, num = SHARE_PICKS_DEFAULT_NUM) {
@@ -1661,6 +1692,110 @@
             : (String(raw).split("'")[0] || String(raw).split(' ')[0]);
     }
 
+    function parseListingMedia(listingData, recIndex) {
+        const num = Number(recIndex);
+        const gallery = listingData?.[`recGallery${num}`];
+        if (Array.isArray(gallery) && gallery.length) {
+            return gallery.filter(Boolean).map((url) => ({ type: 'image', url }));
+        }
+        const img = listingData?.[`recImg${num}`];
+        return img ? [{ type: 'image', url: img }] : [];
+    }
+
+    function getRecRatingFromListing(listingData, recIndex) {
+        const num = Number(recIndex);
+        if (!listingData || num < 1 || num > 4) return null;
+        const ratingRaw = listingData[`recRating${num}`];
+        const reviewsRaw = listingData[`recReviews${num}`];
+        const rating = ratingRaw !== undefined && ratingRaw !== null && String(ratingRaw).trim() !== ''
+            ? Number(ratingRaw)
+            : null;
+        const reviews = reviewsRaw !== undefined && reviewsRaw !== null && String(reviewsRaw).trim() !== ''
+            ? parseInt(String(reviewsRaw), 10)
+            : null;
+        if (rating === null && reviews === null) return null;
+        return { rating, reviews };
+    }
+
+    /** Build experience detail payload entirely from listing_settings rec fields. */
+    function buildPayloadFromListing(listingData, recIndex, options = {}) {
+        const num = Number(recIndex);
+        if (!listingData || num < 1 || num > 4) return null;
+
+        const expId = String(listingData[`recExperienceId${num}`] || `listing-rec-${num}`).trim();
+        const titleZh = listingData[`recTitle${num}Zh`] || '';
+        const titleEn = listingData[`recTitle${num}En`] || '';
+        const descZh = listingData[`desc${num}Zh`] || '';
+        const descEn = listingData[`desc${num}En`] || '';
+        const priceZh = listingData[`recPrice${num}Zh`] || '';
+        const priceEn = listingData[`recPrice${num}En`] || '';
+        const categoryZh = listingData[`recCategory${num}Zh`] || listingData[`recBadge${num}Zh`] || '';
+        const categoryEn = listingData[`recCategory${num}En`] || listingData[`recBadge${num}En`] || '';
+        const distZh = listingData[`recExplorerDist${num}Zh`] || listingData[`recDist${num}Zh`] || '';
+        const distEn = listingData[`recExplorerDist${num}En`] || listingData[`recDist${num}En`] || '';
+        const hostLeadZh = hostFirstName(listingData, true);
+        const hostLeadEn = hostFirstName(listingData, false);
+        const { rating, reviews } = getRecRatingFromListing(listingData, num) || {};
+        const media = parseListingMedia(listingData, num);
+        const cover = media[0]?.url || IMAGE_FALLBACK;
+
+        const payload = makeRecFixture({
+            id: expId,
+            title: titleEn || titleZh || expId,
+            titleZh: titleZh || titleEn || expId,
+            description: descEn || descZh || titleEn || titleZh,
+            descriptionZh: descZh || descEn || titleZh || titleEn,
+            category: categoryEn || categoryZh || 'Experience',
+            categoryZh: categoryZh || categoryEn || '體驗',
+            rating: rating ?? 0,
+            reviews: reviews ?? 0,
+            cover,
+            priceLabel: priceEn || priceZh || '',
+            priceLabelZh: priceZh || priceEn || '',
+            hostName: hostLeadEn || hostLeadZh || 'Host',
+            hostAbout: descEn || descZh || '',
+            hostAboutZh: descZh || descEn || '',
+            locationEn: distEn || distZh || '',
+            locationZh: distZh || distEn || ''
+        });
+
+        payload.experience._mediaImagesOnly = true;
+        payload.experience.media = media.length ? media : [{ type: 'image', url: cover }];
+        payload.experience.cover_image = cover;
+        if (rating !== null && rating !== undefined) payload.experience.rating = rating;
+        if (reviews !== null && reviews !== undefined) payload.experience.reviews = reviews;
+        if (hasHostText(categoryEn)) payload.experience.category = categoryEn;
+        if (hasHostText(categoryZh) && payload.i18n?.zh) payload.i18n.zh.category = categoryZh;
+        if (hasHostText(distEn)) {
+            payload.experience.location = { display_label: distEn, locality: distEn, country: '' };
+        }
+        if (hasHostText(distZh) && payload.i18n?.zh) {
+            payload.i18n.zh.location = { display_label: distZh };
+        }
+
+        payload.search_parameters = {
+            engine: 'listing_settings',
+            experience_id: expId,
+            rec_index: num
+        };
+        return payload;
+    }
+
+    async function fetchDetailsForRec(listingData, recIndex, options = {}) {
+        const num = Number(recIndex);
+        if (!listingData || num < 1 || num > 4) return null;
+
+        if (global.HP_MOCK_DATA !== false && !options.forceListing) {
+            const expId = listingData[`recExperienceId${num}`];
+            if (expId) {
+                const payload = await fetchDetails(expId, options);
+                if (payload) return applyHostListingOverrides(payload, listingData, num, options);
+            }
+        }
+
+        return buildPayloadFromListing(listingData, num, options);
+    }
+
     /** Merge host listing_settings rec fields into experience detail payload (incl. i18n.zh). */
     function applyHostListingOverrides(payload, listingData, recIndex, options = {}) {
         if (!payload?.experience || !listingData) return payload;
@@ -1681,6 +1816,11 @@
         const distZh = listingData[`recExplorerDist${num}Zh`] || listingData[`recDist${num}Zh`];
         const distEn = listingData[`recExplorerDist${num}En`] || listingData[`recDist${num}En`];
         const recImg = listingData[`recImg${num}`];
+        const recGallery = listingData[`recGallery${num}`];
+        const ratingVal = listingData[`recRating${num}`];
+        const reviewsVal = listingData[`recReviews${num}`];
+        const categoryZh = listingData[`recCategory${num}Zh`];
+        const categoryEn = listingData[`recCategory${num}En`];
 
         const patchLayer = (layer, zhMode) => {
             if (!layer) return;
@@ -1699,10 +1839,15 @@
             if (hasHostText(dist)) {
                 layer.location = { ...(layer.location || {}), display_label: dist, summary: dist };
             }
-            if (hasHostText(recImg)) {
+            if (Array.isArray(recGallery) && recGallery.length) {
+                layer.cover_image = recGallery[0];
+                layer.media = recGallery.filter(Boolean).map((url) => ({ type: 'image', url }));
+            } else if (hasHostText(recImg)) {
                 layer.cover_image = recImg;
                 layer.media = [{ type: 'image', url: recImg }];
             }
+            if (hasHostText(categoryEn) && !zhMode) layer.category = categoryEn;
+            if (hasHostText(categoryZh) && zhMode) layer.category = categoryZh;
             if (hasHostText(title) || hasHostText(desc)) {
                 layer.agenda = [{
                     position: 1,
@@ -1732,6 +1877,16 @@
         patchLayer(payload.experience, false);
         if (payload.i18n?.zh) patchLayer(payload.i18n.zh, true);
 
+        if (hasHostText(ratingVal)) payload.experience.rating = Number(ratingVal);
+        if (hasHostText(reviewsVal)) payload.experience.reviews = parseInt(String(reviewsVal), 10);
+        if (Array.isArray(recGallery) && recGallery.length) {
+            payload.experience._mediaImagesOnly = true;
+            payload.experience.cover_image = recGallery[0];
+            payload.experience.media = recGallery.filter(Boolean).map((url) => ({ type: 'image', url }));
+        } else if (hasHostText(recImg)) {
+            payload.experience._mediaImagesOnly = true;
+        }
+
         if (hasHostText(hostFirstName(listingData, isZh)) || hasHostText(pick(descZh, descEn, isZh))) {
             payload.host = {
                 ...(payload.host || {}),
@@ -1752,6 +1907,10 @@
         BOOKING_TIMEZONE_OTHER,
         SHARE_PICKS_DEFAULT_NUM,
         fetchDetails,
+        fetchDetailsForRec,
+        buildPayloadFromListing,
+        getRecRatingFromListing,
+        parseListingMedia,
         fetchShareRecommendations,
         extractSimilarExperiences,
         fetchExperiencesSearch,

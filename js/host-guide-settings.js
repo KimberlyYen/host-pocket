@@ -13,19 +13,23 @@
         'roomImg',
         'recExperienceId1', 'recTitle1Zh', 'recTitle1En', 'recImg1',
         'recBadge1Zh', 'recBadge1En', 'recDist1Zh', 'recDist1En',
-        'recPrice1Zh', 'recPrice1En', 'desc1Zh', 'desc1En',
+        'recPrice1Zh', 'recPrice1En', 'recRating1', 'recReviews1',
+        'recCategory1Zh', 'recCategory1En', 'desc1Zh', 'desc1En',
         'recExplorerDist1Zh', 'recExplorerDist1En', 'recExplorerEst1Zh', 'recExplorerEst1En',
         'recExperienceId2', 'recTitle2Zh', 'recTitle2En', 'recImg2',
         'recBadge2Zh', 'recBadge2En', 'recDist2Zh', 'recDist2En',
-        'recPrice2Zh', 'recPrice2En', 'desc2Zh', 'desc2En',
+        'recPrice2Zh', 'recPrice2En', 'recRating2', 'recReviews2',
+        'recCategory2Zh', 'recCategory2En', 'desc2Zh', 'desc2En',
         'recExplorerDist2Zh', 'recExplorerDist2En', 'recExplorerEst2Zh', 'recExplorerEst2En',
         'recExperienceId3', 'recTitle3Zh', 'recTitle3En', 'recImg3',
         'recBadge3Zh', 'recBadge3En', 'recDist3Zh', 'recDist3En',
-        'recPrice3Zh', 'recPrice3En', 'desc3Zh', 'desc3En',
+        'recPrice3Zh', 'recPrice3En', 'recRating3', 'recReviews3',
+        'recCategory3Zh', 'recCategory3En', 'desc3Zh', 'desc3En',
         'recExplorerDist3Zh', 'recExplorerDist3En', 'recExplorerEst3Zh', 'recExplorerEst3En',
         'recExperienceId4', 'recTitle4Zh', 'recTitle4En', 'recImg4',
         'recBadge4Zh', 'recBadge4En', 'recDist4Zh', 'recDist4En',
-        'recPrice4Zh', 'recPrice4En', 'desc4Zh', 'desc4En',
+        'recPrice4Zh', 'recPrice4En', 'recRating4', 'recReviews4',
+        'recCategory4Zh', 'recCategory4En', 'desc4Zh', 'desc4En',
         'recExplorerDist4Zh', 'recExplorerDist4En', 'recExplorerEst4Zh', 'recExplorerEst4En',
         'targetTitleZh', 'targetTitleEn', 'descZh', 'descEn',
         'explorerDistZh', 'explorerDistEn', 'explorerEstZh', 'explorerEstEn'
@@ -91,6 +95,12 @@
         });
         if (Array.isArray(source.roomGallery) && source.roomGallery.length) {
             out.roomGallery = source.roomGallery.filter(Boolean);
+        }
+        for (let i = 1; i <= 4; i += 1) {
+            const key = `recGallery${i}`;
+            if (Array.isArray(source[key]) && source[key].length) {
+                out[key] = source[key].filter(Boolean);
+            }
         }
         return out;
     }
