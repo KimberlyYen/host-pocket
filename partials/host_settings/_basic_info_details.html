@@ -12,8 +12,31 @@
         <label class="block space-y-1 sm:col-span-2"><span class="field-label">Lock instructions (EN)</span><input name="lockEn" class="field-input"></label>
         <label class="block space-y-1 sm:col-span-2"><span class="field-label">房東 Email（選填，mailto 用）</span><input name="hostEmail" type="email" class="field-input"></label>
     </div>
-    <label class="block space-y-1">
-        <span class="field-label">房源輪播照片 URL（每行一張）</span>
-        <textarea name="roomGalleryText" rows="3" class="field-input font-mono text-[11px]" placeholder="https://..."></textarea>
-    </label>
+
+    <div class="space-y-2 pt-1">
+        <span class="field-label">房源輪播照片</span>
+        <p class="text-[10px] text-hp-muted">可上傳本機圖片，或貼上每行一張的圖片 URL（儲存後 Guest App 會讀取）</p>
+        <div data-room-gallery-target="previewGrid" class="flex flex-wrap gap-2 min-h-[4rem]"></div>
+        <p data-room-gallery-target="emptyHint" class="text-[10px] text-hp-muted italic">尚未設定照片</p>
+        <div class="flex flex-wrap gap-2 items-center">
+            <label class="hp-file-picker">
+                <i class="fa-solid fa-images text-hp-coral text-[10px]" aria-hidden="true"></i>
+                選擇圖片（可多選）
+                <input type="file" accept="image/*" multiple class="sr-only"
+                       data-room-gallery-target="fileInput"
+                       data-action="change->room-gallery#pickFiles">
+            </label>
+            <button type="button" class="hp-file-picker hp-file-picker--ghost"
+                    data-action="click->room-gallery#clearAll">
+                全部移除
+            </button>
+        </div>
+        <label class="block space-y-1">
+            <span class="field-label">或貼上 URL（每行一張）</span>
+            <textarea name="roomGalleryText" rows="3"
+                      data-room-gallery-target="galleryText"
+                      data-action="input->room-gallery#syncFromTextarea change->room-gallery#syncFromTextarea"
+                      class="field-input font-mono text-[11px]" placeholder="https://..."></textarea>
+        </label>
+    </div>
 </div>

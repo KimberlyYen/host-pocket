@@ -865,11 +865,6 @@
         pointer-events: auto;
     }
 
-    /* ── Guest deep-link: mirror mobile hidden chrome on desktop ── */
-    html.hp-v4-desktop.hp-boot-dashboard [data-hp-v4-nav="pairing"] {
-        display: none !important;
-    }
-
     /* Guest 詳情頁：側欄保留指南主頁 + 求助房東，並高於詳情面板遮罩 */
     html.hp-v4-desktop.hp-boot-experience .hp-v4-sidebar {
         z-index: 60;

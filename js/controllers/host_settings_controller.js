@@ -55,6 +55,9 @@
 
             requestAnimationFrame(() => {
                 this.syncFormWidgets();
+                if (this.hasBasicInfoListingIdTarget) {
+                    this.basicInfoListingIdTarget.textContent = id;
+                }
             });
         }
 
@@ -62,6 +65,10 @@
             if (!this.hasFormTarget) return;
 
             this.formTarget.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            this.formTarget.querySelectorAll('[data-room-gallery-target="galleryText"]').forEach((el) => {
                 el.dispatchEvent(new Event('input', { bubbles: true }));
             });
 
@@ -196,7 +203,8 @@
 
             const galleryEl = this.formTarget.elements.namedItem('roomGalleryText');
             if (galleryEl) {
-                galleryEl.value = global.HostGuideSettings.galleryToText(data.roomGallery);
+                const fromGallery = global.HostGuideSettings.galleryToText(data.roomGallery);
+                galleryEl.value = fromGallery || (data.roomImg ? String(data.roomImg).trim() : '');
             }
 
             this.syncFormWidgets();

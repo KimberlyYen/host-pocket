@@ -209,16 +209,6 @@
         });
     }
 
-    /** Mirror mobile: dashboard#goBackToPairing → global#navigateToPairing */
-    function navigatePairing() {
-        const dash = getDashboardController();
-        if (dash?.goBackToPairing) {
-            dash.goBackToPairing();
-            return;
-        }
-        getGlobalController()?.navigateToPairing?.('switch');
-    }
-
     /** Mirror mobile: bottomNav goHome / activateGuideHome / explorer→dashboard */
     function navigateDashboard() {
         const dash = getDashboardController();
@@ -313,10 +303,6 @@
     function navigate(nav) {
         if (nav === 'home') {
             navigateHome();
-            return;
-        }
-        if (nav === 'pairing') {
-            navigatePairing();
             return;
         }
         if (nav === 'dashboard') {

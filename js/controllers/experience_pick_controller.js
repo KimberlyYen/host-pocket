@@ -42,7 +42,8 @@
             const file = event.target.files?.[0];
             if (!file || !file.type.startsWith('image/')) return;
 
-            this.fileToDataUrl(file)
+            const compress = global.HostPocketImageUpload?.fileToDataUrl || ((f) => this.fileToDataUrl(f));
+            compress(file)
                 .then((dataUrl) => {
                     this.imgInputTarget.value = dataUrl;
                     this.imgInputTarget.dispatchEvent(new Event('input', { bubbles: true }));

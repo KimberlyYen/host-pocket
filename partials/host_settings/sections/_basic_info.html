@@ -1,16 +1,29 @@
-{{# components/hp_card variant=panel}}
-    <h2 class="hp-card__title"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</h2>
-    <div class="hp-collapse__peek grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">
-        <div class="block space-y-1">
-            <span class="field-label">房源代碼 / Listing ID</span>
-            <p data-host-settings-target="basicInfoListingId" class="hp-collapse__peek-value font-mono uppercase" aria-live="polite">{{listingId}}</p>
+{{# components/hp_card_section}}
+<details class="hp-collapse" data-controller="room-gallery">
+    <summary class="hp-collapse__trigger">
+        <span class="hp-collapse__leading min-w-0">
+            <span class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</span>
+            <span class="hp-collapse__hint">房源名稱、Wi‑Fi、輪播照片等</span>
+        </span>
+        <span class="hp-collapse__action" aria-hidden="true">
+            <span class="hp-collapse__label-expand">編輯</span>
+            <span class="hp-collapse__label-collapse">收合</span>
+            <i class="fa-solid fa-chevron-down hp-collapse__chevron"></i>
+        </span>
+    </summary>
+
+    <div class="hp-collapse__body">
+        <div class="hp-collapse__peek grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">
+            <div class="block space-y-1">
+                <span class="field-label">房源代碼 / Listing ID</span>
+                <p data-host-settings-target="basicInfoListingId" class="hp-collapse__peek-value font-mono uppercase" aria-live="polite">{{listingId}}</p>
+            </div>
+            <label class="block space-y-1">
+                <span class="field-label">房源名稱（繁中）</span>
+                <input name="roomTitleZh" class="field-input field-input--readonly" readonly tabindex="-1" aria-readonly="true">
+            </label>
         </div>
-        <label class="block space-y-1">
-            <span class="field-label">房源名稱（繁中）</span>
-            <input name="roomTitleZh" class="field-input field-input--readonly" readonly tabindex="-1" aria-readonly="true">
-        </label>
-    </div>
-    <div class="hidden" aria-hidden="true">
         {{> host_settings/basic_info_details}}
     </div>
-{{/ components/hp_card}}
+</details>
+{{/ components/hp_card_section}}

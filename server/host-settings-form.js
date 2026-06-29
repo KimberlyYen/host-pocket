@@ -84,6 +84,10 @@ async function getMergedListingData(listingId) {
         }
     }
 
+    if (!Array.isArray(merged.roomGallery) || !merged.roomGallery.length) {
+        if (merged.roomImg) merged.roomGallery = [merged.roomImg];
+    }
+
     return merged;
 }
 
