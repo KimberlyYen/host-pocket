@@ -33,19 +33,22 @@
         document.documentElement.classList.toggle('hp-v4-desktop', isDesktop());
     }
 
+    function resolveSidebarActiveNav(screen, navOverride) {
+        if (navOverride) return navOverride;
+        // Pairing entry screen is the app home — highlight home, not link.
+        if (screen === 'pairing') return 'home';
+        return screen;
+    }
+
     function syncSidebarActive(screen, navOverride) {
         const sidebar = document.querySelector(SIDEBAR_SEL);
         if (!sidebar || !isDesktop()) return;
 
+        const activeNav = resolveSidebarActiveNav(screen, navOverride);
+
         sidebar.querySelectorAll('[data-hp-v4-nav]').forEach((btn) => {
             const nav = btn.dataset.hpV4Nav;
-            let isActive = navOverride ? nav === navOverride : nav === screen;
-            if (!navOverride && nav === 'home' && screen === 'pairing') {
-                isActive = true;
-            }
-            if (!navOverride && screen === 'dashboard' && nav === 'contact') {
-                isActive = false;
-            }
+            const isActive = nav === activeNav;
             btn.classList.toggle('is-active', isActive);
             btn.setAttribute('aria-current', isActive ? 'page' : 'false');
         });

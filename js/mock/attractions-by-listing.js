@@ -1,4 +1,6 @@
 (function (global) {
+    const MAX_ATTRACTIONS = 4;
+
     const CATALOG = {
         'TAIPEI-CITY': {
             label: '台北',
@@ -54,32 +56,6 @@
                     descZh: '「Lina 推薦 6:30 繞公園外圈慢跑一圈，順路在永康街買咖啡，避開中午人潮。」',
                     descEn: 'Lina recommends a 6:30 AM loop around the park and coffee on Yongkang Street before the crowds.',
                     explorerDistZh: '步行 14 分鐘（約 1 公里）', explorerDistEn: '14 mins walk (~1 km)'
-                },
-                {
-                    id: 'tw-yongkang',
-                    experienceId: '3319005',
-                    titleZh: '永康街深夜牛肉麵地圖',
-                    titleEn: 'Yongkang Street Late-night Beef Noodle Map',
-                    img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '深夜美食', badgeEn: 'Late-night Food',
-                    distZh: '捷運 8 分鐘可達', distEn: '8 mins by MRT',
-                    priceZh: 'NT$180 起', priceEn: 'From NT$180',
-                    descZh: '「Lina 私藏三家仍營業到 11 點的牛肉麵，適合紅眼航班或加班後的宵夜路線。」',
-                    descEn: 'Three beef noodle spots open until 11 PM—ideal after late flights or long work days.',
-                    explorerDistZh: '捷運 8 分鐘（約 2.5 公里）', explorerDistEn: '8 mins by MRT (~2.5 km)'
-                },
-                {
-                    id: 'tw-huashan',
-                    experienceId: '3319006',
-                    titleZh: '華山文創園區夜間展覽',
-                    titleEn: 'Huashan Creative Park Night Exhibitions',
-                    img: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '夜間展覽', badgeEn: 'Night Exhibit',
-                    distZh: '捷運 10 分鐘可達', distEn: '10 mins by MRT',
-                    priceZh: 'NT$250 起', priceEn: 'From NT$250',
-                    descZh: '「週五晚間常有延長開放至 9 點的特展，Lina 會在入住訊息附上當月檔期。」',
-                    descEn: 'Friday night shows often run until 9 PM—Lina shares the monthly schedule in your check-in message.',
-                    explorerDistZh: '捷運 10 分鐘（約 3 公里）', explorerDistEn: '10 mins by MRT (~3 km)'
                 }
             ]
         },
@@ -137,32 +113,6 @@
                     descZh: '「James 推薦預約 King\'s Library 導覽，一窺《大憲章》複製品。」',
                     descEn: "Book the King's Library tour to see the Magna Carta facsimile.",
                     explorerDistZh: '步行 12 分鐘（約 900 公尺）', explorerDistEn: '12 mins walk (~900 m)'
-                },
-                {
-                    id: 'uk-borough',
-                    experienceId: '5829205',
-                    titleZh: '博羅市場週末早午餐',
-                    titleEn: 'Borough Market Weekend Brunch',
-                    img: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '早午餐', badgeEn: 'Brunch',
-                    distZh: '地鐵 18 分鐘可達', distEn: '18 mins by Tube',
-                    priceZh: '£18 起', priceEn: 'From £18',
-                    descZh: '「Emma 推薦週六上午 10 點前往博羅市場，品嚐現烤酸種麵包與英式起司。」',
-                    descEn: 'Borough Market at 10 AM on Saturdays for sourdough and British cheese.',
-                    explorerDistZh: '地鐵 18 分鐘（約 5 公里）', explorerDistEn: '18 mins by Tube (~5 km)'
-                },
-                {
-                    id: 'uk-shoreditch',
-                    experienceId: '5829206',
-                    titleZh: 'Shoreditch 街頭塗鴉導覽',
-                    titleEn: 'Shoreditch Street Art Walking Tour',
-                    img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '街頭藝術', badgeEn: 'Street Art',
-                    distZh: '地鐵 14 分鐘可達', distEn: '14 mins by Tube',
-                    priceZh: '£20 起', priceEn: 'From £20',
-                    descZh: '「Brick Lane 周邊 90 分鐘步行導覽，James 會標記 Banksy 早期作品位置。」',
-                    descEn: 'A 90-minute walk around Brick Lane—James marks early Banksy spots.',
-                    explorerDistZh: '地鐵 14 分鐘（約 4.5 公里）', explorerDistEn: '14 mins by Tube (~4.5 km)'
                 }
             ]
         },
@@ -220,32 +170,6 @@
                     descZh: '「週五晚間管風琴短場，Aistė 會提前在社群貼購票連結。」',
                     descEn: 'Friday evening organ recitals—Aistė shares ticket links in advance.',
                     explorerDistZh: '步行 9 分鐘（約 700 公尺）', explorerDistEn: '9 mins walk (~700 m)'
-                },
-                {
-                    id: 'lt-uzupis',
-                    experienceId: '4410305',
-                    titleZh: 'Užupis 共和國護照蓋章站',
-                    titleEn: 'Užupis Republic Passport Stamp',
-                    img: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '藝術區', badgeEn: 'Art District',
-                    distZh: '步行 4 分鐘可達', distEn: '4 mins on foot',
-                    priceZh: '€3 起', priceEn: 'From €3',
-                    descZh: '「Aistė 會帶你到 Constitution Wall 旁小書報亭蓋 Užupis 護照章。」',
-                    descEn: 'Get your Užupis passport stamp at the kiosk near the Constitution Wall.',
-                    explorerDistZh: '步行 4 分鐘（約 300 公尺）', explorerDistEn: '4 mins walk (~300 m)'
-                },
-                {
-                    id: 'lt-cathedral',
-                    experienceId: '4410306',
-                    titleZh: '維爾紐斯大教堂鐘樓夕陽',
-                    titleEn: 'Vilnius Cathedral Bell Tower Sunset',
-                    img: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '夕陽觀景', badgeEn: 'Sunset View',
-                    distZh: '步行 8 分鐘可達', distEn: '8 mins on foot',
-                    priceZh: '€5 起', priceEn: 'From €5',
-                    descZh: '「夏季 8 點登鐘樓，舊城紅瓦在夕陽下像明信片一樣。」',
-                    descEn: 'Climb the bell tower at 8 PM in summer—the red rooftops glow like a postcard.',
-                    explorerDistZh: '步行 8 分鐘（約 600 公尺）', explorerDistEn: '8 mins walk (~600 m)'
                 }
             ]
         },
@@ -303,32 +227,6 @@
                     descZh: '「Marina 推薦週六搭復古電車到 Santa Teresa，在磁磚工作室手繪杯墊。」',
                     descEn: 'Take the vintage tram to Santa Teresa on Saturdays and paint tile coasters.',
                     explorerDistZh: 'Uber 18 分鐘（約 9 公里）', explorerDistEn: '18 mins Uber (~9 km)'
-                },
-                {
-                    id: 'br-sugarloaf',
-                    experienceId: '5510405',
-                    titleZh: '糖麵包山纜車清晨場',
-                    titleEn: 'Sugarloaf Cable Car Morning Ride',
-                    img: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '經典地標', badgeEn: 'Landmark',
-                    distZh: 'Uber 20 分鐘', distEn: '20 mins by Uber',
-                    priceZh: 'R$160 起', priceEn: 'From R$160',
-                    descZh: '「Marina 建議 8 點第一班纜車，雲層較薄、排隊最短。」',
-                    descEn: 'Catch the first cable car at 8 AM for thinner clouds and shorter lines.',
-                    explorerDistZh: 'Uber 20 分鐘（約 10 公里）', explorerDistEn: '20 mins Uber (~10 km)'
-                },
-                {
-                    id: 'br-lapa',
-                    experienceId: '5510406',
-                    titleZh: 'Lapa 階梯週五 Samba 夜',
-                    titleEn: 'Lapa Steps Friday Samba Night',
-                    img: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80',
-                    badgeZh: '夜生活', badgeEn: 'Nightlife',
-                    distZh: 'Uber 22 分鐘', distEn: '22 mins by Uber',
-                    priceZh: 'R$50 起', priceEn: 'From R$50',
-                    descZh: '「週五晚 Escadaria Selarón 附近有街頭 samba，Marina 會提醒注意随身物品。」',
-                    descEn: 'Street samba near Escadaria Selarón on Friday nights—Marina shares safety tips.',
-                    explorerDistZh: 'Uber 22 分鐘（約 11 公里）', explorerDistEn: '22 mins Uber (~11 km)'
                 }
             ]
         }
@@ -358,7 +256,12 @@
         if (!entry) {
             return { listingId: id, label: null, attractions: [], known: false };
         }
-        return { listingId: id, label: entry.label, attractions: entry.attractions, known: true };
+        return {
+            listingId: id,
+            label: entry.label,
+            attractions: entry.attractions.slice(0, MAX_ATTRACTIONS),
+            known: true
+        };
     }
 
     function toFormFields(index, attraction) {
@@ -383,6 +286,7 @@
 
     global.HostSettingsAttractions = {
         CATALOG,
+        MAX_ATTRACTIONS,
         DEMO_IDS,
         normalizeListingId,
         resolveListingId,
