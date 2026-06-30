@@ -1,7 +1,31 @@
 /**
- * host-pocket v4 — Desktop layout (≥1024px only)
- * Mobile layout is untouched; all rules live inside the desktop media query.
+ * host-pocket v4 — Guest app layout
+ * Full-bleed shell at every viewport width (no side letterboxing).
  */
+
+html,
+body {
+    background: #faf8f5;
+}
+
+.hp-v4-layout {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+}
+
+#app-root,
+.hp-v4-layout #app-root {
+    max-width: none !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
+    display: none !important;
+}
 
 /* Preserve mobile section order: room → localRecs → stayGuides */
 [data-screen="dashboard"] [data-dashboard-target="scrollContainer"] {
@@ -27,11 +51,11 @@
     order: 3;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
     html.hp-v4-desktop {
         height: 100%;
         min-height: 100dvh;
-        background: #0f0c0b;
+        background: #faf8f5;
     }
 
     html.hp-v4-desktop,
@@ -42,7 +66,7 @@
     html.hp-v4-desktop body {
         height: 100%;
         min-height: 100dvh;
-        background: #0f0c0b;
+        background: #faf8f5;
     }
 
     /* ── Shell: sidebar + main ── */
@@ -55,6 +79,7 @@
         max-height: 100dvh;
         width: 100%;
         max-width: none;
+        min-width: 0;
         overflow: hidden;
         --hp-v4-sidebar-logo-x: 1rem;
         --hp-v4-sidebar-icon-x: 1.25rem;
@@ -224,7 +249,17 @@
         display: flex;
         flex-direction: column;
         gap: 0;
-        border-top: 1px solid #2e2623;
+    }
+
+    .hp-v4-sidebar__contact {
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+
+    .hp-v4-sidebar--collapsed .hp-v4-sidebar__contact .hp-v4-sidebar__item {
+        gap: 0;
+        padding: 0.85rem 0;
+        justify-content: center;
     }
 
     .hp-v4-sidebar__item {
@@ -237,7 +272,6 @@
         padding: 0.85rem 1.25rem;
         border-radius: 0;
         border: none;
-        border-bottom: 1px solid #2a2320;
         background: transparent;
         color: #efece9;
         font-size: 0.8125rem;
@@ -247,10 +281,6 @@
         cursor: pointer;
         box-sizing: border-box;
         transition: background 0.15s ease, color 0.15s ease;
-    }
-
-    .hp-v4-sidebar__item:last-child {
-        border-bottom: none;
     }
 
     .hp-v4-sidebar__item:hover {
@@ -314,7 +344,6 @@
         display: none;
         flex-direction: column;
         gap: 0.85rem;
-        border-top: 1px solid #2e2623;
     }
 
     .hp-v4-sidebar:not(.hp-v4-sidebar--collapsed) .hp-v4-sidebar__footer {
@@ -391,15 +420,11 @@
     }
 
     /* ── Main app area ── */
-    html.hp-v4-desktop #app-root {
-        max-width: none;
-        width: 100%;
+    html.hp-v4-desktop #app-root,
+    .hp-v4-layout #app-root {
         height: 100% !important;
         min-height: 0;
         max-height: none;
-        margin: 0;
-        box-shadow: none;
-        border-radius: 0;
         background: #faf8f5;
         overflow: hidden;
     }
@@ -1032,10 +1057,14 @@
     html.hp-v4-desktop.hp-boot-dashboard [data-dashboard-target="contactHostNav"] {
         display: none !important;
     }
+
+    .hp-mobile-home-logo {
+        display: none !important;
+    }
 }
 
 /* Mobile: sidebar never shown, layout wrapper is transparent */
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
     .hp-v4-sidebar {
         display: none !important;
     }
@@ -1043,5 +1072,13 @@
     .hp-v4-layout {
         display: block;
         height: auto;
+    }
+
+    [data-dashboard-target="backBtn"] {
+        display: none !important;
+    }
+
+    .hp-mobile-home-logo {
+        display: inline-flex !important;
     }
 }

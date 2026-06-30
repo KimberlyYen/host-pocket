@@ -1,9 +1,10 @@
 /**
- * host-pocket v4 — Desktop shell (≥1024px)
+ * host-pocket v4 — Desktop shell (≥768px)
  * Sidebar navigation delegates to the same Stimulus actions as mobile.
  */
 (function () {
-    const DESKTOP_MQ = window.matchMedia('(min-width: 1024px)');
+    const DESKTOP_MIN_WIDTH = 768;
+    const DESKTOP_MQ = window.matchMedia(`(min-width: ${DESKTOP_MIN_WIDTH}px)`);
     const SIDEBAR_SEL = '#hp-v4-sidebar';
 
     function isDesktop() {
@@ -29,6 +30,22 @@
         return active?.dataset?.screen || 'pairing';
     }
 
+    function isListingQueryRoute(loc) {
+        const locationRef = loc || window.location;
+        if (!locationRef) return false;
+        const params = new URLSearchParams(locationRef.search || '');
+        const listing = (params.get('listing') || params.get('id') || '').trim();
+        if (!listing) return false;
+        const path = String(locationRef.pathname || '')
+            .replace(/\/index\.html$/i, '/')
+            .replace(/\/+$/, '') || '/';
+        return path === '/';
+    }
+
+    function syncListingQueryNav() {
+        document.documentElement.classList.toggle('hp-listing-query-route', isListingQueryRoute());
+    }
+
     function syncDesktopClass() {
         document.documentElement.classList.toggle('hp-v4-desktop', isDesktop());
     }
@@ -37,6 +54,8 @@
         if (navOverride) return navOverride;
         // Pairing entry screen is the app home — highlight home, not link.
         if (screen === 'pairing') return 'home';
+        // ?listing= on / — dashboard nav hidden; highlight home instead.
+        if (screen === 'dashboard' && isListingQueryRoute()) return 'home';
         return screen;
     }
 
@@ -352,6 +371,7 @@
     function observeGuestBoot() {
         const observer = new MutationObserver(() => {
             syncGuestChrome();
+            syncListingQueryNav();
             syncSidebarActive(getActiveScreen());
         });
         observer.observe(document.documentElement, {
@@ -369,6 +389,7 @@
         observeSharePlacement();
         observeDashboardColumnHeights();
         syncGuestChrome();
+        syncListingQueryNav();
         syncDashboardColumnHeights();
         syncSidebarActive(getActiveScreen());
         syncSidebarLang();
@@ -392,11 +413,13 @@
         });
 
         window.addEventListener('popstate', () => {
+            syncListingQueryNav();
             requestAnimationFrame(() => syncSidebarActive(getActiveScreen()));
         });
 
         window.addEventListener('load', () => {
             hookAppNavigate();
+            syncListingQueryNav();
             syncSidebarActive(getActiveScreen());
             syncDashboardColumnHeights();
         });
@@ -406,6 +429,7 @@
         syncDesktopClass();
         relocateShareButton();
         syncGuestChrome();
+        syncListingQueryNav();
         syncDashboardColumnHeights();
         syncSidebarActive(getActiveScreen());
     });
@@ -415,4 +439,12 @@
     } else {
         init();
     }
+
+    window.HostPocketV4Desktop = {
+        minWidth: DESKTOP_MIN_WIDTH,
+        isDesktop,
+        mq: DESKTOP_MQ,
+        isListingQueryRoute,
+        syncListingQueryNav
+    };
 })();

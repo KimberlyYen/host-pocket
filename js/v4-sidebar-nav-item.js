@@ -3,8 +3,9 @@
  */
 (function (global) {
     const MOUNT_SELECTOR = '[data-hp-v4-sidebar-nav]';
+    const CONTACT_MOUNT_SELECTOR = '[data-hp-v4-sidebar-contact]';
 
-    const DEFAULT_ITEMS = [
+    const MAIN_NAV_ITEMS = [
         {
             nav: 'home',
             icon: 'fa-solid fa-house',
@@ -20,16 +21,20 @@
             labelEn: 'Stay guide',
             titleZh: '指南主頁',
             titleEn: 'Stay guide'
-        },
-        {
-            nav: 'contact',
-            icon: 'fa-solid fa-circle-question',
-            labelZh: '求助房東',
-            labelEn: 'Contact host',
-            titleZh: '求助房東',
-            titleEn: 'Contact host'
         }
     ];
+
+    const CONTACT_NAV_ITEM = {
+        nav: 'contact',
+        icon: 'fa-solid fa-circle-question',
+        labelZh: '求助房東',
+        labelEn: 'Contact host',
+        titleZh: '求助房東',
+        titleEn: 'Contact host'
+    };
+
+    /** @deprecated use MAIN_NAV_ITEMS */
+    const DEFAULT_ITEMS = [...MAIN_NAV_ITEMS, CONTACT_NAV_ITEM];
 
     function escapeHtml(value) {
         return String(value ?? '')
@@ -44,7 +49,7 @@
     }
 
     /**
-     * @param {typeof DEFAULT_ITEMS[number]} item
+     * @param {typeof MAIN_NAV_ITEMS[number] | typeof CONTACT_NAV_ITEM} item
      * @param {{ active?: boolean }} [options]
      */
     function render(item, options = {}) {
@@ -68,34 +73,49 @@
     }
 
     /**
-     * @param {typeof DEFAULT_ITEMS} [items]
+     * @param {typeof MAIN_NAV_ITEMS} [items]
      * @param {{ activeNav?: string }} [options]
      */
-    function renderAll(items = DEFAULT_ITEMS, options = {}) {
+    function renderAll(items = MAIN_NAV_ITEMS, options = {}) {
         const activeNav = options.activeNav || '';
         return items.map((item) => render(item, { active: item.nav === activeNav })).join('\n');
     }
 
     /**
      * @param {HTMLElement | null} container
-     * @param {{ items?: typeof DEFAULT_ITEMS, activeNav?: string }} [options]
+     * @param {{ items?: typeof MAIN_NAV_ITEMS, activeNav?: string }} [options]
      */
     function mount(container, options = {}) {
         if (!container) return;
-        const items = options.items || DEFAULT_ITEMS;
+        const items = options.items || MAIN_NAV_ITEMS;
         container.innerHTML = renderAll(items, options);
+    }
+
+    /**
+     * @param {HTMLElement | null} container
+     * @param {{ activeNav?: string }} [options]
+     */
+    function mountContact(container, options = {}) {
+        if (!container) return;
+        const activeNav = options.activeNav || '';
+        container.innerHTML = render(CONTACT_NAV_ITEM, { active: CONTACT_NAV_ITEM.nav === activeNav });
     }
 
     function init() {
         global.document.querySelectorAll(MOUNT_SELECTOR).forEach((el) => mount(el));
+        global.document.querySelectorAll(CONTACT_MOUNT_SELECTOR).forEach((el) => mountContact(el));
     }
 
     global.HostPocketV4SidebarNavItem = {
         MOUNT_SELECTOR,
+        CONTACT_MOUNT_SELECTOR,
+        MAIN_NAV_ITEMS,
+        CONTACT_NAV_ITEM,
         DEFAULT_ITEMS,
         render,
         renderAll,
         mount,
+        mountContact,
         init
     };
 

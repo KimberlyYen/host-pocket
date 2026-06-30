@@ -60,6 +60,7 @@
             height: 100%;
             overflow: hidden;
             overscroll-behavior: none;
+            background: #FAF8F5;
         }
         /* 全站文字最小 12px（text-xs） */
         body {
@@ -119,6 +120,11 @@
         }
         html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
             justify-content: flex-end !important;
+        }
+        @media (max-width: 767px) {
+            html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
+                justify-content: space-between !important;
+            }
         }
         .partner-bar {
             background: linear-gradient(180deg, #2E2421 0%, #231C19 100%);
@@ -312,10 +318,25 @@
     <link rel="stylesheet" href="/css/guest-desktop-v4.css">
     <script>
         (function () {
+            var desktopMq = window.matchMedia('(min-width: 768px)');
+            function syncDesktopClass() {
+                document.documentElement.classList.toggle('hp-v4-desktop', desktopMq.matches);
+            }
+            syncDesktopClass();
+            if (desktopMq.addEventListener) desktopMq.addEventListener('change', syncDesktopClass);
+            else if (desktopMq.addListener) desktopMq.addListener(syncDesktopClass);
+        })();
+    </script>
+    <script>
+        (function () {
             try {
                 var params = new URLSearchParams(location.search || '');
                 var listing = (params.get('listing') || params.get('id') || '').trim();
                 var experience = (params.get('experience') || '').trim();
+                var pathNorm = String(location.pathname || '').replace(/\/index\.html$/i, '/').replace(/\/+$/, '') || '/';
+                if (listing && pathNorm === '/') {
+                    document.documentElement.classList.add('hp-listing-query-route');
+                }
                 var pathMatch = String(location.pathname || '').match(/\/guide\/([^/]+)(?:\/experience\/([^/]+))?\/?$/i);
                 if (pathMatch) {
                     listing = decodeURIComponent(pathMatch[1]).trim();
@@ -352,12 +373,12 @@
     })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 </head>
-<body class="bg-[#151110] text-[#EFECE9] h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
+<body class="bg-hp-bgLight h-dvh font-sans antialiased selection:bg-hp-coral selection:text-white"
       data-controller="global"
       data-global-lang-value="zh">
 
     <div id="hp-v4-layout" class="hp-v4-layout hp-v4-sidebar-collapsed">
-        <!-- v4 Desktop sidebar (hidden below 1024px via CSS) -->
+        <!-- v4 Desktop sidebar (hidden below 768px via CSS) -->
         <aside id="hp-v4-sidebar" class="hp-v4-sidebar hp-v4-sidebar--collapsed" aria-label="Main navigation">
             <div class="hp-v4-sidebar__brand">
                 <button type="button" id="hp-v4-sidebar-brand-toggle" class="hp-v4-sidebar__logo" aria-label="展開側邊欄">
@@ -381,6 +402,7 @@
                 </div>
             </div>
             <nav class="hp-v4-sidebar__nav" aria-label="App sections" data-hp-v4-sidebar-nav></nav>
+            <div class="hp-v4-sidebar__contact" data-hp-v4-sidebar-contact aria-label="Contact host"></div>
             <button type="button" id="hp-v4-sidebar-toggle" class="hp-v4-sidebar__toggle" aria-expanded="false" aria-controls="hp-v4-sidebar">
                 <i class="fa-solid fa-angles-right hp-v4-sidebar__toggle-icon" aria-hidden="true"></i>
                 <span class="hp-v4-sidebar__toggle-text" data-global-lang="zh">收合選單</span>
@@ -400,7 +422,7 @@
         </aside>
 
     <!-- App Shell：三支畫面切換，全螢幕可操作 -->
-    <div id="app-root" data-controller="app" class="h-dvh w-full max-w-lg mx-auto relative overflow-hidden bg-hp-dark shadow-2xl">
+    <div id="app-root" data-controller="app" class="h-dvh w-full relative overflow-hidden bg-hp-dark">
 
             <!-- 語言切換（配對畫面；absolute 置於 app 框內，桌面版不跑版） -->
             <div data-global-target="langBar" class="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 z-[70] flex bg-[#2F2724]/95 backdrop-blur rounded-xl p-1 border border-[#3E3430] shadow-lg">
@@ -491,6 +513,19 @@
             <!-- 畫面 2：指南主頁 -->
             <div data-controller="dashboard" data-app-target="screen" data-screen="dashboard" class="app-screen absolute inset-0 flex flex-col bg-hp-bgLight text-hp-dark overflow-hidden">
                     <div data-dashboard-target="headerBar" class="shrink-0 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 bg-hp-bgLight flex items-center justify-between relative z-20">
+                        <button type="button"
+                                data-dashboard-target="mobileHomeLogo"
+                                data-action="click->dashboard#goMobileHomeLogo"
+                                class="hp-mobile-home-logo hidden items-center justify-center w-10 h-10 -ml-2 rounded-[0.85rem] bg-hp-coral shadow-md shadow-hp-coral/25 shrink-0 transition active:scale-95"
+                                aria-label="回到首頁">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 32 220 220" preserveAspectRatio="xMidYMid meet" class="w-6 h-6" aria-hidden="true">
+                                <g transform="translate(120 142) scale(1.1 1) translate(-120 -142)">
+                                    <path d="M 28 32 L 212 32 L 196 208 Q 192 232 120 252 Q 48 232 44 208 Z" fill="#ffffff"/>
+                                    <path d="M 48 108 L 104 108 L 120 128 L 136 108 L 192 108" fill="none" stroke="#FF5B3E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M 48 132 L 104 132 L 120 152 L 136 132 L 192 132" fill="none" stroke="#FF5B3E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </g>
+                            </svg>
+                        </button>
                         <button type="button" data-action="click->dashboard#goBackToPairing" data-dashboard-target="backBtn" aria-label="返回上一步"
                                 class="inline-flex items-center justify-center w-10 h-10 -ml-2 text-hp-dark hover:text-hp-coral transition active:scale-95">
                             <i class="fa-solid fa-arrow-left text-lg"></i>
@@ -2389,7 +2424,7 @@
 
                 if (window.appNavigate) {
                     window.appNavigate("dashboard");
-                } else if (window.matchMedia('(max-width: 1023px)').matches) {
+                } else if (window.HostPocketV4Desktop?.isDesktop?.() === false) {
                     if (dashEl) {
                         dashEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         dashEl.classList.add('ring-2', 'ring-hp-coral', 'rounded-[56px]');
@@ -2429,7 +2464,7 @@
                 "recVideo3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
-                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
+                "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "mobileHomeLogo", "headerBar", "airbnbListingCta",
                 "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
@@ -2875,6 +2910,11 @@
                 if (global) global.navigateToPairing('switch');
             }
 
+            goMobileHomeLogo() {
+                this.activatePairingHome();
+                window.HostPocketGuestRouter?.navigateToPairingHistory?.();
+            }
+
             isExperienceDetailOpen() {
                 return this.hasExpDetailOverlayTarget
                     && !this.expDetailOverlayTarget.classList.contains('translate-y-full');
@@ -2930,6 +2970,8 @@
                 window.appNavigate?.('pairing');
                 document.documentElement.classList.remove('hp-boot-dashboard');
                 document.documentElement.classList.remove('hp-boot-experience');
+                document.documentElement.classList.remove('hp-listing-query-route');
+                window.HostPocketV4Desktop?.syncListingQueryNav?.();
                 delete document.documentElement.dataset.hpListing;
                 delete document.documentElement.dataset.hpExperience;
                 window.__hostPocketDeepLink = null;
@@ -3205,7 +3247,10 @@
             }
 
             isMobileViewport() {
-                return window.matchMedia('(max-width: 1023px)').matches;
+                if (window.HostPocketV4Desktop?.isDesktop) {
+                    return !window.HostPocketV4Desktop.isDesktop();
+                }
+                return window.matchMedia('(max-width: 767px)').matches;
             }
 
             closeExpShareSheet(animate = true) {
