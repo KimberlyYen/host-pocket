@@ -369,36 +369,18 @@
                         </g>
                     </svg>
                 </button>
-                <div class="hp-v4-sidebar__title">
-                    <span data-global-lang="zh">房東私藏</span>
-                    <span data-global-lang="en" class="hidden">host-pocket</span>
+                <div class="hp-v4-sidebar__brand-text">
+                    <div class="hp-v4-sidebar__title">
+                        <span data-global-lang="zh">房東私藏</span>
+                        <span data-global-lang="en" class="hidden">host-pocket</span>
+                    </div>
+                    <p class="hp-v4-sidebar__subtitle">
+                        <span data-global-lang="zh">房客入住指南</span>
+                        <span data-global-lang="en" class="hidden">Guest stay guide</span>
+                    </p>
                 </div>
-                <p class="hp-v4-sidebar__subtitle">
-                    <span data-global-lang="zh">房客入住指南</span>
-                    <span data-global-lang="en" class="hidden">Guest stay guide</span>
-                </p>
             </div>
-            <nav class="hp-v4-sidebar__nav" aria-label="App sections">
-                <p class="hp-v4-sidebar__nav-label">
-                    <span data-global-lang="zh">導覽</span>
-                    <span data-global-lang="en" class="hidden">Navigate</span>
-                </p>
-                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="home" title="回到首頁">
-                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-house" aria-hidden="true"></i></span>
-                    <span class="hp-v4-sidebar__label" data-global-lang="zh">回到首頁</span>
-                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Home</span>
-                </button>
-                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="dashboard" title="指南主頁">
-                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-compass" aria-hidden="true"></i></span>
-                    <span class="hp-v4-sidebar__label" data-global-lang="zh">指南主頁</span>
-                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Stay guide</span>
-                </button>
-                <button type="button" class="hp-v4-sidebar__item" data-hp-v4-nav="contact" title="求助房東">
-                    <span class="hp-v4-sidebar__icon"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></span>
-                    <span class="hp-v4-sidebar__label" data-global-lang="zh">求助房東</span>
-                    <span class="hp-v4-sidebar__label hidden" data-global-lang="en">Contact host</span>
-                </button>
-            </nav>
+            <nav class="hp-v4-sidebar__nav" aria-label="App sections" data-hp-v4-sidebar-nav></nav>
             <button type="button" id="hp-v4-sidebar-toggle" class="hp-v4-sidebar__toggle" aria-expanded="false" aria-controls="hp-v4-sidebar">
                 <i class="fa-solid fa-angles-right hp-v4-sidebar__toggle-icon" aria-hidden="true"></i>
                 <span class="hp-v4-sidebar__toggle-text" data-global-lang="zh">收合選單</span>
@@ -1212,6 +1194,7 @@
     <script src="/js/rec-card-videos.js"></script>
     <script src="/js/experience-details.js"></script>
     <script src="/js/guest-router.js"></script>
+    <script src="/js/v4-sidebar-nav-item.js"></script>
     <script src="/js/guest-desktop-v4.js"></script>
     <script src="/js/pairing-link-card.js"></script>
     <script src="/js/pairing-quick-start.js"></script>

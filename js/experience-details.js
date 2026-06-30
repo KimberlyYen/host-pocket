@@ -1215,7 +1215,7 @@
             : '';
 
         return `
-            <div class="hp-exp-detail-compact h-full flex flex-col min-h-0">
+            <div class="hp-exp-detail-compact flex flex-col">
                 <div class="flex items-start justify-between gap-2 shrink-0">
                     <div class="min-w-0 flex-1">
                         ${exp.category ? `<span class="inline-block text-[10px] font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-1.5 py-0.5 rounded mb-1">${escapeHtml(exp.category)}</span>` : ''}
@@ -1238,7 +1238,7 @@
                     ${highlights.slice(0, 3).map(h => `<span class="text-[10px] bg-hp-bgLight border border-hp-border rounded-md px-1.5 py-0.5"><strong>${escapeHtml(h.name)}</strong></span>`).join('')}
                 </div>` : ''}
 
-                <div class="hp-exp-detail-compact__grid flex-1 min-h-0 mt-2 grid grid-cols-2 gap-2 content-start overflow-hidden">
+                <div class="hp-exp-detail-compact__grid mt-2 grid grid-cols-2 gap-2 content-start">
                     ${host.name ? `
                     <section class="col-span-2 flex gap-2 items-start border border-hp-border rounded-xl p-2 bg-white">
                         ${host.avatar ? `<img src="${escapeHtml(host.avatar)}" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" onerror="${IMG_ONERROR}">` : ''}

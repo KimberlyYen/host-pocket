@@ -56,7 +56,11 @@
         width: 100%;
         max-width: none;
         overflow: hidden;
-        transition: grid-template-columns 0.22s ease;
+        --hp-v4-sidebar-logo-x: 1rem;
+        --hp-v4-sidebar-icon-x: 1.25rem;
+        --hp-v4-sidebar-duration: 0.28s;
+        --hp-v4-sidebar-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        transition: grid-template-columns var(--hp-v4-sidebar-duration) var(--hp-v4-sidebar-ease);
     }
 
     .hp-v4-layout:not(.hp-v4-sidebar-collapsed) {
@@ -72,44 +76,51 @@
         flex-direction: column;
         height: 100%;
         min-height: 0;
+        min-width: 0;
         overflow: hidden;
         background: linear-gradient(180deg, #1a1513 0%, #141110 100%);
         border-right: 1px solid #2e2623;
         color: #efece9;
         z-index: 40;
-        transition: width 0.22s ease;
     }
 
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__title,
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__subtitle,
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__nav-label,
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__label,
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__footer,
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__toggle-text {
-        display: none !important;
+    .hp-v4-sidebar--collapsed {
+        overflow-x: hidden;
+    }
+
+    .hp-v4-sidebar--collapsed .hp-v4-sidebar__brand-text,
+    .hp-v4-sidebar--collapsed .hp-v4-sidebar__label {
+        display: none;
+    }
+
+    .hp-v4-sidebar:not(.hp-v4-sidebar--collapsed) .hp-v4-sidebar__brand-text {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        opacity: 1;
+        max-width: none;
+    }
+
+    .hp-v4-sidebar:not(.hp-v4-sidebar--collapsed) .hp-v4-sidebar__label:not(.hidden) {
+        display: inline;
+        flex: 1;
+        min-width: 0;
+        opacity: 1;
+        max-width: none;
     }
 
     .hp-v4-sidebar--collapsed .hp-v4-sidebar__brand {
-        padding: 1rem 0.65rem 0.85rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        gap: 0;
     }
 
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__logo {
-        margin-bottom: 0;
-    }
-
-    .hp-v4-sidebar--collapsed .hp-v4-sidebar__nav {
-        flex: 0 0 auto;
-        padding: 0.65rem 0.5rem;
-        gap: 0.35rem;
+    .hp-v4-sidebar:not(.hp-v4-sidebar--collapsed) .hp-v4-sidebar__brand {
+        gap: 0.75rem;
     }
 
     .hp-v4-sidebar--collapsed .hp-v4-sidebar__item {
-        justify-content: center;
-        padding: 0.65rem;
         gap: 0;
+        padding: 0.85rem 0;
+        justify-content: center;
     }
 
     .hp-v4-sidebar--collapsed .hp-v4-sidebar__toggle {
@@ -132,8 +143,24 @@
     }
 
     .hp-v4-sidebar__brand {
-        padding: 1.75rem 1.5rem 1.25rem;
-        border-bottom: 1px solid #2e2623;
+        padding: 1.75rem 0.625rem 1.25rem var(--hp-v4-sidebar-logo-x, 1rem);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-shrink: 0;
+        min-height: 5.5rem;
+        box-sizing: border-box;
+        gap: 0;
+    }
+
+    .hp-v4-sidebar__brand-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.2rem;
+        overflow: hidden;
     }
 
     .hp-v4-sidebar__logo {
@@ -145,11 +172,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         box-shadow: 0 8px 24px rgba(255, 91, 62, 0.25);
-        margin-bottom: 0.85rem;
+        margin-bottom: 0;
         padding: 0;
         cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
     }
 
     .hp-v4-sidebar__logo:hover {
@@ -158,7 +186,7 @@
     }
 
     .hp-v4-sidebar__logo:active {
-        transform: scale(0.96);
+        transform: none;
     }
 
     .hp-v4-sidebar__logo svg {
@@ -172,51 +200,57 @@
         letter-spacing: -0.02em;
         line-height: 1.2;
         color: #fff;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     .hp-v4-sidebar__subtitle {
-        margin-top: 0.35rem;
+        margin-top: 0;
         font-size: 0.6875rem;
         font-weight: 600;
         color: #8c807a;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     .hp-v4-sidebar__nav {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: 1rem 0.85rem;
+        overflow-x: hidden;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
-    }
-
-    .hp-v4-sidebar__nav-label {
-        padding: 0.35rem 0.75rem 0.5rem;
-        font-size: 0.625rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #6b615c;
+        gap: 0;
+        border-top: 1px solid #2e2623;
     }
 
     .hp-v4-sidebar__item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        justify-content: flex-start;
+        gap: 0.85rem;
         width: 100%;
-        padding: 0.75rem 0.85rem;
-        border-radius: 0.85rem;
-        border: 1px solid transparent;
+        min-height: 3rem;
+        padding: 0.85rem 1.25rem;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid #2a2320;
         background: transparent;
-        color: #c9c0bb;
+        color: #efece9;
         font-size: 0.8125rem;
         font-weight: 700;
+        line-height: 1.25;
         text-align: left;
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        box-sizing: border-box;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .hp-v4-sidebar__item:last-child {
+        border-bottom: none;
     }
 
     .hp-v4-sidebar__item:hover {
@@ -225,35 +259,66 @@
     }
 
     .hp-v4-sidebar__item.is-active {
-        background: rgba(255, 91, 62, 0.12);
-        border-color: rgba(255, 91, 62, 0.35);
-        color: #fff;
+        background: #2f2825;
+        color: #ff5b3e;
     }
 
     .hp-v4-sidebar__item.is-active .hp-v4-sidebar__icon {
-        background: #ff5b3e;
-        color: #fff;
+        color: #ff5b3e;
+    }
+
+    .hp-v4-sidebar__item.is-active:hover {
+        background: #342c28;
+        color: #ff704f;
+    }
+
+    .hp-v4-sidebar__item.is-active:hover .hp-v4-sidebar__icon {
+        color: #ff704f;
     }
 
     .hp-v4-sidebar__icon {
         width: 2rem;
-        height: 2rem;
-        border-radius: 0.65rem;
-        background: #241e1c;
+        height: 1.25rem;
+        border-radius: 0;
+        background: transparent;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-        font-size: 0.8125rem;
-        transition: background 0.15s ease, color 0.15s ease;
+        flex: 0 0 2rem;
+        font-size: 0.9375rem;
+        color: inherit;
+        transition: color 0.15s ease;
+    }
+
+    .hp-v4-sidebar__label {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        line-height: 1.25;
+        letter-spacing: 0.02em;
+    }
+
+    .hp-v4-sidebar .hp-v4-sidebar__label[data-global-lang="en"] {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.75rem;
+    }
+
+    .hp-v4-sidebar .hp-v4-sidebar__label.hidden {
+        display: none !important;
     }
 
     .hp-v4-sidebar__footer {
         padding: 1rem 1.25rem 1.25rem;
-        border-top: 1px solid #2e2623;
-        display: flex;
+        display: none;
         flex-direction: column;
         gap: 0.85rem;
+        border-top: 1px solid #2e2623;
+    }
+
+    .hp-v4-sidebar:not(.hp-v4-sidebar--collapsed) .hp-v4-sidebar__footer {
+        display: flex;
     }
 
     .hp-v4-sidebar__lang {
@@ -798,7 +863,10 @@
     html.hp-v4-desktop .hp-exp-detail-split__content {
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
         padding: 1rem 1.125rem 0.5rem;
     }
 
