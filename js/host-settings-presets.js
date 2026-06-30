@@ -1,6 +1,7 @@
 (function (global) {
     const PRESET_BASE = '/js/presets';
-    const PRESET_IDS = ['TAIPEI-CITY', 'UK-LONDON', 'VILNIUS-OLDTOWN', 'RIO-COPACABANA'];
+    const PRESET_IDS = global.HostPocketDemoThemePicker?.DEMO_THEME_IDS
+        || ['TAIPEI-CITY', 'UK-LONDON', 'VILNIUS-OLDTOWN', 'RIO-COPACABANA'];
 
     const PRESET_LABELS = {
         'TAIPEI-CITY': '台北 · Lina 信義區',

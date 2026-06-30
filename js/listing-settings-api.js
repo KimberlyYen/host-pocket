@@ -62,7 +62,9 @@
         if (global.HP_MOCK_DATA !== false) return null;
         const base = getApiBase();
         const id = encodeListingId(listingId);
-        const res = await fetchWithTimeout(`${base}/api/listings/${id}/settings`, {}, 8000);
+        const res = await fetchWithTimeout(`${base}/api/listings/${id}/settings`, {
+            cache: 'no-store'
+        }, 8000);
         if (res.status === 404) return null;
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) {

@@ -355,13 +355,13 @@
         background: linear-gradient(135deg, #1f1a18 0%, #2a2320 48%, #1f1a18 100%);
     }
 
-    html.hp-v4-desktop [data-screen="pairing"] > .flex-1.flex.flex-col.p-5 {
+    html.hp-v4-desktop [data-screen="pairing"] > .hp-pairing-main {
         padding: 2rem clamp(1.5rem, 3vw, 2.5rem);
         justify-content: center;
         align-items: center;
     }
 
-    html.hp-v4-desktop [data-screen="pairing"] .flex-1.flex.flex-col.justify-start.min-h-0.pt-2 {
+    html.hp-v4-desktop [data-screen="pairing"] .hp-pairing-core-wrap {
         width: 100%;
         max-width: min(560px, 100%);
         margin: 0 auto;
@@ -370,7 +370,7 @@
         padding-top: 0;
     }
 
-    html.hp-v4-desktop [data-screen="pairing"] .space-y-5.shrink-0.w-full {
+    html.hp-v4-desktop [data-screen="pairing"] .hp-pairing-core {
         max-width: none;
         width: 100%;
         margin: 0;
@@ -381,7 +381,7 @@
     }
 
     /* Brand already in sidebar — avoid duplicate title on desktop */
-    html.hp-v4-desktop [data-screen="pairing"] .space-y-5.shrink-0.w-full > .space-y-2.text-center {
+    html.hp-v4-desktop [data-screen="pairing"] .hp-pairing-core > .space-y-2.text-center {
         display: none;
     }
 
@@ -716,8 +716,110 @@
         display: none !important;
     }
 
-    /* ── Overlays: desktop-native patterns ── */
-    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"] {
+    /* ── Experience detail: desktop centered popup (image left, info right) ── */
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal {
+        position: absolute;
+        inset: auto;
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        width: min(920px, calc(100% - 3rem));
+        height: min(85dvh, 640px);
+        max-height: min(85dvh, 640px);
+        transform: translate(-50%, calc(-50% + 120%));
+        border-radius: 1.25rem;
+        border: 1px solid #ebe5df;
+        box-shadow: 0 24px 80px rgba(31, 26, 24, 0.22);
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease, visibility 0.3s ease;
+        z-index: 56;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal.translate-y-full {
+        transform: translate(-50%, calc(-50% + 120%));
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none !important;
+    }
+
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal:not(.translate-y-full) {
+        transform: translate(-50%, -50%);
+        visibility: visible;
+        opacity: 1;
+    }
+
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal > button[aria-label="Close"] {
+        top: 0.75rem;
+        left: 0.75rem;
+        right: auto;
+        z-index: 60;
+    }
+
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal [data-dashboard-target="expDetailBody"] {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal [data-dashboard-target="expDetailBookingBar"] {
+        display: none;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split {
+        display: flex;
+        height: 100%;
+        min-height: 0;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__media {
+        flex: 0 0 44%;
+        min-width: 0;
+        min-height: 0;
+        border-right: 1px solid #ebe5df;
+        background: #000;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__media .exp-media-hero--modal {
+        height: 100%;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__main {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: #faf8f5;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__content {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        padding: 1rem 1.125rem 0.5rem;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__booking {
+        flex-shrink: 0;
+        border-top: 1px solid #ebe5df;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split__booking .hp-exp-booking-bar {
+        padding-top: 0.75rem;
+        padding-bottom: 0.875rem;
+        border-top: none;
+    }
+
+    html.hp-v4-desktop .hp-exp-detail-split--loading .hp-exp-detail-split__main {
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Mobile / fallback: full-screen slide (non-modal class) */
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"]:not(.hp-exp-detail--modal) {
         top: 0;
         right: 0;
         bottom: 0;
@@ -729,17 +831,18 @@
         transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].translate-y-full {
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"]:not(.hp-exp-detail--modal).translate-y-full {
         transform: translateX(100%);
     }
 
-    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"]:not(.translate-y-full) {
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"]:not(.hp-exp-detail--modal):not(.translate-y-full) {
         transform: translateX(0);
     }
 
-    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"] > button[aria-label="Close"] {
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"]:not(.hp-exp-detail--modal) > button[aria-label="Close"] {
         top: 1rem;
         left: 1rem;
+        right: auto;
     }
 
     html.hp-v4-desktop [data-dashboard-target="roomOverlay"],
@@ -845,7 +948,16 @@
     }
 
     /* Dim main content when side panel / modal is open */
-    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="expDetailOverlay"]:not(.translate-y-full))::before {
+    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal:not(.translate-y-full))::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(31, 26, 24, 0.45);
+        z-index: 55;
+        pointer-events: auto;
+    }
+
+    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="expDetailOverlay"]:not(.hp-exp-detail--modal):not(.translate-y-full))::before {
         content: '';
         position: absolute;
         inset: 0;

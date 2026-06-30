@@ -68,8 +68,12 @@
     function saveLocal(listingId, data) {
         const id = normalizeListingId(listingId);
         const all = readAllLocal();
-        all[id] = pickEditable(data);
-        all[id].updatedAt = new Date().toISOString();
+        const prev = all[id] || {};
+        all[id] = {
+            ...prev,
+            ...pickEditable(data),
+            updatedAt: new Date().toISOString()
+        };
         writeAllLocal(all);
         return all[id];
     }
@@ -117,17 +121,21 @@
 
     async function isDatabaseAvailable() {
         if (global.HP_MOCK_DATA !== false) {
+            _dbAvailable = false;
             return false;
         }
         if (_dbAvailable === true) return true;
+        if (_dbAvailable === false) return false;
         if (!global.ListingSettingsAPI) {
+            _dbAvailable = false;
             return false;
         }
         try {
             const ok = await ListingSettingsAPI.isDatabaseConfigured();
-            if (ok) _dbAvailable = true;
+            _dbAvailable = ok;
             return ok;
         } catch {
+            _dbAvailable = false;
             return false;
         }
     }
@@ -187,7 +195,13 @@
 
     async function save(listingId, data) {
         const id = normalizeListingId(listingId);
-        const payload = pickEditable(data);
+        try {
+            await ensureLoaded(id);
+        } catch {
+            // continue with local/preset merge
+        }
+        const existing = load(id) || {};
+        const payload = pickEditable({ ...existing, ...(data || {}) });
         payload.updatedAt = new Date().toISOString();
 
         if (await isDatabaseAvailable()) {
@@ -300,8 +314,7 @@
 
     function getStorageMode() {
         if (_dbAvailable === true) return 'database';
-        if (_dbAvailable === false) return 'localStorage';
-        return 'unknown';
+        return 'localStorage';
     }
 
     global.HostGuideSettings = {

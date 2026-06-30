@@ -71,9 +71,21 @@
         }, options.durationMs || 1800);
     }
 
+    function showCopyFeedback(message, anchorEl, options = {}) {
+        showCopyHint(message, anchorEl, options);
+        if (!anchorEl?.classList) return;
+        anchorEl.classList.add('hp-copy-btn--copied');
+        const ms = options.durationMs || 2000;
+        window.clearTimeout(anchorEl._hpCopyFeedbackTimer);
+        anchorEl._hpCopyFeedbackTimer = window.setTimeout(() => {
+            anchorEl.classList.remove('hp-copy-btn--copied');
+        }, ms);
+    }
+
     global.hpTriggerToast = show;
     global.hpCopyText = copyText;
     global.hpCopyTextSync = copyTextSync;
     global.hpShowCopyHint = showCopyHint;
-    global.HostPocketToast = { show, copyText, copyTextSync, showCopyHint };
+    global.hpShowCopyFeedback = showCopyFeedback;
+    global.HostPocketToast = { show, copyText, copyTextSync, showCopyHint, showCopyFeedback };
 })(window);

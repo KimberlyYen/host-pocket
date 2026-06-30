@@ -16,6 +16,7 @@
         };
 
         connect() {
+            void global.HostGuideSettings?.isDatabaseAvailable?.();
             this.reloadFormFrame(this.resolveInitialListing());
         }
 
@@ -48,17 +49,23 @@
 
             global.HostGuideSettings.invalidateCache(id);
             try {
-                await global.HostGuideSettings.ensureLoaded(id);
+                const data = await this.loadFormData(id);
+                requestAnimationFrame(() => {
+                    if (this.hasFormTarget) this.fillForm(data);
+                    this.syncFormWidgets();
+                    if (this.hasBasicInfoListingIdTarget) {
+                        this.basicInfoListingIdTarget.textContent = id;
+                    }
+                });
             } catch (error) {
                 console.warn('[host-settings] cache refresh failed', error);
+                requestAnimationFrame(() => {
+                    this.syncFormWidgets();
+                    if (this.hasBasicInfoListingIdTarget) {
+                        this.basicInfoListingIdTarget.textContent = id;
+                    }
+                });
             }
-
-            requestAnimationFrame(() => {
-                this.syncFormWidgets();
-                if (this.hasBasicInfoListingIdTarget) {
-                    this.basicInfoListingIdTarget.textContent = id;
-                }
-            });
         }
 
         syncFormWidgets() {
@@ -193,15 +200,25 @@
             });
         }
 
+        formField(name) {
+            if (!this.hasFormTarget) return null;
+            const field = this.formTarget.elements.namedItem(name);
+            if (field) return field;
+            const escaped = typeof CSS !== 'undefined' && CSS.escape
+                ? CSS.escape(name)
+                : String(name).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            return this.formTarget.querySelector(`[name="${escaped}"]`);
+        }
+
         fillForm(data) {
             if (!this.hasFormTarget) return;
 
             global.HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
-                const el = this.formTarget.elements.namedItem(name);
+                const el = this.formField(name);
                 if (el) el.value = data[name] ?? '';
             });
 
-            const galleryEl = this.formTarget.elements.namedItem('roomGalleryText');
+            const galleryEl = this.formField('roomGalleryText');
             if (galleryEl) {
                 const fromGallery = global.HostGuideSettings.galleryToText(data.roomGallery);
                 galleryEl.value = fromGallery || (data.roomImg ? String(data.roomImg).trim() : '');
@@ -216,11 +233,11 @@
             if (!this.hasFormTarget) return data;
 
             global.HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
-                const el = this.formTarget.elements.namedItem(name);
+                const el = this.formField(name);
                 if (el) data[name] = el.value.trim();
             });
 
-            const galleryEl = this.formTarget.elements.namedItem('roomGalleryText');
+            const galleryEl = this.formField('roomGalleryText');
             const gallery = global.HostGuideSettings.parseGalleryText(galleryEl?.value || '');
             if (gallery.length) {
                 data.roomGallery = gallery;
@@ -250,25 +267,37 @@
             this.reloadFormFrame(id);
         }
 
-        async beforeSubmit(event) {
-            await global.HostGuideSettings.isDatabaseAvailable();
-            if (global.HostGuideSettings.getStorageMode() === 'database') {
-                this.collapseAllPanels();
-                return;
-            }
-
+        beforeSubmit(event) {
             event.preventDefault();
+            void this.submitSettings();
+        }
 
+        async persistFormSettings() {
             const id = this.getListingId();
             if (!id) {
-                this.showError('請輸入房源代碼');
-                return;
+                throw new Error('請輸入房源代碼');
             }
 
+            await global.HostGuideSettings.isDatabaseAvailable();
+            const formData = this.readForm();
+            await global.HostGuideSettings.save(id, formData);
+            this.writePreviewLocalStorage(id, formData);
+            global.HostGuideSettings.invalidateCache(id);
+
+            return {
+                id,
+                formData,
+                mode: global.HostGuideSettings.getStorageMode()
+            };
+        }
+
+        async submitSettings() {
             try {
-                await global.HostGuideSettings.save(id, this.readForm());
-                this.showStatus('已儲存');
-                this.collapseAllPanels();
+                const { id, mode } = await this.persistFormSettings();
+                const data = await this.loadFormData(id);
+                if (this.hasFormTarget) this.fillForm(data);
+
+                this.showStatus(mode === 'database' ? '已儲存' : '已儲存（本機瀏覽器）');
             } catch (error) {
                 console.error(error);
                 this.showError(error?.message || '儲存失敗');
@@ -276,28 +305,14 @@
         }
 
         async preview() {
-            const id = this.getListingId();
-            if (!id) {
-                this.showError('請先載入房源');
-                return;
-            }
-
             if (!this.hasHostPreviewOutlet) {
                 this.showError('預覽面板未就緒');
                 return;
             }
 
             try {
-                const formData = this.readForm();
-                await global.HostGuideSettings.isDatabaseAvailable();
-
-                if (global.HostGuideSettings.getStorageMode() === 'database') {
-                    await global.HostGuideSettings.save(id, formData);
-                    this.writePreviewLocalStorage(id, formData);
-                } else {
-                    this.writePreviewLocalStorage(id, formData);
-                }
-
+                const { id } = await this.persistFormSettings();
+                this.showStatus('已儲存並開啟預覽');
                 this.hostPreviewOutlet.open({ listingId: id });
             } catch (error) {
                 console.error(error);
@@ -317,7 +332,11 @@
 
             try {
                 const all = JSON.parse(global.localStorage.getItem(global.HostGuideSettings.STORAGE_KEY) || '{}');
-                all[id] = payload;
+                all[id] = {
+                    ...(all[id] || {}),
+                    ...payload,
+                    updatedAt: payload.updatedAt
+                };
                 global.localStorage.setItem(global.HostGuideSettings.STORAGE_KEY, JSON.stringify(all));
                 global.HostGuideSettings.invalidateCache(id);
             } catch (error) {

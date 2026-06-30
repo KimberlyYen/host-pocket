@@ -4,6 +4,8 @@
   "private": true,
   "description": "host-pocket — Airbnb host stay guide prototype with experience booking",
   "scripts": {
+    "build:pages": "node scripts/render-pages.js",
+    "prestart": "npm run build:pages",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js"
   },

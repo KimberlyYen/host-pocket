@@ -9,10 +9,16 @@
     global.registerHostSettingsController('listing-selector', class extends Controller {
         static targets = ['input'];
 
+        inputEl() {
+            if (this.hasInputTarget) return this.inputTarget;
+            return this.element.querySelector('[data-listing-selector-target="input"]');
+        }
+
         connect() {
-            if (this.hasInputTarget && !this.inputTarget.value) {
+            const input = this.inputEl();
+            if (input && !input.value) {
                 const params = new URLSearchParams(global.location.search);
-                this.inputTarget.value = params.get('listing') || params.get('id') || 'TAIPEI-CITY';
+                input.value = params.get('listing') || params.get('id') || 'TAIPEI-CITY';
             }
         }
 
@@ -24,12 +30,14 @@
         }
 
         getValue() {
-            return this.hasInputTarget ? this.normalizeId(this.inputTarget.value) : '';
+            const input = this.inputEl();
+            return input ? this.normalizeId(input.value) : '';
         }
 
         setValue(id) {
-            if (this.hasInputTarget) {
-                this.inputTarget.value = this.normalizeId(id);
+            const input = this.inputEl();
+            if (input) {
+                input.value = this.normalizeId(id);
             }
         }
 

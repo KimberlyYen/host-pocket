@@ -118,8 +118,8 @@
             .hp-collapse[open] .hp-collapse__chevron { transform: rotate(180deg); }
             .hp-collapse__body {
                 margin-top: 1rem;
-                padding-top: 1rem;
-                border-top: 1px solid #EBE5DF;
+                padding-top: 0;
+                border-top: none;
             }
             .hp-collapse__body.hp-card--stack > :not([hidden]) ~ :not([hidden]) {
                 margin-top: 1rem;
@@ -136,9 +136,9 @@
                 align-items: center;
             }
             .hp-card > .hp-collapse {
-                margin-top: 0.25rem;
-                padding-top: 0.75rem;
-                border-top: 1px solid #EBE5DF;
+                margin-top: 0;
+                padding-top: 0;
+                border-top: none;
             }
         `;
         doc.head.appendChild(style);

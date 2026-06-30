@@ -644,9 +644,20 @@
         return [{ type: 'video', url: videoUrl, poster }, ...items];
     }
 
-    function renderMediaHero(media) {
+    function renderMediaHero(media, options = {}) {
+        const isModal = options.variant === 'modal';
+        const heightClass = isModal
+            ? 'h-full min-h-0'
+            : 'h-[calc(100dvh*5/6)]';
+        const heroClass = isModal
+            ? `exp-media-hero exp-media-hero--modal hp-image-swipe ${heightClass} relative overflow-hidden bg-black`
+            : `exp-media-hero hp-image-swipe ${heightClass} relative shrink-0 overflow-hidden bg-black`;
+
         if (!media.length) {
-            return `<div class="exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
+            const emptyClass = isModal
+                ? 'exp-media-hero exp-media-hero--modal h-full min-h-0 relative bg-hp-bgLight flex items-center justify-center'
+                : 'exp-media-hero h-[calc(100dvh*5/6)] relative shrink-0 bg-hp-bgLight flex items-center justify-center';
+            return `<div class="${emptyClass}"><i class="fa-solid fa-image text-hp-muted text-2xl"></i></div>`;
         }
 
         const slides = media.map((item, i) => {
@@ -674,7 +685,7 @@
             </div>` : '';
 
         return `
-            <div class="exp-media-hero hp-image-swipe h-[calc(100dvh*5/6)] relative shrink-0 overflow-hidden bg-black" data-exp-media-count="${media.length}">
+            <div class="${heroClass}" data-exp-media-count="${media.length}">
                 ${slides}
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none z-[15]"></div>
                 ${nav}
@@ -906,6 +917,147 @@
                             </button>`).join('')}
                     </div>
                 </section>` : ''}
+            </div>`;
+    }
+
+    function renderHostPickMetaRow(ctx) {
+        const { isZh, exp, price, loc, labels } = ctx;
+        const badge = exp.category || exp.highlights?.[0]?.description || '';
+        const dist = loc.display_label || loc.summary || '';
+        const priceLabel = price.price_label || price.price || '';
+        if (!badge && !dist && !priceLabel) return '';
+
+        const badgeLabel = isZh ? '標籤' : 'Badge';
+        const distLabel = isZh ? '距離' : 'Distance';
+        const priceMetaLabel = isZh ? '價格' : 'Price';
+
+        const chip = (label, value, extraClass = '') => value
+            ? `<span class="inline-flex items-center gap-1 text-[10px] bg-hp-bgLight border border-hp-border rounded-md px-1.5 py-0.5 ${extraClass}"><span class="font-bold text-hp-muted">${label}:</span> ${escapeHtml(value)}</span>`
+            : '';
+
+        return `<div class="hp-exp-host-pick-meta flex flex-wrap gap-1.5 mt-2 shrink-0" aria-label="${isZh ? '房東精選資訊' : 'Host pick details'}">
+            ${chip(badgeLabel, badge)}
+            ${chip(distLabel, dist)}
+            ${chip(priceMetaLabel, priceLabel, 'text-hp-coral border-hp-coral/20')}
+        </div>`;
+    }
+
+    function renderDetailContentCompact(ctx) {
+        const { isZh, exp, host, price, loc, cancel, highlights, agenda, availability, reviews, similar, a11y, labels, guestReqText, shareHref, listingId } = ctx;
+
+        const shareBtnHtml = global.HostPocketShareButton
+            ? global.HostPocketShareButton.render({
+                variant: 'pill',
+                shareUrl: shareHref,
+                stay: true,
+                listingId,
+                positionClass: 'shrink-0'
+            })
+            : '';
+
+        return `
+            <div class="hp-exp-detail-compact h-full flex flex-col min-h-0">
+                <div class="flex items-start justify-between gap-2 shrink-0">
+                    <div class="min-w-0 flex-1">
+                        ${exp.category ? `<span class="inline-block text-[10px] font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-1.5 py-0.5 rounded mb-1">${escapeHtml(exp.category)}</span>` : ''}
+                        <h2 class="text-sm font-extrabold text-hp-dark leading-snug line-clamp-2">${escapeHtml(exp.title)}</h2>
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
+                            <span class="text-[11px] font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
+                            <span class="text-[10px] text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()})</span>
+                            <span class="text-[11px] font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
+                        </div>
+                    </div>
+                    ${shareBtnHtml}
+                </div>
+
+                <p class="text-[11px] text-hp-muted mt-2 leading-snug line-clamp-3 shrink-0">${escapeHtml(exp.description)}</p>
+
+                ${renderHostPickMetaRow(ctx)}
+
+                ${highlights.length ? `
+                <div class="flex flex-wrap gap-1 mt-2 shrink-0">
+                    ${highlights.slice(0, 3).map(h => `<span class="text-[10px] bg-hp-bgLight border border-hp-border rounded-md px-1.5 py-0.5"><strong>${escapeHtml(h.name)}</strong></span>`).join('')}
+                </div>` : ''}
+
+                <div class="hp-exp-detail-compact__grid flex-1 min-h-0 mt-2 grid grid-cols-2 gap-2 content-start overflow-hidden">
+                    ${host.name ? `
+                    <section class="col-span-2 flex gap-2 items-start border border-hp-border rounded-xl p-2 bg-white">
+                        ${host.avatar ? `<img src="${escapeHtml(host.avatar)}" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" onerror="${IMG_ONERROR}">` : ''}
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A]">${labels.host}</p>
+                            <p class="text-[11px] font-bold text-hp-dark leading-snug">${escapeHtml(host.name)}</p>
+                            <p class="text-[10px] text-hp-muted mt-0.5 line-clamp-2 leading-snug">${escapeHtml(host.about || '')}</p>
+                        </div>
+                    </section>` : ''}
+
+                    ${agenda.length ? `
+                    <section class="col-span-2">
+                        <h3 class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-1">${labels.agenda}</h3>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            ${agenda.slice(0, 4).map(step => `
+                                <div class="bg-white border border-hp-border rounded-lg p-2 min-h-0">
+                                    <p class="text-[10px] font-bold text-hp-dark line-clamp-1">${escapeHtml(step.title)}</p>
+                                    <p class="text-[10px] text-hp-muted mt-0.5 line-clamp-2 leading-snug">${escapeHtml(step.description)}</p>
+                                </div>`).join('')}
+                        </div>
+                    </section>` : ''}
+
+                    ${availability.length ? `
+                    <section>
+                        <h3 class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-1">${labels.availability}</h3>
+                        <div class="space-y-1">
+                            ${availability.slice(0, 2).map(slot => `
+                                <div class="bg-hp-bgLight border border-hp-border rounded-lg px-2 py-1.5">
+                                    <p class="text-[10px] font-bold text-hp-dark line-clamp-1">${escapeHtml(slot.day)}</p>
+                                    <p class="text-[10px] text-hp-muted line-clamp-1">${escapeHtml(slot.duration || slot.start_time || '')}</p>
+                                </div>`).join('')}
+                        </div>
+                    </section>` : ''}
+
+                    ${reviews.length ? `
+                    <section>
+                        <h3 class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-1">${labels.reviews}</h3>
+                        ${reviews.slice(0, 1).map(r => `
+                            <div class="bg-white border border-hp-border rounded-lg p-2">
+                                <div class="flex justify-between items-center gap-1 mb-0.5">
+                                    <span class="text-[10px] font-bold text-hp-dark truncate">${escapeHtml(r.user?.name || (isZh ? '旅客' : 'Guest'))}</span>
+                                    <span class="text-[10px] text-hp-coral shrink-0">★ ${r.rating}</span>
+                                </div>
+                                <p class="text-[10px] text-[#332C2A] line-clamp-3 leading-snug">${escapeHtml(r.text || r.highlighted_comment)}</p>
+                            </div>`).join('')}
+                    </section>` : ''}
+
+                    <section class="col-span-2">
+                        <h3 class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-1">${labels.logistics}</h3>
+                        <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                            ${loc.display_label ? `<div class="bg-white border border-hp-border rounded-lg p-2 col-span-2"><span class="font-bold text-hp-dark">${labels.location}:</span> ${escapeHtml(loc.display_label)}</div>` : ''}
+                            <div class="bg-white border border-hp-border rounded-lg p-2"><span class="font-bold text-hp-dark">${labels.guestReq}:</span> ${guestReqText}</div>
+                            ${cancel.name ? `<div class="bg-white border border-hp-border rounded-lg p-2"><span class="font-bold text-hp-dark">${labels.cancellation}:</span> ${escapeHtml(cancel.name)}</div>` : ''}
+                            ${a11y.length ? `<div class="bg-white border border-hp-border rounded-lg p-2 col-span-2"><span class="font-bold text-hp-dark">${labels.accessibility}:</span> ${a11y.slice(0, 2).map(f => escapeHtml(f.name)).join(' · ')}</div>` : ''}
+                        </div>
+                    </section>
+
+                    ${similar.length ? `
+                    <section class="col-span-2">
+                        <h3 class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A] mb-1">${labels.similar}</h3>
+                        <div class="flex gap-1.5">
+                            ${similar.slice(0, 2).map(s => `
+                                <button type="button" data-action="click->dashboard#openSimilarExperience" data-experience-id="${escapeHtml(s.id)}"
+                                        class="flex-1 min-w-0 flex gap-1.5 bg-white border border-hp-border rounded-lg overflow-hidden text-left hover:border-hp-coral transition">
+                                    ${s.images?.[0] ? `<img src="${escapeHtml(s.images[0])}" alt="" class="w-12 h-12 object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">` : ''}
+                                    <div class="min-w-0 py-1 pr-1">
+                                        <p class="text-[10px] font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(s.title)}</p>
+                                        <p class="text-[10px] text-hp-muted">★ ${s.rating}</p>
+                                    </div>
+                                </button>`).join('')}
+                        </div>
+                    </section>` : ''}
+
+                    ${exp.link ? `
+                    <div class="col-span-2">
+                        <a href="${escapeHtml(exp.link)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[10px] font-bold text-hp-coral hover:underline"><i class="fa-brands fa-airbnb"></i> ${labels.openAirbnb}</a>
+                    </div>` : ''}
+                </div>
             </div>`;
     }
 
@@ -1236,47 +1388,18 @@
     }
 
     function renderShareSheet(payload, options = {}) {
-        const searchResults = options.searchResults || [];
         const listingId = options.listingId ? String(options.listingId).trim().toUpperCase() : '';
-        const primaryExperienceId = options.primaryExperienceId
-            || options.experienceId
-            || searchResults[0]?.id;
         const ctx = buildShareContext(payload, {
             ...options,
             listingId,
             guideOnly: true
         });
-        const { isZh, exp, loc, displayTitle, shareUrl, mapsUrl, shareText, cover } = ctx;
+        const { isZh, loc, displayTitle, shareUrl, cover } = ctx;
         const labels = isZh ? {
-            link: '分享連結', copy: '複製', copied: '已複製',
-            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式',
-            searchPicks: '相似體驗推薦', searchEmpty: '目前找不到相似體驗'
+            link: '分享連結', copy: '複製', copied: '已複製'
         } : {
-            link: 'Share link', copy: 'Copy', copied: 'Copied',
-            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options',
-            searchPicks: 'Similar experiences', searchEmpty: 'No similar experiences found'
+            link: 'Share link', copy: 'Copy', copied: 'Copied'
         };
-
-        const searchPicksHtml = searchResults.length ? `
-                <div class="bg-white border border-hp-border rounded-2xl p-3 space-y-2">
-                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-[#8C807A]">${labels.searchPicks}</p>
-                    ${searchResults.map(item => {
-                        const deepUrl = listingId
-                            ? buildGuideShareUrl(null, { listingId, guideOnly: true })
-                            : (item.link || '#');
-                        return `
-                        <a href="${escapeHtml(deepUrl)}" target="_blank" rel="noopener noreferrer"
-                           class="flex w-full gap-3 items-center p-2 rounded-xl border border-hp-border hover:border-hp-coral transition bg-hp-bgLight/40">
-                            <img src="${escapeHtml(item.image)}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-hp-dark leading-snug">${escapeHtml(item.title || (isZh ? `體驗 #${item.id}` : `Experience #${item.id}`))}</p>
-                                <p class="text-[10px] text-hp-muted mt-0.5">${item.rating ? `★ ${item.rating}` : ''}${item.price ? `${item.rating ? ' · ' : ''}${escapeHtml(item.price)}` : ''}${!item.rating && !item.price && item.location ? escapeHtml(item.location) : ''}</p>
-                            </div>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-hp-coral shrink-0"></i>
-                        </a>`;
-                    }).join('')}
-                </div>` : (options.searchAttempted ? `
-                <p class="text-xs text-hp-muted text-center py-2">${labels.searchEmpty}</p>` : '');
 
         return `
             <div class="space-y-4">
@@ -1304,69 +1427,7 @@
                         </button>
                     </div>
                 </div>
-
-                ${searchPicksHtml}
-
-                <div class="grid grid-cols-4 gap-2">
-                    <button type="button" data-action="click->dashboard#copyExpShareLink"
-                            class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-hp-bgLight border border-hp-border flex items-center justify-center text-hp-dark"><i class="fa-regular fa-copy"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.copy}</span>
-                    </button>
-                    <a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-brands fa-google"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark text-center leading-tight">${labels.openMaps}</span>
-                    </a>
-                    <button type="button" data-action="click->dashboard#shareExpViaWhatsApp"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-600"><i class="fa-brands fa-whatsapp"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.whatsapp}</span>
-                    </button>
-                    <button type="button" data-action="click->dashboard#shareExpViaEmail"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><i class="fa-regular fa-envelope"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.email}</span>
-                    </button>
-                </div>
-
-                <button type="button" data-action="click->dashboard#shareExpNative"
-                        class="w-full py-3 rounded-xl border border-hp-border bg-white text-xs font-bold text-hp-dark hover:border-hp-coral transition active:scale-[0.99]">
-                    <i class="fa-solid fa-share-nodes mr-1.5 text-hp-coral"></i>${labels.more}
-                </button>
             </div>`;
-    }
-
-    function renderShareActions(ctx, labels) {
-        const { shareUrl, mapsUrl } = ctx;
-        return `
-                <div class="grid grid-cols-4 gap-2">
-                    <button type="button" data-action="click->dashboard#copyExpShareLink"
-                            class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-hp-bgLight border border-hp-border flex items-center justify-center text-hp-dark"><i class="fa-regular fa-copy"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.copy}</span>
-                    </button>
-                    <a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-brands fa-google"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark text-center leading-tight">${labels.openMaps}</span>
-                    </a>
-                    <button type="button" data-action="click->dashboard#shareExpViaWhatsApp"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-600"><i class="fa-brands fa-whatsapp"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.whatsapp}</span>
-                    </button>
-                    <button type="button" data-action="click->dashboard#shareExpViaEmail"
-                       class="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white border border-transparent hover:border-hp-border transition">
-                        <span class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600"><i class="fa-regular fa-envelope"></i></span>
-                        <span class="text-[10px] font-bold text-hp-dark">${labels.email}</span>
-                    </button>
-                </div>
-
-                <button type="button" data-action="click->dashboard#shareExpNative"
-                        class="w-full py-3 rounded-xl border border-hp-border bg-white text-xs font-bold text-hp-dark hover:border-hp-coral transition active:scale-[0.99]">
-                    <i class="fa-solid fa-share-nodes mr-1.5 text-hp-coral"></i>${labels.more}
-                </button>`;
     }
 
     function renderGuideShareSheet(listingData, options = {}) {
@@ -1379,16 +1440,11 @@
         const locationLabel = isZh ? data.locationZh : data.locationEn;
         const cover = data.roomImg || IMAGE_FALLBACK;
         const shareUrl = buildGuideShareUrl(null, { listingId, guideOnly: true });
-        const query = encodeURIComponent(locationLabel || displayTitle || listingId);
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
         const labels = isZh ? {
-            link: '分享連結', copy: '複製', copied: '已複製',
-            openMaps: 'Google 地圖', whatsapp: 'WhatsApp', email: 'Email', more: '更多分享方式'
+            link: '分享連結', copy: '複製', copied: '已複製'
         } : {
-            link: 'Share link', copy: 'Copy', copied: 'Copied',
-            openMaps: 'Google Maps', whatsapp: 'WhatsApp', email: 'Email', more: 'More options'
+            link: 'Share link', copy: 'Copy', copied: 'Copied'
         };
-        const ctx = { shareUrl, mapsUrl };
 
         return `
             <div class="space-y-4">
@@ -1416,8 +1472,6 @@
                         </button>
                     </div>
                 </div>
-
-                ${renderShareActions(ctx, labels)}
             </div>`;
     }
 
@@ -1746,11 +1800,50 @@
 
     function renderPanelParts(payload, options = {}) {
         const ctx = preparePanelContext(payload, options);
+        const desktopModal = options.layout === 'desktop-modal' || options.desktopModal === true;
         return {
-            mediaHtml: renderMediaHero(ctx.media),
-            contentHtml: renderDetailContent(ctx),
+            layout: desktopModal ? 'desktop-modal' : 'mobile',
+            mediaHtml: renderMediaHero(ctx.media, desktopModal ? { variant: 'modal' } : {}),
+            contentHtml: desktopModal ? renderDetailContentCompact(ctx) : renderDetailContent(ctx),
             bookingHtml: renderBookingBar(ctx.isZh)
         };
+    }
+
+    function composeExperienceDetailHtml(parts, options = {}) {
+        const desktopModal = parts.layout === 'desktop-modal' || options.desktopModal === true;
+        if (!desktopModal) {
+            return {
+                bodyHtml: parts.mediaHtml + parts.contentHtml,
+                bookingHtml: parts.bookingHtml,
+                layout: 'mobile'
+            };
+        }
+        return {
+            bodyHtml: `<div class="hp-exp-detail-split">
+                <div class="hp-exp-detail-split__media">${parts.mediaHtml}</div>
+                <div class="hp-exp-detail-split__main">
+                    <div class="hp-exp-detail-split__content">${parts.contentHtml}</div>
+                    <div class="hp-exp-detail-split__booking">${parts.bookingHtml}</div>
+                </div>
+            </div>`,
+            bookingHtml: '',
+            layout: 'desktop-modal'
+        };
+    }
+
+    function isDesktopDetailLayout() {
+        return typeof document !== 'undefined'
+            && document.documentElement.classList.contains('hp-v4-desktop');
+    }
+
+    function renderPanelPartsForViewport(payload, options = {}) {
+        const desktopModal = options.desktopModal ?? isDesktopDetailLayout();
+        return renderPanelParts(payload, { ...options, desktopModal });
+    }
+
+    function composeExperienceDetailForViewport(payload, options = {}) {
+        const parts = renderPanelPartsForViewport(payload, options);
+        return { ...composeExperienceDetailHtml(parts), parts };
     }
 
     function renderPanel(payload, options = {}) {
@@ -1930,8 +2023,12 @@
                 layer.cover_image = recImg;
                 layer.media = [{ type: 'image', url: recImg }];
             }
-            if (hasHostText(categoryEn) && !zhMode) layer.category = categoryEn;
-            if (hasHostText(categoryZh) && zhMode) layer.category = categoryZh;
+            const badgeOrCategory = pick(
+                categoryZh || badgeZh,
+                categoryEn || badgeEn,
+                zhMode
+            );
+            if (hasHostText(badgeOrCategory)) layer.category = badgeOrCategory;
             if (hasHostText(title) || hasHostText(desc)) {
                 layer.agenda = [{
                     position: 1,
@@ -2002,6 +2099,10 @@
         localizePayload,
         renderPanel,
         renderPanelParts,
+        renderPanelPartsForViewport,
+        composeExperienceDetailHtml,
+        composeExperienceDetailForViewport,
+        isDesktopDetailLayout,
         renderBookingCalendar,
         getBookingMeta,
         buildShareContext,

@@ -67,18 +67,31 @@ function processBlocks(html, locals, stack) {
     });
 }
 
+function renderTemplate(html, locals = {}, stack = new Set()) {
+    html = processBlocks(html, locals, stack);
+    html = processIncludes(html, locals, stack);
+    html = applyLocals(html, locals);
+    return html;
+}
+
 function renderPartial(name, locals = {}, stack = new Set()) {
     if (stack.has(name)) {
         throw new Error(`Circular partial include: ${name}`);
     }
 
     stack.add(name);
-    let html = readPartial(name);
-    html = processBlocks(html, locals, stack);
-    html = processIncludes(html, locals, stack);
-    html = applyLocals(html, locals);
+    const result = renderTemplate(readPartial(name), locals, stack);
     stack.delete(name);
-    return html;
+    return result;
+}
+
+function renderDocument(relativePath, locals = {}) {
+    const abs = path.join(__dirname, '..', relativePath);
+    if (!fs.existsSync(abs)) {
+        throw new Error(`Document not found: ${relativePath} (${abs})`);
+    }
+    const html = fs.readFileSync(abs, 'utf8');
+    return renderTemplate(html, locals, new Set());
 }
 
 function partialUrl(name) {
@@ -94,5 +107,6 @@ module.exports = {
     partialUrl,
     readPartial,
     renderPartial,
+    renderDocument,
     applyLocals
 };

@@ -249,8 +249,7 @@ async function handleFormPost(req, res) {
         }
 
         sendHtml(res, 200, renderTurboFrame(listingId, payload, {
-            status: '已儲存',
-            error: '資料庫未設定，請在瀏覽器端使用 localStorage 備援'
+            error: '資料庫未設定：請由瀏覽器寫入 localStorage（需透過前端儲存，勿僅依賴此表單 POST）'
         }));
     } catch (error) {
         console.error('[host-settings-form]', error);

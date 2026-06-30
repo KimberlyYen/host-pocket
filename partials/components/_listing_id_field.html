@@ -1,0 +1,20 @@
+<div class="hp-listing-id-field">
+    <label for="listingIdInput" class="hp-listing-id-field__label block text-[10px] font-bold uppercase tracking-wider text-hp-muted mb-1.5">
+        <span data-global-lang="zh">房源代碼 / Listing ID</span>
+        <span data-global-lang="en" class="hidden">Listing ID</span>
+    </label>
+    <div class="hp-listing-id-field__row flex flex-wrap gap-2">
+        <input id="listingIdInput" type="text"
+               data-listing-selector-target="input"
+               data-action="keydown.enter->listing-selector#load"
+               placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
+               data-placeholder-en="TAIPEI-CITY or numbers after rooms/ in URL"
+               value=""
+               class="hp-listing-id-field__input flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
+        <button type="button" data-action="click->listing-selector#load"
+                class="hp-listing-id-field__submit px-4 py-2.5 rounded-xl bg-hp-dark text-white text-xs font-bold hover:bg-hp-dark/90 transition active:scale-[0.97]">
+            <span data-global-lang="zh">載入</span>
+            <span data-global-lang="en" class="hidden">Load</span>
+        </button>
+    </div>
+</div>

@@ -3,7 +3,7 @@
  */
 (function (global) {
     const MOUNT_SELECTOR = '[data-hp-pairing-tabs]';
-    const DEFAULT_TAB = 'link';
+    const DEFAULT_TAB = 'quick';
     const TAB_STORAGE_KEY = 'hp-pairing-tab';
     const INPUT_STORAGE_KEY = 'hp-pairing-listing-input';
 
@@ -115,7 +115,8 @@
     function getSavedTab() {
         try {
             const tab = sessionStorage.getItem(TAB_STORAGE_KEY);
-            return tab === 'quick' ? 'quick' : DEFAULT_TAB;
+            if (tab === 'quick' || tab === 'link') return tab;
+            return DEFAULT_TAB;
         } catch (_) {
             return DEFAULT_TAB;
         }
@@ -123,7 +124,7 @@
 
     function saveTab(tab) {
         try {
-            sessionStorage.setItem(TAB_STORAGE_KEY, tab === 'quick' ? 'quick' : DEFAULT_TAB);
+            sessionStorage.setItem(TAB_STORAGE_KEY, tab === 'quick' ? 'quick' : 'link');
         } catch (_) { /* ignore */ }
     }
 

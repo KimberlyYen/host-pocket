@@ -125,7 +125,17 @@ async function getListingSettings(listingId) {
 async function saveListingSettings(listingId, source) {
     await ensureSchema();
     const id = normalizeListingId(listingId);
-    const data = pickEditable(source || {});
+    const incoming = pickEditable(source || {});
+    let existing = {};
+    try {
+        const record = await getListingSettings(id);
+        if (record?.data && typeof record.data === 'object') {
+            existing = record.data;
+        }
+    } catch (error) {
+        console.warn('[listing-settings] read before merge failed', error);
+    }
+    const data = { ...existing, ...incoming };
     const updatedAt = new Date().toISOString();
     await getSql()`
         INSERT INTO listing_settings (listing_id, data, updated_at)

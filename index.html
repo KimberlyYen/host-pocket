@@ -111,10 +111,8 @@
         html.hp-boot-dashboard [data-dashboard-target="bottomNavBar"] {
             display: none !important;
         }
-        /* 體驗詳情：保留指南主頁 + 求助房東 */
         html.hp-boot-dashboard.hp-boot-experience [data-dashboard-target="bottomNavBar"] {
-            display: grid !important;
-            z-index: 55;
+            display: none !important;
         }
         html.hp-boot-dashboard [data-dashboard-target="scrollContainer"] {
             padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important;
@@ -136,6 +134,20 @@
             box-shadow: none;
             padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
             flex-shrink: 0;
+        }
+        /* Mobile pairing: center Central Pairing Core above footer */
+        html:not(.hp-v4-desktop) [data-screen="pairing"] > .hp-pairing-main {
+            justify-content: center;
+            align-items: center;
+        }
+        html:not(.hp-v4-desktop) [data-screen="pairing"] .hp-pairing-core-wrap {
+            flex: 0 1 auto;
+            width: 100%;
+            margin-block: auto;
+            padding-top: 0;
+        }
+        html:not(.hp-v4-desktop) [data-screen="pairing"] .hp-pairing-core {
+            width: 100%;
         }
         .partner-bar-item {
             min-width: 0;
@@ -261,6 +273,19 @@
         .hp-copy-hint--centered.hp-copy-hint--show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
+        }
+        .hp-copy-btn {
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .hp-copy-btn:active {
+            transform: scale(0.92);
+        }
+        .hp-copy-btn--copied {
+            background-color: #FF5B3E !important;
+            box-shadow: 0 0 0 2px rgba(255, 91, 62, 0.28);
+        }
+        .hp-copy-btn--copied i {
+            color: #fff !important;
         }
         .hp-secret-blurred {
             filter: blur(6px);
@@ -397,11 +422,11 @@
 
             <!-- 畫面 1：房源連結 -->
             <div data-controller="pairing" data-app-target="screen" data-screen="pairing" class="app-screen is-active absolute inset-0 flex flex-col bg-hp-dark text-[#EFECE9] overflow-hidden">
-                    <div class="flex-1 flex flex-col p-5 pt-[max(2.5rem,env(safe-area-inset-top))] min-h-0 overflow-y-auto">
+                    <div class="hp-pairing-main flex-1 flex flex-col p-5 pt-[max(2.5rem,env(safe-area-inset-top))] min-h-0 overflow-y-auto">
 
-                        <div class="flex-1 flex flex-col justify-start min-h-0 pt-2">
+                        <div class="hp-pairing-core-wrap flex-1 flex flex-col justify-start min-h-0 pt-2">
                         <!-- Central Pairing Core -->
-                        <div class="space-y-5 shrink-0 w-full">
+                        <div class="hp-pairing-core space-y-5 shrink-0 w-full">
                             
                             <!-- Brand Text Area（固定頂部，切 Tab 不位移） -->
                             <div class="space-y-2 text-center shrink-0">
@@ -486,7 +511,12 @@
                         <div class="hp-v4-dashboard-left" data-hp-v4-dashboard-left>
                         <!-- Room Hero & Connection Card -->
                         <div class="px-5 py-4">
-                            <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group">
+                            <div data-dashboard-target="listingCard"
+                                 data-action="click->dashboard#openRoomOverlay"
+                                 class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(31,26,24,0.06)] border border-hp-border group cursor-pointer hover:border-hp-coral/40 transition-colors"
+                                 role="button"
+                                 tabindex="0"
+                                 aria-label="查看房源詳情">
                                 <!-- Room Image Cover -->
                                 <div data-dashboard-target="roomHero" class="hp-image-swipe h-52 relative overflow-hidden">
                                     <img data-dashboard-target="roomHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
@@ -562,7 +592,7 @@
                                         <div data-dashboard-target="wifiValue" class="text-xs text-hp-coral font-mono font-bold mt-0.5"></div>
                                     </div>
                                 </div>
-                                <button data-action="click->dashboard#copyWifi" class="w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition">
+                                <button type="button" data-action="click->dashboard#copyWifi" class="hp-copy-btn w-8 h-8 rounded-lg bg-hp-bgLight hover:bg-hp-coral/10 flex items-center justify-center transition active:scale-95">
                                     <i class="fa-solid fa-copy text-xs text-[#8C807A]"></i>
                                 </button>
                             </div>
@@ -916,15 +946,9 @@
                     </button>
 
                     <!-- Bottom Nav -->
-                    <div data-dashboard-target="bottomNavBar" class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] grid grid-cols-2 text-xs font-bold text-[#8C807A] select-none z-20">
-                        <button data-action="click->dashboard#goHome" data-dashboard-target="bottomNavBtn"
-                                class="flex flex-col items-center justify-center gap-1 text-hp-coral transition">
-                            <i class="fa-solid fa-compass text-base"></i>
-                            <span data-global-lang="zh">指南主頁</span>
-                            <span data-global-lang="en" class="hidden">Home</span>
-                        </button>
-                        <button data-action="click->dashboard#contactHost" data-dashboard-target="contactHostNav"
-                                class="flex flex-col items-center justify-center gap-1 hover:text-hp-dark transition">
+                    <div data-dashboard-target="bottomNavBar" class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-hp-border py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center text-xs font-bold text-[#8C807A] select-none z-20">
+                        <button data-action="click->dashboard#contactHost" data-dashboard-target="contactHostNav bottomNavBtn"
+                                class="flex flex-col items-center justify-center gap-1 hover:text-hp-dark transition min-w-[5rem]">
                             <i class="fa-solid fa-circle-question text-base"></i>
                             <span data-global-lang="zh">求助房東</span>
                             <span data-global-lang="en" class="hidden">Help</span>
@@ -1267,6 +1291,9 @@
                 data = { ...data, ...presetData };
             }
             if (window.HostGuideSettings) {
+                if (hpIsHostPreviewMode()) {
+                    HostGuideSettings.invalidateCache(id);
+                }
                 return HostGuideSettings.merge(data, HostGuideSettings.load(id));
             }
             return data;
@@ -1284,6 +1311,15 @@
                     return null;
                 }
             };
+
+            if (hpIsHostPreviewMode() && window.HostGuideSettings) {
+                HostGuideSettings.invalidateCache(id);
+                const presetData = await loadPreset();
+                if (presetData) {
+                    data = HostGuideSettings.merge(data, presetData);
+                }
+                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
+            }
 
             const loadSettings = window.HostGuideSettings
                 ? () => HostGuideSettings.ensureLoaded(id)
@@ -1633,13 +1669,14 @@
                 if (!payload) return false;
 
                 const isZh = (window.currentLanguage || 'zh') !== 'en';
-                const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
+                const composed = ExperienceDetailsAPI.composeExperienceDetailForViewport(payload, {
                     isZh,
                     listingId: listing
                 });
-                body.innerHTML = mediaHtml + contentHtml;
+                body.innerHTML = composed.bodyHtml;
                 const bookingBar = root?.querySelector('[data-dashboard-target="expDetailBookingBar"]');
-                if (bookingBar) bookingBar.innerHTML = bookingHtml;
+                if (bookingBar) bookingBar.innerHTML = composed.bookingHtml;
+                overlay.classList.toggle('hp-exp-detail--modal', composed.layout === 'desktop-modal');
                 body.scrollTop = 0;
                 ExperienceDetailsAPI.initMediaPlayer(body);
 
@@ -1783,11 +1820,14 @@
 
                 if (action.includes('copyWifi') && data?.wifi) {
                     event.preventDefault();
-                    navigator.clipboard?.writeText(data.wifi);
-                    window.hpTriggerToast?.(
-                        isZh ? '已複製 Wi-Fi' : 'Wi-Fi copied',
-                        data.wifi,
-                        'success'
+                    event.stopPropagation();
+                    if (!window.hpCopyTextSync?.(data.wifi)) {
+                        void navigator.clipboard?.writeText(data.wifi);
+                    }
+                    window.hpShowCopyFeedback?.(
+                        isZh ? '已複製' : 'Copied',
+                        actionEl,
+                        { durationMs: 2000 }
                     );
                     return;
                 }
@@ -1888,8 +1928,24 @@
             static targets = ["zhBtn", "enBtn"]
 
             connect() {
+                const urlLang = this.readLangFromUrl();
+                if (urlLang) {
+                    this.setLanguage(urlLang, { silent: true, force: true });
+                    return;
+                }
                 this.updateActiveLangUI();
                 document.title = this.langValue === 'zh' ? '房東私藏' : 'host-pocket';
+            }
+
+            readLangFromUrl() {
+                try {
+                    const params = new URLSearchParams(global.location.search || '');
+                    const urlLang = params.get('lang');
+                    if (urlLang === 'zh' || urlLang === 'en') return urlLang;
+                } catch {
+                    // ignore
+                }
+                return null;
             }
 
             getCurrentExperienceId() {
@@ -1923,13 +1979,21 @@
                 if (chosenLang === 'zh') {
                     zhElements.forEach(el => el.classList.remove('hidden'));
                     enElements.forEach(el => el.classList.add('hidden'));
-                    this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
-                    this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    if (this.hasZhBtnTarget) {
+                        this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    }
+                    if (this.hasEnBtnTarget) {
+                        this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    }
                 } else {
                     zhElements.forEach(el => el.classList.add('hidden'));
                     enElements.forEach(el => el.classList.remove('hidden'));
-                    this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
-                    this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    if (this.hasZhBtnTarget) {
+                        this.zhBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-hp-muted hover:text-white';
+                    }
+                    if (this.hasEnBtnTarget) {
+                        this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
+                    }
                 }
 
                 this.updateActiveLangUI();
@@ -2106,7 +2170,7 @@
                     this.inputTarget.addEventListener('input', this.onPairingInput);
                 }
                 this.updateSettingsLink();
-                const tab = window.HostPocketPairingTabs?.getSavedTab?.() || 'link';
+                const tab = window.HostPocketPairingTabs?.getSavedTab?.() || 'quick';
                 this.showPairingTab({ params: { tab } });
             }
 
@@ -2124,7 +2188,7 @@
             showPairingTab(event) {
                 const tab = event?.params?.tab
                     || event?.currentTarget?.dataset?.pairingTab
-                    || 'link';
+                    || 'quick';
 
                 window.HostPocketPairingTabs?.saveTab?.(tab);
 
@@ -2158,8 +2222,16 @@
                     : '/host-settings.html';
             }
 
-            async performPairing() {
-                let val = this.inputTarget.value.trim().toUpperCase();
+            pairingInputEl() {
+                if (this.hasInputTarget) return this.inputTarget;
+                return this.element.querySelector('[data-pairing-target="input"]');
+            }
+
+            async performPairing(presetId) {
+                const input = this.pairingInputEl();
+                let val = String(presetId || input?.value || '').trim().toUpperCase();
+                if (input && val) input.value = val;
+                window.HostPocketPairingTabs?.saveListingInput?.(val);
                 this.updateSettingsLink();
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (!val) {
@@ -2215,12 +2287,14 @@
 
             quickPair(event) {
                 const btn = event.currentTarget;
+                const id = String(btn.dataset.id || '').trim().toUpperCase();
+                if (!id) return;
+
                 const lang = btn.dataset.lang === 'en' ? 'en' : 'zh';
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, 'global');
                 globalController?.setLanguage?.(lang, { silent: true, force: true });
 
-                this.inputTarget.value = btn.dataset.id;
-                this.performPairing();
+                void this.performPairing(id);
             }
 
             triggerToast(title, msg, type, options) {
@@ -2232,7 +2306,7 @@
         // 3. PHONE 2 EXPERIENCE DASHBOARD CONTROLLER (With real functional Airbnb overlay integration)
         stimulusApp.register("dashboard", class extends Controller {
             static targets = [
-                "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", 
+                "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", "listingCard",
                 "roomHero", "roomPhotoDots",
                 "wifiValue", "lockValue", "recImg1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
                 "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
@@ -2449,6 +2523,33 @@
 
                 this.renderExperienceDetail(payload, num);
                 return payload;
+            }
+
+            experienceDetailLoadingHtml(isZh) {
+                if (ExperienceDetailsAPI.isDesktopDetailLayout?.()) {
+                    return `<div class="hp-exp-detail-split hp-exp-detail-split--loading">
+                        <div class="hp-exp-detail-split__media bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div>
+                        <div class="hp-exp-detail-split__main flex items-center justify-center p-6">
+                            <p class="text-xs text-hp-muted">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>
+                        </div>
+                    </div>`;
+                }
+                return `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
+            }
+
+            showExperienceDetailLoading() {
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
+                if (this.hasExpDetailBodyTarget) {
+                    this.expDetailBodyTarget.scrollTop = 0;
+                    this.expDetailBodyTarget.innerHTML = this.experienceDetailLoadingHtml(isZh);
+                }
+                if (this.hasExpDetailBookingBarTarget) {
+                    this.expDetailBookingBarTarget.innerHTML = '';
+                }
+                this.expDetailOverlayTarget?.classList.toggle(
+                    'hp-exp-detail--modal',
+                    ExperienceDetailsAPI.isDesktopDetailLayout?.()
+                );
             }
 
             showExperienceDetailError(message) {
@@ -2822,14 +2923,7 @@
                 this.currentExpRecIndex = recIndex;
 
                 this.setSlideOverlay(this.expDetailOverlayTarget, true);
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                if (this.hasExpDetailBodyTarget) {
-                    this.expDetailBodyTarget.scrollTop = 0;
-                    this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
-                }
-                if (this.hasExpDetailBookingBarTarget) {
-                    this.expDetailBookingBarTarget.innerHTML = '';
-                }
+                this.showExperienceDetailLoading();
 
                 const payload = await this.loadExperienceDetailForRec(id, recIndex, listingData);
                 if (payload) {
@@ -2846,14 +2940,7 @@
 
                 this.currentExpRecIndex = recIndex;
                 this.setSlideOverlay(this.expDetailOverlayTarget, true);
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                if (this.hasExpDetailBodyTarget) {
-                    this.expDetailBodyTarget.scrollTop = 0;
-                    this.expDetailBodyTarget.innerHTML = `<div class="h-[calc(100dvh*5/6)] bg-hp-bgLight flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-hp-muted"></i></div><p class="text-xs text-hp-muted p-5 text-center">${isZh ? '載入體驗詳情…' : 'Loading experience…'}</p>`;
-                }
-                if (this.hasExpDetailBookingBarTarget) {
-                    this.expDetailBookingBarTarget.innerHTML = '';
-                }
+                this.showExperienceDetailLoading();
 
                 await this.loadExperienceDetailForRec(listingId, recIndex).then((payload) => {
                     if (!payload) this.showExperienceDetailError();
@@ -2869,14 +2956,18 @@
                 try {
                     this.currentExpRecIndex = recIndex;
                     this.currentExpPayload = payload;
-                    const { mediaHtml, contentHtml, bookingHtml } = ExperienceDetailsAPI.renderPanelParts(payload, {
+                    const composed = ExperienceDetailsAPI.composeExperienceDetailForViewport(payload, {
                         isZh,
                         listingId: this.currentListingId || 'TAIPEI-CITY'
                     });
-                    this.expDetailBodyTarget.innerHTML = mediaHtml + contentHtml;
+                    this.expDetailBodyTarget.innerHTML = composed.bodyHtml;
                     if (this.hasExpDetailBookingBarTarget) {
-                        this.expDetailBookingBarTarget.innerHTML = bookingHtml;
+                        this.expDetailBookingBarTarget.innerHTML = composed.bookingHtml;
                     }
+                    this.expDetailOverlayTarget?.classList.toggle(
+                        'hp-exp-detail--modal',
+                        composed.layout === 'desktop-modal'
+                    );
                     this.expDetailBodyTarget.scrollTop = 0;
                     ExperienceDetailsAPI.initMediaPlayer(this.expDetailBodyTarget);
                 } catch (error) {
@@ -2914,6 +3005,7 @@
                 this.currentExpPayload = null;
                 this.selectedBookingDate = null;
                 if (this.hasExpDetailOverlayTarget) {
+                    this.expDetailOverlayTarget.classList.remove('hp-exp-detail--modal');
                     this.setSlideOverlay(this.expDetailOverlayTarget, false);
                 }
                 window.HostPocketGuestRouter?.clearDetailHistory?.();
@@ -2935,32 +3027,11 @@
                 const linkOptions = this.getShareLinkOptions();
 
                 this.setShareSheetTitle('experience');
-
-                if (this.hasExpShareBodyTarget) {
-                    this.expShareBodyTarget.innerHTML = `<div class="py-10 flex flex-col items-center justify-center gap-2 text-hp-muted"><i class="fa-solid fa-spinner fa-spin"></i><p class="text-xs">${isZh ? '正在載入相似體驗…' : 'Loading similar experiences…'}</p></div>`;
-                }
-                this.shareSearchResults = [];
-                this.sharePrimaryExperienceId = linkOptions.experienceId || this.currentExpPayload?.experience?.id || null;
-
-                this.presentShareSheet();
-
-                const experienceId = linkOptions.experienceId || this.currentExpPayload?.experience?.id;
-                void ExperienceDetailsAPI.fetchShareRecommendations(experienceId, {
-                    num: ExperienceDetailsAPI.SHARE_PICKS_DEFAULT_NUM,
-                    payload: this.currentExpPayload
-                }).then((search) => {
-                    if (!this.hasExpShareBodyTarget) return;
-                    this.shareSearchResults = search.experiences || [];
-                    this.sharePrimaryExperienceId = experienceId || linkOptions.experienceId || null;
-                    this.expShareBodyTarget.innerHTML = ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
-                        isZh,
-                        listingId,
-                        experienceId: linkOptions.experienceId,
-                        primaryExperienceId: this.sharePrimaryExperienceId,
-                        searchResults: this.shareSearchResults,
-                        searchAttempted: true
-                    });
-                });
+                this.presentShareSheet(ExperienceDetailsAPI.renderShareSheet(this.currentExpPayload, {
+                    isZh,
+                    listingId,
+                    experienceId: linkOptions.experienceId
+                }));
             }
 
             setShareSheetTitle(mode = 'experience') {
@@ -3009,8 +3080,6 @@
                 const hide = () => {
                     this.expShareOverlayTarget.classList.add('opacity-0', 'pointer-events-none');
                     if (this.hasExpShareBodyTarget) this.expShareBodyTarget.innerHTML = '';
-                    this.shareSearchResults = [];
-                    this.sharePrimaryExperienceId = null;
                 };
                 if (animate) {
                     setTimeout(hide, 300);
@@ -3044,33 +3113,6 @@
                 })();
             }
 
-            shareExpViaWhatsApp() {
-                const ctx = this.getExpShareContext();
-                if (!ctx) return;
-                const waUrl = `https://wa.me/?text=${encodeURIComponent(`${ctx.shareText}\n${ctx.shareUrl}`)}`;
-                window.open(waUrl, '_blank', 'noopener,noreferrer');
-                this.returnToGuideAfterShare();
-            }
-
-            shareExpViaEmail() {
-                const ctx = this.getExpShareContext();
-                if (!ctx) return;
-                const title = ctx.displayTitle || ctx.exp?.title || 'host-pocket';
-                const mailUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${ctx.shareText}\n\n${ctx.shareUrl}\n\n${ctx.mapsUrl}`)}`;
-                window.location.href = mailUrl;
-                this.returnToGuideAfterShare();
-            }
-
-            getExpShareContext() {
-                if (!this.currentExpPayload) return null;
-                const isZh = (window.currentLanguage || 'zh') === 'zh';
-                return ExperienceDetailsAPI.buildShareContext(this.currentExpPayload, {
-                    isZh,
-                    listingId: this.currentListingId || 'TAIPEI-CITY',
-                    guideOnly: true
-                });
-            }
-
             returnToGuideAfterShare() {
                 this.closeExperienceDetail();
                 if (this.hasScrollContainerTarget) {
@@ -3080,24 +3122,8 @@
                     this.setActiveTab(this.tabBtnTargets[0]);
                 }
                 if (this.hasBottomNavBtnTarget) {
-                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                    this.setActiveBottomNav(this.contactHostNavTarget);
                 }
-            }
-
-            shareExpNative() {
-                if (!this.currentExpPayload) return;
-                const ctx = this.getExpShareContext();
-                if (!ctx) return;
-                if (navigator.share) {
-                    navigator.share({
-                        title: ctx.displayTitle || ctx.exp.title,
-                        url: ctx.shareUrl
-                    }).then(() => {
-                        this.returnToGuideAfterShare();
-                    }).catch(() => {});
-                    return;
-                }
-                this.copyExpShareLink();
             }
 
             openExpBookingCalendar(event) {
@@ -3539,8 +3565,8 @@
                 if (this.hasHelpOverlayTarget) {
                     this.setSlideOverlay(this.helpOverlayTarget, false);
                 }
-                if (this.hasBottomNavBtnTarget) {
-                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                if (this.hasBottomNavBtnTarget && this.hasContactHostNavTarget) {
+                    this.setActiveBottomNav(this.contactHostNavTarget);
                 }
             }
 
@@ -3557,15 +3583,17 @@
                 });
             }
 
-            // Airbnb user story - "Can connect back to room" Action
-            // THIS NOW SLIDES UP A FULL BEAUTIFUL AIRBNB LISTING OVERLAY SCREEN DYNAMICALLY!
-            connectBackToRoom() {
+            openRoomOverlay(event) {
+                if (event?.target?.closest?.('button, a')) return;
+                if (!this.hasRoomOverlayTarget) return;
+                this.setSlideOverlay(this.roomOverlayTarget, true);
+            }
+
+            connectBackToRoom(event) {
+                event?.stopPropagation?.();
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
                 const currentLabel = this.hasActiveIdTarget ? this.activeIdTarget.innerText : this.currentListingId;
-                
-                // Remove translate-y-full class to trigger a smooth bottom-to-top slide up transition
-                this.setSlideOverlay(this.roomOverlayTarget, true);
-
+                this.openRoomOverlay();
                 this.triggerToast(
                     isZh ? "已開啟 Airbnb 房源詳情" : "Airbnb listing details opened",
                     isZh ? `已為您模擬一鍵導航回 Airbnb 房源：${currentLabel}` : `Successfully pulled up native Airbnb Room listing for ${currentLabel}.`,
@@ -3627,20 +3655,29 @@
             }
 
             // Clipboard Action Helper for Wifi
-            copyWifi() {
+            copyWifi(event) {
+                event?.stopPropagation?.();
+                const button = event?.currentTarget;
                 const text = this.wifiValueTarget.dataset.wifiFull
                     || this.wifiValueTarget.innerText;
-                const temp = document.createElement('textarea');
-                temp.value = text;
-                document.body.appendChild(temp);
-                temp.select();
-                document.execCommand('copy');
-                document.body.removeChild(temp);
+                if (!text) return;
 
-                this.triggerToast(
-                    window.currentLanguage === 'en' ? 'Copied to Clipboard' : '密碼已複製', 
-                    window.currentLanguage === 'en' ? 'Wi-Fi credentials saved.' : '已將客房 Wi-Fi 機密複製至剪貼簿！', 
-                    'success'
+                const isZh = (window.currentLanguage || 'zh') !== 'en';
+                let copied = window.hpCopyTextSync?.(text);
+                if (!copied) {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    document.body.appendChild(temp);
+                    temp.select();
+                    copied = document.execCommand('copy');
+                    document.body.removeChild(temp);
+                }
+                if (!copied) return;
+
+                window.hpShowCopyFeedback?.(
+                    isZh ? '已複製' : 'Copied',
+                    button,
+                    { durationMs: 2000 }
                 );
             }
 
@@ -3711,8 +3748,8 @@
                 if (tabIdx !== undefined && this.hasTabBtnTarget) {
                     this.setActiveTab(this.tabBtnTargets[tabIdx]);
                 }
-                if (this.hasBottomNavBtnTarget) {
-                    this.setActiveBottomNav(this.bottomNavBtnTargets[0]);
+                if (this.hasBottomNavBtnTarget && this.hasContactHostNavTarget) {
+                    this.setActiveBottomNav(this.contactHostNavTarget);
                 }
 
                 const labels = {

@@ -228,8 +228,12 @@
         dash?.closeRoomOverlay?.();
 
         if (screen === 'dashboard') {
-            const homeBtn = document.querySelector('[data-dashboard-target="bottomNavBtn"]');
-            dash?.goHome({ currentTarget: homeBtn || dash.element });
+            if (dash?.hasScrollContainerTarget) {
+                dash.scrollContainerTarget.scrollTo({ top: 0, behavior: 'instant' });
+            }
+            if (dash?.hasTabBtnTarget) {
+                dash.setActiveTab?.(dash.tabBtnTargets[0]);
+            }
             syncSidebarActive('dashboard');
             return;
         }
