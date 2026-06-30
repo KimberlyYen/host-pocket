@@ -241,6 +241,38 @@
         return global.GuideDefaults?.generateFallbackListing?.(listingId) || {};
     }
 
+    /** Pre-Lina/James/Aistė/Marina demo experience IDs — DB rows still using these should not override rec blocks. */
+    const LEGACY_DEMO_REC_IDS = {
+        'TAIPEI-CITY': new Set(['3310245', '3310246', '3310247', '3310248']),
+        'UK-LONDON': new Set(['5829101', '5829102', '5829103', '5829104']),
+        'VILNIUS-OLDTOWN': new Set(['4410201', '4410202', '4410203', '4410204']),
+        'RIO-COPACABANA': new Set(['5510301', '5510302', '5510303', '5510304'])
+    };
+
+    const REC_BLOCK_FIELDS = EDITABLE_FIELDS.filter((key) =>
+        /^rec(ExperienceId|[A-Za-z]+\d)/.test(key)
+        || /^desc[1-4]/.test(key)
+        || /^recExplorer/.test(key)
+        || key.startsWith('targetTitle')
+        || key === 'descZh'
+        || key === 'descEn'
+        || key.startsWith('explorerDist')
+        || key.startsWith('explorerEst')
+    );
+
+    function usesLegacyDemoRecs(listingId, data) {
+        const legacy = LEGACY_DEMO_REC_IDS[normalizeListingId(listingId)];
+        if (!legacy || !data) return false;
+        return [1, 2, 3, 4].some((i) => legacy.has(String(data[`recExperienceId${i}`] || '').trim()));
+    }
+
+    function stripLegacyDemoRecOverrides(listingId, overrides) {
+        if (!overrides || !usesLegacyDemoRecs(listingId, overrides)) return overrides;
+        const out = { ...overrides };
+        REC_BLOCK_FIELDS.forEach((key) => { delete out[key]; });
+        return out;
+    }
+
     function merge(base, overrides) {
         if (!overrides) return { ...base };
         const merged = { ...base };
@@ -291,7 +323,7 @@
 
     function getMerged(listingId) {
         const base = getBase(listingId);
-        const overrides = load(listingId);
+        const overrides = stripLegacyDemoRecOverrides(listingId, load(listingId));
         return merge(base, overrides);
     }
 
@@ -332,6 +364,9 @@
         seedAllDemoListings,
         getBase,
         merge,
+        LEGACY_DEMO_REC_IDS,
+        usesLegacyDemoRecs,
+        stripLegacyDemoRecOverrides,
         pickEditable,
         parseGalleryText,
         galleryToText,

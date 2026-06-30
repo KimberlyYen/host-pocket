@@ -6,17 +6,137 @@
     const IMAGE_FALLBACK = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
     const IMG_ONERROR = `this.onerror=null;this.src='${IMAGE_FALLBACK}'`;
 
-    const DEMO_VIDEOS = {
-        '5829101': 'https://videos.pexels.com/video-files/5637865/5637865-hd_1920_1080_25fps.mp4',
-        '5829102': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-        '3310245': 'https://videos.pexels.com/video-files/5637865/5637865-hd_1920_1080_25fps.mp4',
-        '3310246': 'https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4',
-        '4410201': 'https://videos.pexels.com/video-files/6981411/6981411-hd_1920_1080_25fps.mp4',
-        '4410202': 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4',
-        '5510301': 'https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4',
-        '5510302': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-        default: 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4'
+    /** 16 unique rec-card preview URLs — shared with index.html via js/rec-card-videos.js */
+    const LISTING_REC_VIDEOS = global.RecCardVideos?.LISTING_REC_VIDEOS || {
+        'TAIPEI-CITY': [
+            'https://videos.pexels.com/video-files/2169880/2169880-hd_1920_1080_30fps.mp4',
+            'https://videos.pexels.com/video-files/3255272/3255272-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/1943483/1943483-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/1893623/1893623-hd_1920_1080_25fps.mp4'
+        ],
+        'UK-LONDON': [
+            'https://videos.pexels.com/video-files/2169879/2169879-hd_1920_1080_30fps.mp4',
+            'https://videos.pexels.com/video-files/1409899/1409899-uhd_2560_1440_25fps.mp4',
+            'https://videos.pexels.com/video-files/3255273/3255273-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/1943484/1943484-hd_1920_1080_25fps.mp4'
+        ],
+        'VILNIUS-OLDTOWN': [
+            'https://videos.pexels.com/video-files/1893625/1893625-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/1943485/1943485-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/3044454/3044454-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/3255274/3255274-hd_1920_1080_25fps.mp4'
+        ],
+        'RIO-COPACABANA': [
+            'https://videos.pexels.com/video-files/856974/856974-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4',
+            'https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4'
+        ]
     };
+
+    const DEMO_VIDEOS = (() => {
+        const map = { default: global.RecCardVideos?.DEFAULT || LISTING_REC_VIDEOS['TAIPEI-CITY'][0] };
+        const legacyIds = {
+            'TAIPEI-CITY': ['3310245', '3310246', '3310247', '3310248', '3319001', '3319002', '3319003', '3319004'],
+            'UK-LONDON': ['5829101', '5829102', '5829103', '5829104', '5829201', '5829202', '5829203', '5829204'],
+            'VILNIUS-OLDTOWN': ['4410201', '4410202', '4410203', '4410204', '4410301', '4410302', '4410303', '4410304'],
+            'RIO-COPACABANA': ['5510301', '5510302', '5510303', '5510304', '5510401', '5510402', '5510403', '5510404']
+        };
+        Object.entries(legacyIds).forEach(([listingId, ids]) => {
+            const videos = LISTING_REC_VIDEOS[listingId] || [];
+            ids.forEach((expId, index) => {
+                const video = videos[index % 4];
+                if (video) map[expId] = video;
+            });
+        });
+        return map;
+    })();
+
+    const REC_SLOT_VIDEOS = LISTING_REC_VIDEOS['TAIPEI-CITY'];
+
+    function getDemoVideoUrl(experienceId, listingId, recIndex) {
+        const listing = String(listingId || '').trim().toUpperCase();
+        const slot = Number(recIndex);
+        const listingVideos = LISTING_REC_VIDEOS[listing];
+        if (listingVideos && slot >= 1 && slot <= listingVideos.length) {
+            return listingVideos[slot - 1];
+        }
+
+        const id = String(experienceId || '').trim();
+        if (DEMO_VIDEOS[id]) return DEMO_VIDEOS[id];
+
+        if (slot >= 1 && slot <= REC_SLOT_VIDEOS.length) {
+            return REC_SLOT_VIDEOS[slot - 1];
+        }
+
+        return DEMO_VIDEOS.default;
+    }
+
+    function resolveRecExperienceId(listingData, recIndex, listingId) {
+        const num = Number(recIndex);
+        const key = `recExperienceId${num}`;
+        const fromData = listingData?.[key];
+        if (fromData !== undefined && fromData !== null && String(fromData).trim() !== '') {
+            return String(fromData).trim();
+        }
+        const id = String(listingId || listingData?.listingId || '').trim().toUpperCase();
+        const base = id && global.GuideDefaults?.getBase ? global.GuideDefaults.getBase(id) : null;
+        return base?.[key] ? String(base[key]).trim() : '';
+    }
+
+    function applyRecVideoMedia(exp, listingData, recIndex, listingId) {
+        if (!exp || Number(recIndex) < 1 || Number(recIndex) > 4) return;
+
+        delete exp._mediaImagesOnly;
+        const resolvedListingId = String(listingId || listingData?.listingId || '').trim().toUpperCase();
+        const expId = resolveRecExperienceId(listingData, recIndex, resolvedListingId) || exp.id;
+        const poster = exp.cover_image
+            || listingData?.[`recImg${recIndex}`]
+            || (exp.media || []).find((m) => m?.type === 'image')?.url
+            || IMAGE_FALLBACK;
+        const images = (exp.media || []).filter((m) => m?.url && m.type !== 'video');
+        const extraImages = images.filter((m) => m.url !== poster);
+        const videoUrl = getDemoVideoUrl(expId, resolvedListingId, recIndex);
+        exp.media = [{ type: 'video', url: videoUrl, poster }, ...extraImages];
+        exp.cover_image = poster;
+    }
+
+    function setupExpMediaVideo(video) {
+        if (!video || video.dataset.hpExpVideoSetup === 'true') return;
+        video.dataset.hpExpVideoSetup = 'true';
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.loop = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.onplaying = () => {
+            video.classList.remove('opacity-0');
+            video.parentElement?.querySelector('.exp-media-video-fallback')?.classList.add('hidden');
+        };
+        video.onerror = () => {
+            video.onerror = null;
+            video.classList.add('opacity-0');
+        };
+    }
+
+    function playExpMediaVideo(video) {
+        if (!video) return;
+        setupExpMediaVideo(video);
+        const attempt = () => { video.play().catch(() => {}); };
+        if (video.readyState >= 2) attempt();
+        else {
+            video.addEventListener('loadeddata', attempt, { once: true });
+            video.addEventListener('canplay', attempt, { once: true });
+        }
+        attempt();
+    }
+
+    /** @deprecated use applyRecVideoMedia */
+    function applyFirstRecVideoMedia(exp, listingData, recIndex, listingId) {
+        applyRecVideoMedia(exp, listingData, recIndex, listingId);
+    }
 
     function makeRecFixture(spec) {
         const {
@@ -313,6 +433,138 @@
             priceLabel: 'Free', priceLabelZh: '免費',
             hostAbout: 'A free classic London route at dusk.', hostAboutZh: '黃昏最經典的倫敦免費路線。',
             locationEn: 'South Bank, London', locationZh: '倫敦，南岸'
+        }),
+        '3319001': makeRecFixture({
+            id: '3319001', hostName: 'Lina',
+            title: 'Songshan Creative Park Indie Design Weekend', titleZh: '松山文創園區 Indie 設計週末',
+            description: 'Indie design shops and illustration exhibits on Saturday afternoons.', descriptionZh: '週六下午逛獨立選物與在地插畫展，適合雨天的室內路線。',
+            category: 'Design Market', categoryZh: '設計市集',
+            rating: 4.91, reviews: 856, extractedPrice: 200,
+            cover: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From NT$200', priceLabelZh: 'NT$200 起',
+            hostAbout: 'Songshan Creative Park on rainy Saturdays.', hostAboutZh: 'Lina 推薦週六下午到松山文創。',
+            locationEn: 'Songshan, Taipei', locationZh: '台北，松山'
+        }),
+        '3319002': makeRecFixture({
+            id: '3319002', hostName: 'Lina',
+            title: 'Jiantan Mountain Trail · 101 Side Sunset', titleZh: '劍潭山親山步道 · 101 側面夕景',
+            description: 'Side view of Taipei 101 lighting up from Jiantan MRT.', descriptionZh: '傍晚從劍潭捷運站步行上山，從側面看 101 亮燈，比象山人少。',
+            category: 'Sunset View', categoryZh: '夕景秘境',
+            rating: 4.95, reviews: 2103, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'My quieter alternative to Xiangshan.', hostAboutZh: 'Lina 在地力薦的夕陽秘境。',
+            locationEn: 'Jiantan, Taipei', locationZh: '台北，劍潭'
+        }),
+        '3319003': makeRecFixture({
+            id: '3319003', hostName: 'Lina',
+            title: 'Treasure Hill Art Village Tea Session', titleZh: '寶藏巖藝術村茶席體驗',
+            description: 'Cold-brew tea session overlooking Tingzhou Road.', descriptionZh: '週日下午在寶藏巖頂端茶室，可預約冷泡茶席，俯瞰汀州路車流。',
+            category: 'Tea Session', categoryZh: '茶席體驗',
+            rating: 4.88, reviews: 642, extractedPrice: 350,
+            cover: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From NT$350', priceLabelZh: 'NT$350 起',
+            hostAbout: 'Sunday tea with an Old Town view.', hostAboutZh: '週日下午的寶藏巖茶席。',
+            locationEn: 'Treasure Hill, Taipei', locationZh: '台北，寶藏巖'
+        }),
+        '3319004': makeRecFixture({
+            id: '3319004', hostName: 'Lina',
+            title: "Da'an Forest Park Morning Run Loop", titleZh: '大安森林公園晨間慢跑路線',
+            description: '6 AM loop around the park ending with danbing.', descriptionZh: '清晨 6 點沿森林公園外環跑 3 公里，終點在信義路早餐店買蛋餅。',
+            category: 'Morning Run', categoryZh: '晨間運動',
+            rating: 4.86, reviews: 418, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'Start the day like a local runner.', hostAboutZh: 'Lina 建議的晨跑路線。',
+            locationEn: "Da'an, Taipei", locationZh: '台北，大安'
+        }),
+        '5829201': makeRecFixture({
+            id: '5829201', hostName: 'James',
+            title: 'Camden Market Saturday Antiques Hunt', titleZh: 'Camden Market 週六古董尋寶',
+            description: 'Vintage vinyl and handmade jewelry at Camden Lock.', descriptionZh: 'James 推薦週六 11 點到 Camden Lock，從復古黑膠到手工銀飾。',
+            category: 'Weekend Market', categoryZh: '週末市集',
+            rating: 4.89, reviews: 531, extractedPrice: 15,
+            cover: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From £15', priceLabelZh: '£15 起',
+            hostAbout: 'Saturday mornings at Camden Lock.', hostAboutZh: 'James 的 Camden 尋寶路線。',
+            locationEn: 'Camden, London', locationZh: '倫敦，Camden'
+        }),
+        '5829202': makeRecFixture({
+            id: '5829202', hostName: 'James',
+            title: "Regent's Canal Morning Kayak", titleZh: "Regent's Canal 清晨獨木舟",
+            description: 'Paddle from Granary Square toward Camden at 8 AM.', descriptionZh: '週日早上 8 點從 Granary Square 下水，沿運河划到 Camden。',
+            category: 'Canal Experience', categoryZh: '運河體驗',
+            rating: 4.88, reviews: 412, extractedPrice: 28,
+            cover: 'https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From £28', priceLabelZh: '£28 起',
+            hostAbout: 'The quietest view of London from the water.', hostAboutZh: 'James 在地力薦的運河體驗。',
+            locationEn: "King's Cross, London", locationZh: '倫敦，國王十字'
+        }),
+        '5829203': makeRecFixture({
+            id: '5829203', hostName: 'James',
+            title: 'Primrose Hill Sunrise Picnic', titleZh: 'Primrose Hill 日出野餐',
+            description: 'Summit at 5 AM in summer with coffee and croissants.', descriptionZh: 'James 建議夏季 5 點登頂 Primrose Hill，帶咖啡與可頌俯瞰天際線。',
+            category: 'Sunrise Picnic', categoryZh: '日出野餐',
+            rating: 4.92, reviews: 1248, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'London skyline at first light.', hostAboutZh: 'James 的日出野餐秘境。',
+            locationEn: 'Primrose Hill, London', locationZh: '倫敦，Primrose Hill'
+        }),
+        '5829204': makeRecFixture({
+            id: '5829204', hostName: 'James',
+            title: 'British Library Reading Room Tour', titleZh: '大英圖書館閱讀室導覽',
+            description: "King's Library tour with Magna Carta facsimile.", descriptionZh: 'James 推薦預約 King\'s Library 導覽，一窺《大憲章》複製品。',
+            category: 'Culture Tour', categoryZh: '文化導覽',
+            rating: 4.85, reviews: 890, extractedPrice: 12,
+            cover: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From £12', priceLabelZh: '£12 起',
+            hostAbout: 'A rainy-day culture fix near the flat.', hostAboutZh: 'James 推薦的文化導覽。',
+            locationEn: "King's Cross, London", locationZh: '倫敦，國王十字'
+        }),
+        '4410301': makeRecFixture({
+            id: '4410301', hostName: 'Aistė',
+            title: 'Bernardine Garden Cherry Blossom Walk', titleZh: 'Bernardine Garden 櫻花季散步',
+            description: 'Cherry blossoms against the old walls in late April.', descriptionZh: '四月下旬清晨 Bernardine Garden，櫻花與舊城牆同框。',
+            category: 'Seasonal', categoryZh: '季節限定',
+            rating: 4.87, reviews: 324, extractedPrice: 0,
+            cover: 'https://images.unsplash.com/photo-1522444195799-478538b28823?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'Free', priceLabelZh: '免費',
+            hostAbout: 'Best around 7 AM before the crowds.', hostAboutZh: 'Aistė 推薦清晨 7 點前往。',
+            locationEn: 'Bernardine Garden, Vilnius', locationZh: '維爾紐斯，Bernardine Garden'
+        }),
+        '4410302': makeRecFixture({
+            id: '4410302', hostName: 'Aistė',
+            title: 'KGB Museum Cold War History Tour', titleZh: 'KGB Museum 冷戰歷史導覽',
+            description: 'English tour of the basement prison wing.', descriptionZh: '預約英文導覽，地下室監獄展區需 90 分鐘。',
+            category: 'History Tour', categoryZh: '歷史導覽',
+            rating: 4.9, reviews: 198, extractedPrice: 6,
+            cover: 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From €6', priceLabelZh: '€6 起',
+            hostAbout: 'Tuesday mornings are quietest.', hostAboutZh: 'Aistė 建議週二上午人最少。',
+            locationEn: 'Vilnius Old Town', locationZh: '維爾紐斯舊城'
+        }),
+        '4410303': makeRecFixture({
+            id: '4410303', hostName: 'Aistė',
+            title: 'Vilnius Hot Air Balloon Morning Flight', titleZh: '維爾紐斯上空熱氣球晨航',
+            description: 'Sunrise flight over red rooftops and the Neris River.', descriptionZh: '日出時段從舊城起飛，俯瞰紅瓦屋頂與 Neris 河。',
+            category: 'Sky Experience', categoryZh: '高空體驗',
+            rating: 4.84, reviews: 276, extractedPrice: 95,
+            cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From €95', priceLabelZh: '€95 起',
+            hostAbout: 'Book a week ahead in summer.', hostAboutZh: '夏季需提前一週預約。',
+            locationEn: 'Vilnius Old Town', locationZh: '維爾紐斯舊城'
+        }),
+        '4410304': makeRecFixture({
+            id: '4410304', hostName: 'Aistė',
+            title: "St Catherine's Church Organ Recital", titleZh: '聖凱瑟琳教堂管風琴音樂會',
+            description: 'Friday evening organ recitals in the Old Town.', descriptionZh: '週五晚間管風琴短場，適合雨天室內行程。',
+            category: 'Classical Music', categoryZh: '古典音樂',
+            rating: 4.82, reviews: 198, extractedPrice: 10,
+            cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+            priceLabel: 'From €10', priceLabelZh: '€10 起',
+            hostAbout: 'Ticket links shared in advance.', hostAboutZh: 'Aistė 會提前分享購票連結。',
+            locationEn: 'Vilnius Old Town', locationZh: '維爾紐斯舊城'
         }),
         '4410203': makeRecFixture({
             id: '4410203', hostName: 'Mindaugas',
@@ -640,7 +892,7 @@
         if (items.some(m => m.type === 'video')) return items;
 
         const poster = items.find(m => m.type === 'image')?.url || exp.cover_image || '';
-        const videoUrl = DEMO_VIDEOS[exp.id] || DEMO_VIDEOS.default;
+        const videoUrl = getDemoVideoUrl(exp.id);
         return [{ type: 'video', url: videoUrl, poster }, ...items];
     }
 
@@ -664,8 +916,10 @@
             const active = i === 0;
             const baseClass = `exp-media-slide absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
             if (item.type === 'video') {
+                const posterSrc = item.poster ? escapeHtml(item.poster) : '';
                 return `<div class="${baseClass}" data-exp-media-index="${i}">
-                    <video class="exp-media-video w-full h-full object-cover bg-black pointer-events-none" src="${escapeHtml(item.url)}"${item.poster ? ` poster="${escapeHtml(item.poster)}"` : ''} muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="metadata"${active ? ' autoplay' : ''}></video>
+                    ${posterSrc ? `<img class="exp-media-video-fallback absolute inset-0 w-full h-full object-cover" src="${posterSrc}" alt="" onerror="${IMG_ONERROR}">` : ''}
+                    <video class="exp-media-video absolute inset-0 w-full h-full object-cover bg-black pointer-events-none opacity-0" src="${escapeHtml(item.url)}"${posterSrc ? ` poster="${posterSrc}"` : ''} muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="${active ? 'auto' : 'metadata'}"${active ? ' autoplay' : ''}></video>
                 </div>`;
             }
             return `<div class="${baseClass}" data-exp-media-index="${i}">
@@ -715,7 +969,7 @@
                 const video = slide.querySelector('video');
                 if (!video) return;
                 if (active) {
-                    video.play().catch(() => {});
+                    playExpMediaVideo(video);
                 } else {
                     video.pause();
                 }
@@ -747,7 +1001,12 @@
             });
         }
 
-        slides[0]?.querySelector('video')?.play().catch(() => {});
+        slides.forEach((slide) => {
+            const video = slide.querySelector('video');
+            if (video) setupExpMediaVideo(video);
+        });
+        playExpMediaVideo(slides[0]?.querySelector('video'));
+        requestAnimationFrame(() => playExpMediaVideo(slides[0]?.querySelector('video')));
     }
 
     function pauseMediaPlayer(root) {
@@ -1936,9 +2195,9 @@
             locationZh: distZh || distEn || ''
         });
 
-        payload.experience._mediaImagesOnly = true;
         payload.experience.media = media.length ? media : [{ type: 'image', url: cover }];
         payload.experience.cover_image = cover;
+        applyRecVideoMedia(payload.experience, listingData, num, options.listingId);
         if (rating !== null && rating !== undefined) payload.experience.rating = rating;
         if (reviews !== null && reviews !== undefined) payload.experience.reviews = reviews;
         if (hasHostText(categoryEn)) payload.experience.category = categoryEn;
@@ -2060,13 +2319,7 @@
 
         if (hasHostText(ratingVal)) payload.experience.rating = Number(ratingVal);
         if (hasHostText(reviewsVal)) payload.experience.reviews = parseInt(String(reviewsVal), 10);
-        if (Array.isArray(recGallery) && recGallery.length) {
-            payload.experience._mediaImagesOnly = true;
-            payload.experience.cover_image = recGallery[0];
-            payload.experience.media = recGallery.filter(Boolean).map((url) => ({ type: 'image', url }));
-        } else if (hasHostText(recImg)) {
-            payload.experience._mediaImagesOnly = true;
-        }
+        applyRecVideoMedia(payload.experience, listingData, num, options.listingId);
 
         if (hasHostText(hostFirstName(listingData, isZh)) || hasHostText(pick(descZh, descEn, isZh))) {
             payload.host = {
@@ -2115,6 +2368,12 @@
         initMediaPlayer,
         pauseMediaPlayer,
         getExperienceIdForRec,
-        applyHostListingOverrides
+        applyHostListingOverrides,
+        getDemoVideoUrl,
+        applyRecVideoMedia,
+        applyFirstRecVideoMedia,
+        resolveRecExperienceId,
+        REC_SLOT_VIDEOS,
+        LISTING_REC_VIDEOS
     };
 })(window);

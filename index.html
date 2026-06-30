@@ -230,6 +230,22 @@
             opacity: 0;
             pointer-events: none;
         }
+        /* 在地體驗卡片 1：自動播放預覽影片 */
+        .rec-card-video::-webkit-media-controls {
+            display: none !important;
+        }
+        .rec-card-video {
+            -webkit-touch-callout: none;
+        }
+        .rec-card-video::-webkit-media-controls-enclosure,
+        .rec-card-video::-webkit-media-controls-start-playback-button,
+        .rec-card-video::-webkit-media-controls-play-button,
+        .rec-card-video::-webkit-media-controls-overlay-play-button {
+            display: none !important;
+            -webkit-appearance: none;
+            opacity: 0;
+            pointer-events: none;
+        }
         .hp-image-swipe {
             touch-action: pan-y;
         }
@@ -636,12 +652,12 @@
                                 
                                 <!-- Card 1 -->
                                 <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="1"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg1" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=300&q=80" alt="Spot 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🌟 <span data-dashboard-target="recBadge1"></span>
+                                    <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="1"
+                                         class="w-full text-left cursor-pointer active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative bg-black">
+                                        <video data-dashboard-target="recVideo1" class="rec-card-video absolute inset-0 w-full h-full object-cover pointer-events-none group-hover:scale-105 transition duration-500" muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="auto" autoplay></video>
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md border border-hp-border">
+                                            <span data-dashboard-target="recBadge1"></span>
                                         </span>
                                         <span data-dashboard-target="recRating1" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
@@ -654,17 +670,17 @@
                                             <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                    </button>
+                                    </div>
                                 </div>
 
                                 <!-- Card 2 -->
                                 <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="2"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg2" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" alt="Spot 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🏮 <span data-dashboard-target="recBadge2"></span>
+                                    <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="2"
+                                         class="w-full text-left cursor-pointer active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative bg-black">
+                                        <video data-dashboard-target="recVideo2" class="rec-card-video absolute inset-0 w-full h-full object-cover pointer-events-none group-hover:scale-105 transition duration-500" muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="auto" autoplay></video>
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md border border-hp-border">
+                                            <span data-dashboard-target="recBadge2"></span>
                                         </span>
                                         <span data-dashboard-target="recRating2" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
@@ -677,17 +693,17 @@
                                             <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                    </button>
+                                    </div>
                                 </div>
 
                                 <!-- Card 3 -->
                                 <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="3"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg3" src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80" alt="Spot 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🍜 <span data-dashboard-target="recBadge3"></span>
+                                    <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="3"
+                                         class="w-full text-left cursor-pointer active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative bg-black">
+                                        <video data-dashboard-target="recVideo3" class="rec-card-video absolute inset-0 w-full h-full object-cover pointer-events-none group-hover:scale-105 transition duration-500" muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="auto" autoplay></video>
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md border border-hp-border">
+                                            <span data-dashboard-target="recBadge3"></span>
                                         </span>
                                         <span data-dashboard-target="recRating3" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
@@ -700,17 +716,17 @@
                                             <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                    </button>
+                                    </div>
                                 </div>
 
                                 <!-- Card 4 -->
                                 <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
-                                    <button type="button" data-action="click->dashboard#openExperienceDetail" data-rec="4"
-                                            class="w-full text-left active:scale-[0.98] transition">
-                                    <div class="h-32 overflow-hidden relative">
-                                        <img data-dashboard-target="recImg4" src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=300&q=80" alt="Spot 4" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md flex items-center gap-1 border border-hp-border">
-                                            🍵 <span data-dashboard-target="recBadge4"></span>
+                                    <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="4"
+                                         class="w-full text-left cursor-pointer active:scale-[0.98] transition">
+                                    <div class="h-32 overflow-hidden relative bg-black">
+                                        <video data-dashboard-target="recVideo4" class="rec-card-video absolute inset-0 w-full h-full object-cover pointer-events-none group-hover:scale-105 transition duration-500" muted playsinline webkit-playsinline loop disablepictureinpicture disableremoteplayback preload="auto" autoplay></video>
+                                        <span class="absolute top-2.5 left-2.5 bg-hp-bgLight/90 backdrop-blur text-hp-dark text-xs font-black px-2 py-1 rounded-md border border-hp-border">
+                                            <span data-dashboard-target="recBadge4"></span>
                                         </span>
                                         <span data-dashboard-target="recRating4" class="absolute top-2.5 right-2.5 bg-black/45 text-white text-xs font-bold px-1.5 py-0.5 rounded-md"></span>
                                     </div>
@@ -723,7 +739,6 @@
                                             <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -823,6 +838,12 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Experience Details backdrop (desktop: click outside to close) -->
+                    <div data-dashboard-target="expDetailBackdrop"
+                         data-action="click->dashboard#closeExperienceDetailOnBackdrop"
+                         class="absolute inset-0 z-[55] bg-[#1F1A18]/45 opacity-0 pointer-events-none transition-opacity duration-300"
+                         aria-hidden="true"></div>
 
                     <!-- Experience Details Overlay (Airbnb Experience Details API) -->
                     <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col overflow-hidden">
@@ -1188,6 +1209,7 @@
     <script src="/js/listing-settings-api.js"></script>
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/booking-api.js"></script>
+    <script src="/js/rec-card-videos.js"></script>
     <script src="/js/experience-details.js"></script>
     <script src="/js/guest-router.js"></script>
     <script src="/js/guest-desktop-v4.js"></script>
@@ -1211,6 +1233,141 @@
             if (!img) return;
             img.onerror = () => { img.onerror = null; img.src = fallback; };
             img.src = src;
+        }
+
+        const LISTING_REC_VIDEOS = window.RecCardVideos?.LISTING_REC_VIDEOS
+            || window.ExperienceDetailsAPI?.LISTING_REC_VIDEOS
+            || {};
+        const REC_SLOT_VIDEOS = LISTING_REC_VIDEOS['TAIPEI-CITY'] || [];
+        const REC_CARD_VIDEO_DEFAULT = window.RecCardVideos?.DEFAULT
+            || REC_SLOT_VIDEOS[0]
+            || 'https://videos.pexels.com/video-files/856973/856973-hd_1920_1080_25fps.mp4';
+
+        function resolveRecExperienceId(data, listingId, recIndex) {
+            if (window.ExperienceDetailsAPI?.resolveRecExperienceId) {
+                return ExperienceDetailsAPI.resolveRecExperienceId(data, recIndex, listingId);
+            }
+            const key = `recExperienceId${recIndex}`;
+            if (data?.[key]) return String(data[key]).trim();
+            const base = listingId && window.GuideDefaults?.getBase
+                ? GuideDefaults.getBase(listingId)
+                : null;
+            return base?.[key] ? String(base[key]).trim() : '';
+        }
+
+        function getRecCardVideoUrl(data, listingId, recIndex) {
+            const listing = String(listingId || data?.listingId || '').trim().toUpperCase();
+            const slot = Number(recIndex);
+            if (window.RecCardVideos?.getForRec) {
+                const url = RecCardVideos.getForRec(listing, slot);
+                if (url) return url;
+            }
+            if (window.ExperienceDetailsAPI?.getDemoVideoUrl) {
+                const expId = resolveRecExperienceId(data, listingId, recIndex);
+                return ExperienceDetailsAPI.getDemoVideoUrl(expId, listing, slot);
+            }
+            const listingVideos = LISTING_REC_VIDEOS[listing];
+            if (listingVideos && slot >= 1 && slot <= listingVideos.length) {
+                return listingVideos[slot - 1];
+            }
+            if (slot >= 1 && slot <= REC_SLOT_VIDEOS.length) {
+                return REC_SLOT_VIDEOS[slot - 1];
+            }
+            return REC_CARD_VIDEO_DEFAULT;
+        }
+
+        let recCardVideoObserver = null;
+        function ensureRecCardVideoObserver() {
+            if (recCardVideoObserver) return recCardVideoObserver;
+            recCardVideoObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    const video = entry.target;
+                    if (!(video instanceof HTMLVideoElement)) return;
+                    if (entry.isIntersecting) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.2 });
+            return recCardVideoObserver;
+        }
+
+        function playRecCardVideo(video) {
+            if (!video) return;
+            video.muted = true;
+            video.defaultMuted = true;
+            video.playsInline = true;
+            video.loop = true;
+            video.setAttribute('muted', '');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            const attempt = () => { video.play().catch(() => {}); };
+            ensureRecCardVideoObserver().observe(video);
+            if (video.readyState >= 2) attempt();
+            else {
+                video.addEventListener('loadeddata', attempt, { once: true });
+                video.addEventListener('canplay', attempt, { once: true });
+            }
+            attempt();
+            requestAnimationFrame(attempt);
+        }
+
+        function setRecCardMedia(recIndex, data, root, listingId) {
+            const num = Number(recIndex);
+            if (num < 1 || num > LOCAL_REC_COUNT) return;
+
+            const video = root.querySelector(`[data-dashboard-target="recVideo${num}"]`);
+            const videoUrl = getRecCardVideoUrl(data, listingId, num);
+
+            if (!video) return;
+
+            if (!videoUrl) {
+                video.classList.add('hidden');
+                video.pause();
+                video.removeAttribute('src');
+                video.removeAttribute('poster');
+                return;
+            }
+
+            video.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            video.removeAttribute('poster');
+            video.onerror = () => {
+                video.onerror = null;
+                const fallback = REC_CARD_VIDEO_DEFAULT;
+                if (fallback && video.dataset.hpRecVideoSrc !== fallback) {
+                    video.dataset.hpRecMediaKey = '';
+                    video.src = fallback;
+                    video.dataset.hpRecVideoSrc = fallback;
+                    video.load();
+                    playRecCardVideo(video);
+                }
+            };
+            const mediaKey = `${String(listingId || '').trim().toUpperCase()}:${num}:${videoUrl}`;
+            if (video.dataset.hpRecMediaKey !== mediaKey) {
+                video.dataset.hpRecMediaKey = mediaKey;
+                video.dataset.hpRecVideoSrc = videoUrl;
+                video.dataset.recVideoSlot = String(num);
+                video.src = videoUrl;
+                video.currentTime = 0;
+                video.load();
+            }
+            video.loop = true;
+            playRecCardVideo(video);
+            requestAnimationFrame(() => playRecCardVideo(video));
+        }
+
+        function replayAllRecCardVideos(root) {
+            if (!root) return;
+            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+                playRecCardVideo(root.querySelector(`[data-dashboard-target="recVideo${i}"]`));
+            }
+        }
+
+        function setAllRecCardMedia(data, root, listingId) {
+            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+                setRecCardMedia(i, data, root, listingId);
+            }
         }
 
         const LOCAL_REC_COUNT = 4;
@@ -1280,62 +1437,33 @@
             return id;
         }
 
-        /** Merge GuideDefaults base + optional preset cache + saved overrides (sync). */
+        /** Merge GuideDefaults base + preset + saved overrides (sync). Skips legacy Mia/Emma rec blocks in DB. */
         function hpLoadGuideSettingsData(listingId) {
             const id = hpEnsureGuideSettingsStored(listingId);
-            let data = GuideDefaults.getBase(id);
-            const presetData = window.HostSettingsPresets?.getCachedPresetData?.(id);
-            if (presetData && window.HostGuideSettings) {
-                data = HostGuideSettings.merge(data, presetData);
-            } else if (presetData) {
-                data = { ...data, ...presetData };
-            }
             if (window.HostGuideSettings) {
                 if (hpIsHostPreviewMode()) {
                     HostGuideSettings.invalidateCache(id);
                 }
-                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
+                return HostGuideSettings.getMerged(id);
             }
-            return data;
+            return GuideDefaults.getBase(id);
         }
 
         async function hpLoadGuideSettingsDataAsync(listingId) {
             const id = hpEnsureGuideSettingsStored(listingId);
-            let data = GuideDefaults.getBase(id);
-
-            const loadPreset = async () => {
-                try {
-                    const preset = await window.HostSettingsPresets?.fetchPreset(id);
-                    return preset?.data || null;
-                } catch {
-                    return null;
-                }
-            };
-
             if (hpIsHostPreviewMode() && window.HostGuideSettings) {
                 HostGuideSettings.invalidateCache(id);
-                const presetData = await loadPreset();
-                if (presetData) {
-                    data = HostGuideSettings.merge(data, presetData);
-                }
-                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
             }
-
-            const loadSettings = window.HostGuideSettings
-                ? () => HostGuideSettings.ensureLoaded(id)
-                : () => Promise.resolve();
-
-            const [presetData] = await Promise.all([loadPreset(), loadSettings()]);
-
-            if (presetData) {
-                data = HostGuideSettings.merge(data, presetData);
+            try {
+                await window.HostSettingsPresets?.fetchPreset?.(id);
+            } catch {
+                // preset optional for custom listing IDs
             }
-
             if (window.HostGuideSettings) {
-                return HostGuideSettings.merge(data, HostGuideSettings.load(id));
+                await HostGuideSettings.ensureLoaded(id);
+                return HostGuideSettings.getMerged(id);
             }
-
-            return data;
+            return GuideDefaults.getBase(id);
         }
 
         async function hpResolveListingDataAsync(listingId) {
@@ -1561,11 +1689,9 @@
                 setText(`recBadge${i}`, data[`recBadge${i}Zh`], data[`recBadge${i}En`]);
                 setText(`recDist${i}`, data[`recDist${i}Zh`], data[`recDist${i}En`]);
                 setText(`recPrice${i}`, data[`recPrice${i}Zh`], data[`recPrice${i}En`]);
-                const recImg = root.querySelector(`[data-dashboard-target="recImg${i}"]`);
-                if (recImg && data[`recImg${i}`]) {
-                    setImgWithFallback(recImg, data[`recImg${i}`], IMAGE_FALLBACKS.rec);
-                }
+                setRecCardMedia(i, data, root, id);
             }
+            requestAnimationFrame(() => replayAllRecCardVideos(root));
             hpSyncRecCardRatings(root, id, data);
 
             const hostFirst = isZh
@@ -1665,7 +1791,7 @@
             try {
                 const listingData = await hpResolveListingDataAsync(listing);
                 const recIndex = hpFindRecIndexForExperience(listingData, expId) || 1;
-                const payload = await ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex);
+                const payload = await ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex, { listingId: listing });
                 if (!payload) return false;
 
                 const isZh = (window.currentLanguage || 'zh') !== 'en';
@@ -2308,13 +2434,14 @@
             static targets = [
                 "roomHeroImg", "roomTitle", "hostTitle", "hostLocation", "activeId", "listingCard",
                 "roomHero", "roomPhotoDots",
-                "wifiValue", "lockValue", "recImg1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
-                "recImg2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
-                "recImg3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
-                "recImg4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
+                "wifiValue", "lockValue",
+                "recVideo1", "recTitle1", "recBadge1", "recDist1", "recPrice1", "recRating1",
+                "recVideo2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
+                "recVideo3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
+                "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -2509,7 +2636,7 @@
 
                 let payload;
                 try {
-                    payload = await ExperienceDetailsAPI.fetchDetailsForRec(resolvedListing, num);
+                    payload = await ExperienceDetailsAPI.fetchDetailsForRec(resolvedListing, num, { listingId: id });
                 } catch (error) {
                     console.warn('[dashboard] experience detail load failed', error);
                     this.showExperienceDetailError();
@@ -2681,14 +2808,14 @@
                     this.lockDetailTarget.innerText = lockText;
                 }
 
-                setImgWithFallback(this.recImg1Target, data.recImg1, IMAGE_FALLBACKS.rec);
+                setAllRecCardMedia(data, this.element, id);
+                requestAnimationFrame(() => replayAllRecCardVideos(this.element));
                 if (this.hasRecTitle1Target) {
                     this.recTitle1Target.innerText = isZh ? (data.recTitle1Zh || '') : (data.recTitle1En || '');
                 }
                 if (this.hasRecBadge1Target) this.recBadge1Target.innerText = isZh ? data.recBadge1Zh : data.recBadge1En;
                 if (this.hasRecDist1Target) this.recDist1Target.innerText = isZh ? data.recDist1Zh : data.recDist1En;
                 if (this.hasRecPrice1Target) this.recPrice1Target.innerText = isZh ? data.recPrice1Zh : data.recPrice1En;
-                setImgWithFallback(this.recImg2Target, data.recImg2, IMAGE_FALLBACKS.rec);
                 if (this.hasRecTitle2Target) {
                     this.recTitle2Target.innerText = isZh ? (data.recTitle2Zh || '') : (data.recTitle2En || '');
                 }
@@ -2696,9 +2823,6 @@
                 if (this.hasRecDist2Target) this.recDist2Target.innerText = isZh ? data.recDist2Zh : data.recDist2En;
                 if (this.hasRecPrice2Target) this.recPrice2Target.innerText = isZh ? data.recPrice2Zh : data.recPrice2En;
                 [3, 4].forEach((recIndex) => {
-                    const imgTarget = this[`recImg${recIndex}Target`];
-                    if (!imgTarget) return;
-                    setImgWithFallback(imgTarget, data[`recImg${recIndex}`], IMAGE_FALLBACKS.rec);
                     const titleTarget = this[`recTitle${recIndex}Target`];
                     if (titleTarget) titleTarget.innerText = isZh ? data[`recTitle${recIndex}Zh`] : data[`recTitle${recIndex}En`];
                     const badgeTarget = this[`recBadge${recIndex}Target`];
@@ -2989,6 +3113,29 @@
                 }
 
                 this.finishCloseExperienceDetail(options);
+            }
+
+            closeExperienceDetailOnBackdrop(event) {
+                if (event?.target !== event?.currentTarget) return;
+                if (!this.isExperienceDetailOpen()) return;
+
+                if (this.hasExpBookingConfirmOverlayTarget
+                    && !this.expBookingConfirmOverlayTarget.classList.contains('opacity-0')) {
+                    this.closeExpBookingConfirm(false);
+                    return;
+                }
+                if (this.hasExpBookingOverlayTarget
+                    && !this.expBookingOverlayTarget.classList.contains('translate-y-full')) {
+                    this.closeExpBookingCalendar();
+                    return;
+                }
+                if (this.hasExpShareOverlayTarget
+                    && !this.expShareOverlayTarget.classList.contains('opacity-0')) {
+                    this.closeExpShareSheet(false);
+                    return;
+                }
+
+                this.closeExperienceDetail();
             }
 
             finishCloseExperienceDetail(options = {}) {
@@ -3542,7 +3689,7 @@
                     || [1, 2, 3, 4].find(i => getExperienceIdForRec(listingId, i) === expId)
                     || this.currentExpRecIndex
                     || 1;
-                ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex).then((payload) => {
+                ExperienceDetailsAPI.fetchDetailsForRec(listingData, recIndex, { listingId }).then((payload) => {
                     if (payload) this.renderExperienceDetail(payload, recIndex);
                 });
             }
@@ -3803,7 +3950,18 @@
                 if (this.hasExpDetailOverlayTarget && element === this.expDetailOverlayTarget) {
                     document.documentElement.classList.toggle('hp-boot-experience', isOpen);
                     window.dispatchEvent(new CustomEvent('hp:v4-experience-detail', { detail: { open: isOpen } }));
+                    this.syncExpDetailBackdrop(isOpen);
                 }
+            }
+
+            syncExpDetailBackdrop(isOpen) {
+                if (!this.hasExpDetailBackdropTarget) return;
+                const desktop = document.documentElement.classList.contains('hp-v4-desktop');
+                const show = Boolean(isOpen && desktop);
+                this.expDetailBackdropTarget.classList.toggle('opacity-100', show);
+                this.expDetailBackdropTarget.classList.toggle('pointer-events-auto', show);
+                this.expDetailBackdropTarget.classList.toggle('pointer-events-none', !show);
+                this.expDetailBackdropTarget.setAttribute('aria-hidden', show ? 'false' : 'true');
             }
 
             triggerToast(title, msg, type, options) {

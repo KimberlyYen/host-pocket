@@ -95,8 +95,9 @@
 
             global.HostGuideSettings.invalidateCache(id);
             const overrides = await global.HostGuideSettings.ensureLoaded(id);
-            if (overrides) {
-                data = global.HostGuideSettings.merge(data, overrides);
+            const cleaned = global.HostGuideSettings.stripLegacyDemoRecOverrides(id, overrides);
+            if (cleaned) {
+                data = global.HostGuideSettings.merge(data, cleaned);
             }
 
             return data;

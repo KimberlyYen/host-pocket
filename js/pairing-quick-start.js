@@ -11,8 +11,8 @@
             icon: 'fa-city',
             primaryZh: '台北',
             primaryEn: 'Taipei',
-            secondaryZh: '大安設計複層',
-            secondaryEn: 'Designer loft stay'
+            secondaryZh: '信義區天空盒',
+            secondaryEn: 'Xinyi skyline stay'
         },
         {
             id: 'UK-LONDON',
