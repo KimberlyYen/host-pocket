@@ -727,6 +727,12 @@
 
                     </div>
 
+                    <!-- Slide overlay backdrop (desktop: dim + click outside to close) -->
+                    <div data-dashboard-target="slideOverlayBackdrop"
+                         data-action="click->dashboard#closeSlideOverlayOnBackdrop"
+                         class="absolute inset-0 z-[54] bg-[#1F1A18]/45 opacity-0 pointer-events-none transition-opacity duration-300"
+                         aria-hidden="true"></div>
+
                     <!-- ================= SIMULATED AIRBNB ROOM OVERLAY (Connects Back to Room Detail Screen) ================= -->
                     <div data-dashboard-target="roomOverlay" class="absolute inset-0 bg-[#FAF8F5] z-40 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <!-- Scrollable Detail Contents of Room -->
@@ -2424,7 +2430,7 @@
                 "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "headerBar", "airbnbListingCta",
-                "roomOverlay", "helpOverlay", "lockOverlay", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -3258,7 +3264,10 @@
 
             openExpBookingCalendar(event) {
                 if (!this.currentExpPayload || !this.hasExpBookingOverlayTarget) return;
-                window.hpCelebrateOnce?.('booking', { fullScreen: true });
+                window.hpCelebrate?.({
+                    fullScreen: true,
+                    origin: event?.currentTarget
+                });
                 this.bookingViewDate = this.bookingViewDate || new Date(2026, 5, 1);
                 this.selectedBookingDate = null;
                 this.renderBookingCalendarView();
@@ -3700,6 +3709,25 @@
                 }
             }
 
+            closeSlideOverlayOnBackdrop(event) {
+                if (event?.target !== event?.currentTarget) return;
+
+                if (this.hasHelpOverlayTarget
+                    && !this.helpOverlayTarget.classList.contains('translate-y-full')) {
+                    this.closeHelpOverlay();
+                    return;
+                }
+                if (this.hasRoomOverlayTarget
+                    && !this.roomOverlayTarget.classList.contains('translate-y-full')) {
+                    this.closeRoomOverlay();
+                    return;
+                }
+                if (this.hasLockOverlayTarget
+                    && !this.lockOverlayTarget.classList.contains('translate-y-full')) {
+                    this.closeLockGuide();
+                }
+            }
+
             scrollToSectionFromHelp(event) {
                 this.closeHelpOverlay();
                 setTimeout(() => this.scrollToSection(event), 350);
@@ -3918,23 +3946,45 @@
 
             setSlideOverlay(element, isOpen) {
                 if (!element) return;
+                const slidePanels = [
+                    this.roomOverlayTarget,
+                    this.helpOverlayTarget,
+                    this.lockOverlayTarget
+                ].filter(Boolean);
+
                 if (isOpen) {
-                    [
-                        this.roomOverlayTarget,
-                        this.helpOverlayTarget,
-                        this.lockOverlayTarget
-                    ].filter((el) => el && el !== element).forEach((el) => {
+                    slidePanels.filter((el) => el !== element).forEach((el) => {
                         el.classList.add('translate-y-full', 'pointer-events-none');
                     });
                 }
                 element.classList.toggle('translate-y-full', !isOpen);
                 element.classList.toggle('pointer-events-none', !isOpen);
 
+                if (slidePanels.includes(element)) {
+                    this.syncSlideOverlayBackdrop();
+                }
+
                 if (this.hasExpDetailOverlayTarget && element === this.expDetailOverlayTarget) {
                     document.documentElement.classList.toggle('hp-boot-experience', isOpen);
                     window.dispatchEvent(new CustomEvent('hp:v4-experience-detail', { detail: { open: isOpen } }));
                     this.syncExpDetailBackdrop(isOpen);
                 }
+            }
+
+            syncSlideOverlayBackdrop() {
+                if (!this.hasSlideOverlayBackdropTarget) return;
+                const desktop = document.documentElement.classList.contains('hp-v4-desktop');
+                const panels = [
+                    this.roomOverlayTarget,
+                    this.helpOverlayTarget,
+                    this.lockOverlayTarget
+                ].filter(Boolean);
+                const anyOpen = panels.some((el) => !el.classList.contains('translate-y-full'));
+                const show = Boolean(desktop && anyOpen);
+                this.slideOverlayBackdropTarget.classList.toggle('opacity-100', show);
+                this.slideOverlayBackdropTarget.classList.toggle('pointer-events-auto', show);
+                this.slideOverlayBackdropTarget.classList.toggle('pointer-events-none', !show);
+                this.slideOverlayBackdropTarget.setAttribute('aria-hidden', show ? 'false' : 'true');
             }
 
             syncExpDetailBackdrop(isOpen) {

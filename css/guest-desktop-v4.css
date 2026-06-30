@@ -1016,20 +1016,10 @@
         max-width: 400px;
     }
 
-    /* Dim main content — backdrop element handles experience detail clicks */
-    html.hp-v4-desktop [data-dashboard-target="expDetailBackdrop"].opacity-100 {
+    /* Dim main content — backdrop elements handle click-outside-to-close */
+    html.hp-v4-desktop [data-dashboard-target="expDetailBackdrop"].opacity-100,
+    html.hp-v4-desktop [data-dashboard-target="slideOverlayBackdrop"].opacity-100 {
         cursor: pointer;
-    }
-
-    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="roomOverlay"]:not(.translate-y-full))::before,
-    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="helpOverlay"]:not(.translate-y-full))::before,
-    html.hp-v4-desktop [data-screen="dashboard"]:has([data-dashboard-target="lockOverlay"]:not(.translate-y-full))::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: rgba(31, 26, 24, 0.45);
-        z-index: 54;
-        pointer-events: auto;
     }
 
     /* Guest 詳情頁：側欄保留指南主頁 + 求助房東，並高於詳情面板遮罩 */

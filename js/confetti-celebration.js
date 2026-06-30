@@ -15,21 +15,22 @@
         return global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
     }
 
-    function ensureCanvas() {
-        if (canvas) return;
-        canvas = document.createElement('canvas');
-        canvas.className = 'hp-confetti-canvas';
-        canvas.setAttribute('aria-hidden', 'true');
-        canvas.style.cssText = [
-            'position:fixed',
-            'inset:0',
-            'width:100%',
-            'height:100%',
-            'pointer-events:none',
-            'z-index:55'
-        ].join(';');
-        document.body.appendChild(canvas);
-        ctx = canvas.getContext('2d');
+    function ensureCanvas(zIndex = 55) {
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.className = 'hp-confetti-canvas';
+            canvas.setAttribute('aria-hidden', 'true');
+            canvas.style.cssText = [
+                'position:fixed',
+                'inset:0',
+                'width:100%',
+                'height:100%',
+                'pointer-events:none'
+            ].join(';');
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext('2d');
+        }
+        canvas.style.zIndex = String(zIndex);
     }
 
     function resizeCanvas() {
@@ -192,10 +193,10 @@
         if (prefersReducedMotion()) return;
 
         cleanup();
-        ensureCanvas();
-        resizeCanvas();
-
         const fullScreen = options.fullScreen !== false;
+        const zIndex = Number(options.zIndex) || (fullScreen ? 99999 : 55);
+        ensureCanvas(zIndex);
+        resizeCanvas();
         const count = Math.max(40, Math.min(220, Number(options.particleCount) || 120));
 
         if (fullScreen) {
