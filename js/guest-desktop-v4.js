@@ -88,7 +88,7 @@
         const isGuest = document.documentElement.classList.contains('hp-boot-dashboard');
         document.documentElement.classList.toggle('hp-v4-guest', isGuest && isDesktop());
         relocateShareButton();
-        relocateMobileHomeLogo(isGuest);
+        relocateMobileHomeLogo();
     }
 
     let shareButtonHome = null;
@@ -110,8 +110,7 @@
         }
 
         const shareInHeader = headerBar.contains(document.querySelector('[data-dashboard-target="shareLink"]'));
-        const logoInHeader = headerBar.contains(document.querySelector('[data-dashboard-target="mobileHomeLogo"]'));
-        headerBar.classList.toggle('hp-v4-header-hidden', isBackBtnHidden() && !shareInHeader && !logoInHeader);
+        headerBar.classList.toggle('hp-v4-header-hidden', isBackBtnHidden() && !shareInHeader);
     }
 
     function relocateShareButton() {
@@ -143,21 +142,17 @@
         syncHeaderBarDesktop();
     }
 
-    function relocateMobileHomeLogo(isGuest) {
+    function relocateMobileHomeLogo() {
         const logo = document.querySelector('[data-dashboard-target="mobileHomeLogo"]');
         const headerBar = document.querySelector('[data-dashboard-target="headerBar"]');
-        const slot = document.querySelector('[data-hp-v4-share-slot]');
-        if (!logo || !headerBar || !slot) return;
+        if (!logo || !headerBar) return;
 
         if (!mobileHomeLogoHome) {
             mobileHomeLogoHome = { parent: headerBar, next: logo.nextElementSibling };
         }
 
-        if (isGuest && isDesktop()) {
-            if (logo.parentElement !== slot) {
-                slot.insertBefore(logo, slot.firstChild);
-            }
-        } else if (logo.parentElement !== headerBar) {
+        // Desktop brand lives in the sidebar; keep this logo in the mobile header only.
+        if (logo.parentElement !== headerBar) {
             if (mobileHomeLogoHome.next) {
                 headerBar.insertBefore(logo, mobileHomeLogoHome.next);
             } else {
@@ -175,7 +170,7 @@
 
         const observer = new MutationObserver(() => {
             relocateShareButton();
-            relocateMobileHomeLogo(document.documentElement.classList.contains('hp-boot-dashboard'));
+            relocateMobileHomeLogo();
         });
 
         if (backBtn) {
@@ -457,7 +452,7 @@
     DESKTOP_MQ.addEventListener('change', () => {
         syncDesktopClass();
         relocateShareButton();
-        relocateMobileHomeLogo(document.documentElement.classList.contains('hp-boot-dashboard'));
+        relocateMobileHomeLogo();
         syncGuestChrome();
         syncListingQueryNav();
         syncDashboardColumnHeights();

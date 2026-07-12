@@ -1074,11 +1074,6 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
     .hp-mobile-home-logo {
         display: none !important;
     }
-
-    html.hp-v4-desktop.hp-boot-dashboard [data-hp-v4-share-slot] .hp-mobile-home-logo {
-        display: inline-flex !important;
-        margin-left: 0;
-    }
 }
 
 /* Mobile: sidebar never shown, layout wrapper is transparent */
