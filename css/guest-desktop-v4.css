@@ -470,8 +470,9 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         align-items: stretch;
     }
 
-    /* Brand already in sidebar — avoid duplicate title on desktop */
-    html.hp-v4-desktop [data-screen="pairing"] .hp-pairing-core > .space-y-2.text-center {
+    /* Hide pairing title only when sidebar is expanded (brand text already visible there).
+       Default collapsed sidebar hides brand text — keep the page title so「房東私藏」stays visible. */
+    html.hp-v4-desktop .hp-v4-layout:not(.hp-v4-sidebar-collapsed) [data-screen="pairing"] .hp-pairing-core > .space-y-2.text-center {
         display: none;
     }
 
@@ -1089,6 +1090,24 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
 
     [data-dashboard-target="backBtn"] {
         display: none !important;
+    }
+
+    /* Host left pairing home → show text back control on mobile */
+    html:not(.hp-boot-dashboard) [data-screen="dashboard"] [data-dashboard-target="backBtn"]:not(.hidden) {
+        display: inline-flex !important;
+    }
+
+    .hp-back-btn {
+        font-size: 0.8125rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        line-height: 1.2;
+    }
+
+    .hp-back-btn__chevron {
+        font-size: 0.95em;
+        font-weight: 800;
+        line-height: 1;
     }
 
     .hp-mobile-home-logo {
