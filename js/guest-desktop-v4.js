@@ -88,9 +88,11 @@
         const isGuest = document.documentElement.classList.contains('hp-boot-dashboard');
         document.documentElement.classList.toggle('hp-v4-guest', isGuest && isDesktop());
         relocateShareButton();
+        relocateMobileHomeLogo(isGuest);
     }
 
     let shareButtonHome = null;
+    let mobileHomeLogoHome = null;
 
     function isBackBtnHidden() {
         const backBtn = document.querySelector('[data-dashboard-target="backBtn"]');
@@ -108,7 +110,8 @@
         }
 
         const shareInHeader = headerBar.contains(document.querySelector('[data-dashboard-target="shareLink"]'));
-        headerBar.classList.toggle('hp-v4-header-hidden', isBackBtnHidden() && !shareInHeader);
+        const logoInHeader = headerBar.contains(document.querySelector('[data-dashboard-target="mobileHomeLogo"]'));
+        headerBar.classList.toggle('hp-v4-header-hidden', isBackBtnHidden() && !shareInHeader && !logoInHeader);
     }
 
     function relocateShareButton() {
@@ -140,6 +143,31 @@
         syncHeaderBarDesktop();
     }
 
+    function relocateMobileHomeLogo(isGuest) {
+        const logo = document.querySelector('[data-dashboard-target="mobileHomeLogo"]');
+        const headerBar = document.querySelector('[data-dashboard-target="headerBar"]');
+        const slot = document.querySelector('[data-hp-v4-share-slot]');
+        if (!logo || !headerBar || !slot) return;
+
+        if (!mobileHomeLogoHome) {
+            mobileHomeLogoHome = { parent: headerBar, next: logo.nextElementSibling };
+        }
+
+        if (isGuest && isDesktop()) {
+            if (logo.parentElement !== slot) {
+                slot.insertBefore(logo, slot.firstChild);
+            }
+        } else if (logo.parentElement !== headerBar) {
+            if (mobileHomeLogoHome.next) {
+                headerBar.insertBefore(logo, mobileHomeLogoHome.next);
+            } else {
+                headerBar.insertBefore(logo, headerBar.firstChild);
+            }
+        }
+
+        syncHeaderBarDesktop();
+    }
+
     function observeSharePlacement() {
         const headerBar = document.querySelector('[data-dashboard-target="headerBar"]');
         const backBtn = document.querySelector('[data-dashboard-target="backBtn"]');
@@ -147,6 +175,7 @@
 
         const observer = new MutationObserver(() => {
             relocateShareButton();
+            relocateMobileHomeLogo(document.documentElement.classList.contains('hp-boot-dashboard'));
         });
 
         if (backBtn) {
@@ -428,6 +457,7 @@
     DESKTOP_MQ.addEventListener('change', () => {
         syncDesktopClass();
         relocateShareButton();
+        relocateMobileHomeLogo(document.documentElement.classList.contains('hp-boot-dashboard'));
         syncGuestChrome();
         syncListingQueryNav();
         syncDashboardColumnHeights();

@@ -1,5 +1,5 @@
 /**
- * Pairing quick-start —「快速開始」預設房源格線 + 房東設定連結。
+ * Pairing quick-start —「快速開始」預設房源格線 + 編輯住宿指南連結。
  */
 (function (global) {
     const MOUNT_SELECTOR = '[data-hp-pairing-quick-start]';
@@ -89,8 +89,8 @@
            data-pairing-target="settingsLink"
            class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-            <span data-global-lang="zh">房東設定 · 在地精選</span>
-            <span data-global-lang="en" class="hidden">Host settings · Local picks</span>
+            <span data-global-lang="zh">編輯住宿指南</span>
+            <span data-global-lang="en" class="hidden">Edit your guest guide</span>
         </a>
     </div>`;
 

@@ -35,7 +35,7 @@
                 return;
             }
 
-            this.titleTarget.textContent = `快速選擇景點 · 在地精選 ${index}`;
+            this.titleTarget.textContent = `快速選擇景點 · 推薦 ${index}`;
             this.subtitleTarget.textContent = `${catalog.label}（${listingId}）`;
             this.emptyTarget.classList.add('hidden');
             this.renderList(catalog.attractions);

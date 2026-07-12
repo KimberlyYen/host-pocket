@@ -119,12 +119,9 @@
             padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important;
         }
         html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
-            justify-content: flex-end !important;
-        }
-        @media (max-width: 767px) {
-            html.hp-boot-dashboard [data-dashboard-target="headerBar"] {
-                justify-content: space-between !important;
-            }
+            justify-content: space-between !important;
+            width: 100%;
+            box-sizing: border-box;
         }
         .partner-bar {
             background: linear-gradient(180deg, #2E2421 0%, #231C19 100%);
@@ -1646,9 +1643,11 @@
                 if (!target) return;
 
                 const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
-                if (fromListing?.rating) {
+                if (fromListing?.rating != null && Number.isFinite(fromListing.rating)) {
                     target.textContent = `★ ${fromListing.rating}`;
-                    target.title = fromListing.reviews ? `${fromListing.reviews} reviews` : '';
+                    target.title = fromListing.reviews != null && Number.isFinite(fromListing.reviews)
+                        ? `${fromListing.reviews} reviews`
+                        : '';
                     return;
                 }
 
@@ -2480,7 +2479,7 @@
                 this.bindRoomHeroSwipe();
                 this.bindOverlayHeroSwipe();
                 this.bindScrollContainer();
-                this.bookingViewDate = new Date(2026, 5, 1);
+                this.bookingViewDate = ExperienceDetailsAPI.bookingMonthStart();
                 this.selectedBookingDate = null;
                 this.bookingTimeFormat = '24';
                 this.bookingTimezone = 'Asia/Taipei';
@@ -2740,8 +2739,11 @@
                     this.backBtnTarget.hidden = hideGuest;
                 }
                 if (this.hasHeaderBarTarget) {
-                    this.headerBarTarget.classList.toggle('justify-end', hideGuest);
-                    this.headerBarTarget.classList.toggle('justify-between', !hideGuest);
+                    this.headerBarTarget.classList.remove('justify-end');
+                    this.headerBarTarget.classList.add('justify-between');
+                }
+                if (this.hasMobileHomeLogoTarget) {
+                    this.mobileHomeLogoTarget.classList.toggle('hidden', !hideGuest);
                 }
                 if (this.hasAirbnbListingCtaTarget) {
                     this.airbnbListingCtaTarget.classList.toggle('hidden', hideGuest);
@@ -3031,9 +3033,11 @@
                     if (!hasTarget || !target) return;
 
                     const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
-                    if (fromListing?.rating) {
+                    if (fromListing?.rating != null && Number.isFinite(fromListing.rating)) {
                         target.innerText = `★ ${fromListing.rating}`;
-                        target.title = fromListing.reviews ? `${fromListing.reviews} reviews` : '';
+                        target.title = fromListing.reviews != null && Number.isFinite(fromListing.reviews)
+                            ? `${fromListing.reviews} reviews`
+                            : '';
                         return;
                     }
 
@@ -3313,7 +3317,7 @@
                     fullScreen: true,
                     origin: event?.currentTarget
                 });
-                this.bookingViewDate = this.bookingViewDate || new Date(2026, 5, 1);
+                this.bookingViewDate = ExperienceDetailsAPI.bookingMonthStart();
                 this.selectedBookingDate = null;
                 this.renderBookingCalendarView();
                 this.setSlideOverlay(this.expBookingOverlayTarget, true);
@@ -3339,10 +3343,12 @@
 
             formatBookingSlotLabel(slot, isZh) {
                 if (!slot) return isZh ? '未選時段' : 'No time slot';
+                if (slot === '彈性') return isZh ? '當日時段皆可預約' : 'Any time today';
                 const m = slot.match(/^(\d{1,2}):(\d{2})$/);
                 if (!m) return slot;
                 const h = parseInt(m[1], 10);
                 const min = parseInt(m[2], 10);
+                if (!Number.isFinite(h) || !Number.isFinite(min)) return slot;
                 if (this.bookingTimeFormat === '12') {
                     if (isZh) {
                         const period = h >= 12 ? '下午' : '上午';
@@ -3690,14 +3696,14 @@
             }
 
             prevBookingMonth() {
-                const base = this.bookingViewDate || new Date(2026, 5, 1);
+                const base = this.bookingViewDate || ExperienceDetailsAPI.bookingMonthStart();
                 this.bookingViewDate = new Date(base.getFullYear(), base.getMonth() - 1, 1);
                 this.selectedBookingDate = null;
                 this.renderBookingCalendarView();
             }
 
             nextBookingMonth() {
-                const base = this.bookingViewDate || new Date(2026, 5, 1);
+                const base = this.bookingViewDate || ExperienceDetailsAPI.bookingMonthStart();
                 this.bookingViewDate = new Date(base.getFullYear(), base.getMonth() + 1, 1);
                 this.selectedBookingDate = null;
                 this.renderBookingCalendarView();

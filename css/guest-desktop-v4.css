@@ -525,6 +525,19 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         display: flex !important;
         align-items: center;
         flex-shrink: 0;
+        gap: 0.5rem;
+    }
+
+    /* Guest desktop: header stays full-width with content-aligned insets (match Taipei host) */
+    html.hp-v4-desktop.hp-boot-dashboard [data-screen="dashboard"] [data-dashboard-target="headerBar"]:not(.hp-v4-header-hidden) {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        padding-inline: clamp(1.5rem, 3vw, 2.5rem);
+        justify-content: space-between !important;
     }
 
     html.hp-v4-desktop [data-hp-v4-share-slot] [data-dashboard-target="shareLink"] {
@@ -1060,6 +1073,11 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
 
     .hp-mobile-home-logo {
         display: none !important;
+    }
+
+    html.hp-v4-desktop.hp-boot-dashboard [data-hp-v4-share-slot] .hp-mobile-home-logo {
+        display: inline-flex !important;
+        margin-left: 0;
     }
 }
 

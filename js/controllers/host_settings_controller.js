@@ -172,7 +172,7 @@
         attractionSelected(event) {
             const { index, title } = event.detail || {};
             if (title) {
-                this.showStatus(`已帶入景點至在地精選 ${index}：${title}`);
+                this.showStatus(`已帶入景點至推薦 ${index}：${title}`);
             }
         }
 

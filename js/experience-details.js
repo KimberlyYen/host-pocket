@@ -138,12 +138,109 @@
         applyRecVideoMedia(exp, listingData, recIndex, listingId);
     }
 
+    const FLEXIBLE_DURATION_ZH = '當日時段皆可預約';
+    const FLEXIBLE_DURATION_EN = 'Any time today';
+
+    const BOOKING_SCHEDULE_PRESETS = {
+        flexible: {
+            en: [{ day: 'Daily', duration: FLEXIBLE_DURATION_EN, availability_description: 'Book ahead', is_available: true }],
+            zh: [{ day: '每日', duration: FLEXIBLE_DURATION_ZH, availability_description: '建議提前預約', is_available: true }]
+        },
+        morning: {
+            en: [{ day: 'Daily', duration: '06:00 – 09:30', start_time: '6:00 am', availability_description: '4 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '06:00 – 09:30', start_time: '上午 6:00', availability_description: '尚餘 4 位', is_available: true }]
+        },
+        lateMorning: {
+            en: [{ day: 'Daily', duration: '10:00 – 12:30', start_time: '10:00 am', availability_description: '6 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '10:00 – 12:30', start_time: '上午 10:00', availability_description: '尚餘 6 位', is_available: true }]
+        },
+        lunch: {
+            en: [{ day: 'Daily', duration: '11:30 – 14:00', start_time: '11:30 am', availability_description: '5 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '11:30 – 14:00', start_time: '上午 11:30', availability_description: '尚餘 5 位', is_available: true }]
+        },
+        afternoon: {
+            en: [{ day: 'Daily', duration: '14:00 – 17:00', start_time: '2:00 pm', availability_description: '8 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '14:00 – 17:00', start_time: '下午 2:00', availability_description: '尚餘 8 位', is_available: true }]
+        },
+        sunset: {
+            en: [{ day: 'Daily', duration: '17:00 – 19:30', start_time: '5:00 pm', availability_description: '6 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '17:00 – 19:30', start_time: '下午 5:00', availability_description: '尚餘 6 位', is_available: true }]
+        },
+        evening: {
+            en: [{ day: 'Daily', duration: '18:00 – 21:00', start_time: '6:00 pm', availability_description: '10 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '18:00 – 21:00', start_time: '下午 6:00', availability_description: '尚餘 10 位', is_available: true }]
+        },
+        weekendBrunch: {
+            en: [{ day: 'Sat–Sun', duration: '10:00 – 13:00', start_time: '10:00 am', availability_description: '8 spots', is_available: true }],
+            zh: [{ day: '週六至週日', duration: '10:00 – 13:00', start_time: '上午 10:00', availability_description: '尚餘 8 位', is_available: true }]
+        },
+        weekendMarket: {
+            en: [{ day: 'Sat–Sun', duration: '11:00 – 16:00', start_time: '11:00 am', availability_description: '12 spots', is_available: true }],
+            zh: [{ day: '週六至週日', duration: '11:00 – 16:00', start_time: '上午 11:00', availability_description: '尚餘 12 位', is_available: true }]
+        },
+        weekdayAfternoon: {
+            en: [{ day: 'Mon–Fri', duration: '14:00 – 17:00', start_time: '2:00 pm', availability_description: '6 spots', is_available: true }],
+            zh: [{ day: '週一至週五', duration: '14:00 – 17:00', start_time: '下午 2:00', availability_description: '尚餘 6 位', is_available: true }]
+        },
+        fridayNight: {
+            en: [{ day: 'Fri', duration: '19:00 – 22:00', start_time: '7:00 pm', availability_description: '12 spots', is_available: true }],
+            zh: [{ day: '週五', duration: '19:00 – 22:00', start_time: '下午 7:00', availability_description: '尚餘 12 位', is_available: true }]
+        },
+        sunrise: {
+            en: [{ day: 'Daily', duration: '05:00 – 07:30', start_time: '5:00 am', availability_description: '6 spots', is_available: true }],
+            zh: [{ day: '每日', duration: '05:00 – 07:30', start_time: '上午 5:00', availability_description: '尚餘 6 位', is_available: true }]
+        }
+    };
+
+    function isFlexibleDuration(text) {
+        const raw = String(text || '').trim();
+        if (!raw) return false;
+        const lower = raw.toLowerCase();
+        return lower === 'flexible'
+            || raw === '彈性'
+            || raw === FLEXIBLE_DURATION_ZH
+            || lower === FLEXIBLE_DURATION_EN.toLowerCase()
+            || /時段皆可預約/.test(raw);
+    }
+
+    function resolveBookingSchedule(spec) {
+        if (spec.availability && spec.availabilityZh) {
+            return { en: spec.availability, zh: spec.availabilityZh };
+        }
+        const key = spec.scheduleKey || pickScheduleKeyForRec(spec);
+        const preset = BOOKING_SCHEDULE_PRESETS[key] || BOOKING_SCHEDULE_PRESETS.flexible;
+        return { en: preset.en, zh: preset.zh };
+    }
+
+    function pickScheduleKeyForRec(spec) {
+        const haystack = [
+            spec.title, spec.titleZh, spec.category, spec.categoryZh, spec.description, spec.descriptionZh
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (/sunrise|balloon|熱氣球|日出|清晨|morning run|晨間|晨跑|jog|5\s*am|6\s*am|5 點|6 點/.test(haystack)) return 'sunrise';
+        if (/morning|kayak|獨木舟|breakfast|早餐|brunch|早午餐|market|市集|coffee|咖啡/.test(haystack)) return 'morning';
+        if (/sunset|夕|夕景|夕陽|golden hour|黃昏|dusk|riverside walk|河畔/.test(haystack)) return 'sunset';
+        if (/tea|茶席|afternoon|下午|museum|博物館|library|圖書|gallery|畫廊|workshop|工坊/.test(haystack)) return 'afternoon';
+        if (/night|samba|桑巴|night market|夜市|organ recital|管風琴|friday|週五晚/.test(haystack)) return 'fridayNight';
+        if (/evening|傍晚|walk|散步|stroll|散策|sunset walk/.test(haystack)) return 'evening';
+        if (/weekend|週末|saturday|週六|design|設計|indie|antique|古董|camden/.test(haystack)) return 'weekendMarket';
+        if (/food|美食|tasting|品嚐|lunch|午餐|brunch/.test(haystack)) return 'lunch';
+        if (/history|歷史|tour|導覽|culture|文化|reading|閱讀/.test(haystack)) return 'weekdayAfternoon';
+        if (/free|免費|outdoor|戶外|hike|步道|trail|park|公園|run loop|慢跑/.test(haystack)) return 'lateMorning';
+
+        const id = String(spec.id || '');
+        const presetKeys = Object.keys(BOOKING_SCHEDULE_PRESETS);
+        const idx = id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % presetKeys.length;
+        return presetKeys[idx];
+    }
+
     function makeRecFixture(spec) {
         const {
             id, title, titleZh, description, descriptionZh, category, categoryZh,
             rating, reviews, cover, priceLabel, priceLabelZh, extractedPrice = 0,
             hostName, hostAbout, hostAboutZh, locationEn, locationZh
         } = spec;
+        const schedule = resolveBookingSchedule(spec);
         return {
             experience: {
                 id,
@@ -159,7 +256,7 @@
                 agenda: [{ position: 1, title, description }],
                 location: { display_label: locationEn, locality: locationEn, country: '' },
                 price: { price_label: priceLabel, extracted_price: extractedPrice },
-                availability: [{ day: 'Daily', duration: 'Flexible', availability_description: 'Book ahead', is_available: true }],
+                availability: schedule.en,
                 guest_requirements: { min_age: 6, is_children_allowed: true },
                 accessibility_features: [{ name: 'Street-level access' }],
                 cancellation_policy: { name: 'Free cancellation', description: 'Up to 12 hours before' }
@@ -177,7 +274,7 @@
                     agenda: [{ position: 1, title: titleZh, description: descriptionZh }],
                     location: { display_label: locationZh },
                     price: { price_label: priceLabelZh },
-                    availability: [{ day: '每日', duration: '彈性', availability_description: '建議提前預約', is_available: true }],
+                    availability: schedule.zh,
                     host: { about: hostAboutZh, tagline: '在地精選・房東' },
                     reviews: [{ review_id: `r-${id}`, text: '非常道地的房東推薦。', rating: 5, user: { name: '房客', location: '本地' } }]
                 }
@@ -1078,8 +1175,8 @@
                         ${exp.category ? `<span class="inline-block text-xs font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-2 py-0.5 rounded-md mb-2">${escapeHtml(exp.category)}</span>` : ''}
                         <h2 class="text-md font-extrabold text-hp-dark leading-snug">${escapeHtml(exp.title)}</h2>
                         <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                            <span class="text-xs font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
-                            <span class="text-xs text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()} ${labels.reviewsCount})</span>
+                            <span class="text-xs font-bold text-hp-dark">★ ${formatRatingDisplay(exp.rating)}</span>
+                            <span class="text-xs text-hp-muted">(${formatReviewCount(exp.reviews)} ${labels.reviewsCount})</span>
                             <span class="text-xs font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
                             ${price.extracted_price != null && !isZh ? `<span class="text-xs text-hp-muted font-mono">extracted_price: ${price.extracted_price}</span>` : ''}
                         </div>
@@ -1143,7 +1240,7 @@
                             <div class="bg-white border border-hp-border rounded-xl p-3">
                                 <div class="flex justify-between items-center mb-1">
                                     <span class="text-xs font-bold text-hp-dark">${escapeHtml(r.user?.name || (isZh ? '旅客' : 'Guest'))}</span>
-                                    <span class="text-xs text-hp-coral">★ ${r.rating}</span>
+                                    <span class="text-xs text-hp-coral">★ ${formatRatingDisplay(r.rating)}</span>
                                 </div>
                                 <p class="text-xs text-[#332C2A] leading-relaxed">${escapeHtml(r.text || r.highlighted_comment)}</p>
                                 ${r.date ? `<p class="text-xs text-hp-muted mt-1">${escapeHtml(r.date)}</p>` : ''}
@@ -1171,7 +1268,7 @@
                                 ${s.images?.[0] ? `<img src="${escapeHtml(s.images[0])}" alt="" class="w-full h-20 object-cover bg-hp-bgLight shrink-0" onerror="${IMG_ONERROR}">` : `<div class="w-full h-20 bg-hp-bgLight flex items-center justify-center shrink-0"><i class="fa-solid fa-image text-hp-muted text-lg"></i></div>`}
                                 <div class="px-2.5 py-2">
                                     <p class="text-xs font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(s.title)}</p>
-                                    <p class="text-xs text-hp-muted mt-0.5">★ ${s.rating}${s.price ? ` · ${escapeHtml(s.price)}` : ''}</p>
+                                    <p class="text-xs text-hp-muted mt-0.5">★ ${formatRatingDisplay(s.rating)}${s.price ? ` · ${escapeHtml(s.price)}` : ''}</p>
                                 </div>
                             </button>`).join('')}
                     </div>
@@ -1221,8 +1318,8 @@
                         ${exp.category ? `<span class="inline-block text-[10px] font-bold text-hp-dark bg-hp-bgLight border border-hp-border px-1.5 py-0.5 rounded mb-1">${escapeHtml(exp.category)}</span>` : ''}
                         <h2 class="text-sm font-extrabold text-hp-dark leading-snug line-clamp-2">${escapeHtml(exp.title)}</h2>
                         <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
-                            <span class="text-[11px] font-bold text-hp-dark">★ ${exp.rating ?? '—'}</span>
-                            <span class="text-[10px] text-hp-muted">(${Number(exp.reviews || 0).toLocaleString()})</span>
+                            <span class="text-[11px] font-bold text-hp-dark">★ ${formatRatingDisplay(exp.rating)}</span>
+                            <span class="text-[10px] text-hp-muted">(${formatReviewCount(exp.reviews)})</span>
                             <span class="text-[11px] font-bold text-hp-coral">${escapeHtml(price.price_label || price.price || '')}</span>
                         </div>
                     </div>
@@ -1280,7 +1377,7 @@
                             <div class="bg-white border border-hp-border rounded-lg p-2">
                                 <div class="flex justify-between items-center gap-1 mb-0.5">
                                     <span class="text-[10px] font-bold text-hp-dark truncate">${escapeHtml(r.user?.name || (isZh ? '旅客' : 'Guest'))}</span>
-                                    <span class="text-[10px] text-hp-coral shrink-0">★ ${r.rating}</span>
+                                    <span class="text-[10px] text-hp-coral shrink-0">★ ${formatRatingDisplay(r.rating)}</span>
                                 </div>
                                 <p class="text-[10px] text-[#332C2A] line-clamp-3 leading-snug">${escapeHtml(r.text || r.highlighted_comment)}</p>
                             </div>`).join('')}
@@ -1306,7 +1403,7 @@
                                     ${s.images?.[0] ? `<img src="${escapeHtml(s.images[0])}" alt="" class="w-12 h-12 object-cover shrink-0 bg-hp-bgLight" onerror="${IMG_ONERROR}">` : ''}
                                     <div class="min-w-0 py-1 pr-1">
                                         <p class="text-[10px] font-bold text-hp-dark line-clamp-2 leading-snug">${escapeHtml(s.title)}</p>
-                                        <p class="text-[10px] text-hp-muted">★ ${s.rating}</p>
+                                        <p class="text-[10px] text-hp-muted">★ ${formatRatingDisplay(s.rating)}</p>
                                     </div>
                                 </button>`).join('')}
                         </div>
@@ -1740,6 +1837,24 @@
         return `${year}-${pad2(month)}-${pad2(day)}`;
     }
 
+    function bookingMonthStart(date = new Date()) {
+        const d = date instanceof Date ? date : new Date(date);
+        return new Date(d.getFullYear(), d.getMonth(), 1);
+    }
+
+    function todayBookingDateKey() {
+        const now = new Date();
+        return bookingDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    }
+
+    function filterPastBookingDateKeys(keys) {
+        const todayKey = todayBookingDateKey();
+        keys.forEach((key) => {
+            if (key < todayKey) keys.delete(key);
+        });
+        return keys;
+    }
+
     function getBookableDateKeys(availability, year, monthIndex) {
         const keys = new Set();
         const month = monthIndex + 1;
@@ -1759,6 +1874,10 @@
             const text = (slot.day || '').toLowerCase();
             if (/daily|每日/.test(text)) {
                 for (let d = 1; d <= lastDay; d++) addDay(d);
+                return;
+            }
+            if (/mon.*fri|週一.*週五|weekday/.test(text)) {
+                addWeekdayFilter([1, 2, 3, 4, 5]);
                 return;
             }
             if (/sat.*sun|sun.*sat|weekend|週末|週六.*週日|週六至週日/.test(text)) {
@@ -1787,32 +1906,37 @@
         });
 
         if (!keys.size) {
-            const ref = new Date(year, monthIndex, 24);
-            for (let i = 1; i <= 14; i++) {
-                const dt = new Date(ref);
-                dt.setDate(ref.getDate() + i);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            for (let i = 0; i < 14; i++) {
+                const dt = new Date(today);
+                dt.setDate(today.getDate() + i);
                 if (dt.getMonth() === monthIndex && dt.getFullYear() === year) {
                     addDay(dt.getDate());
                 }
             }
         }
 
-        return keys;
+        return filterPastBookingDateKeys(keys);
     }
 
     function format12hTime(h, min, isZh) {
+        const hour = Number(h);
+        const minute = Number(min);
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) return '';
         if (isZh) {
-            const period = h >= 12 ? '下午' : '上午';
-            const h12 = h % 12 || 12;
-            return `${period} ${h12}:${pad2(min)}`;
+            const period = hour >= 12 ? '下午' : '上午';
+            const h12 = hour % 12 || 12;
+            return `${period} ${h12}:${pad2(minute)}`;
         }
-        const ap = h >= 12 ? 'pm' : 'am';
-        const h12 = h % 12 || 12;
-        return `${h12}:${pad2(min)} ${ap}`;
+        const ap = hour >= 12 ? 'pm' : 'am';
+        const h12 = hour % 12 || 12;
+        return `${h12}:${pad2(minute)} ${ap}`;
     }
 
     function parseDurationMinutes(availability) {
         const slot = (availability || [])[0]?.duration || '';
+        if (isFlexibleDuration(slot)) return null;
         const m = slot.match(/(\d{1,2}):(\d{2})\s*[–\-]\s*(\d{1,2}):(\d{2})/);
         if (m) {
             const start = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
@@ -1822,12 +1946,28 @@
         return 120;
     }
 
-    function formatDurationLabel(minutes, isZh) {
+    function formatDurationLabel(minutes, isZh, availability) {
+        const slot = (availability || [])[0]?.duration || '';
+        if (isFlexibleDuration(slot)) {
+            return isZh ? FLEXIBLE_DURATION_ZH : FLEXIBLE_DURATION_EN;
+        }
+        if (minutes == null) return isZh ? FLEXIBLE_DURATION_ZH : FLEXIBLE_DURATION_EN;
         if (minutes % 60 === 0) {
             const h = minutes / 60;
             return isZh ? `${h} 小時` : `${h} hr${h > 1 ? 's' : ''}`;
         }
         return isZh ? `${minutes} 分鐘` : `${minutes} min`;
+    }
+
+    function appendHalfHourRange(out, seen, startMinutes, endMinutes) {
+        for (let t = startMinutes; t < endMinutes; t += 30) {
+            const h = Math.floor(t / 60);
+            const min = t % 60;
+            const label24 = `${pad2(h)}:${pad2(min)}`;
+            if (seen.has(label24)) continue;
+            seen.add(label24);
+            out.push({ value: label24, label24, label12: format12hTime(h, min, false) });
+        }
     }
 
     function generateHalfHourSlots(availability) {
@@ -1837,24 +1977,15 @@
         const sources = ranges.length ? ranges : [{ duration: '10:00 – 12:00' }];
         sources.forEach(src => {
             const text = src.duration || src.start_time || '';
-            const m = text.match(/(\d{1,2}):(\d{2})\s*[–\-]\s*(\d{1,2}):(\d{2})/);
-            if (!m) {
-                if (!seen.has(text)) {
-                    seen.add(text);
-                    out.push({ value: text, label24: text, label12: text });
-                }
+            if (isFlexibleDuration(text)) {
+                appendHalfHourRange(out, seen, 9 * 60, 21 * 60);
                 return;
             }
+            const m = text.match(/(\d{1,2}):(\d{2})\s*[–\-]\s*(\d{1,2}):(\d{2})/);
+            if (!m) return;
             const start = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
             const end = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
-            for (let t = start; t < end; t += 30) {
-                const h = Math.floor(t / 60);
-                const min = t % 60;
-                const label24 = `${pad2(h)}:${pad2(min)}`;
-                if (seen.has(label24)) continue;
-                seen.add(label24);
-                out.push({ value: label24, label24, label12: format12hTime(h, min, false) });
-            }
+            appendHalfHourRange(out, seen, start, end);
         });
         return out;
     }
@@ -1902,7 +2033,7 @@
             hostName: host.name || (isZh ? '體驗達人' : 'Host'),
             hostEmail: host.email || options.hostEmail || global.HOST_POCKET_BOOKING_EMAIL || '',
             hostAvatar: host.avatar || '',
-            duration: formatDurationLabel(minutes, isZh),
+            duration: formatDurationLabel(minutes, isZh, availability),
             durationMinutes: minutes,
             location: exp.meeting_point || exp.location?.display_label || exp.location?.address || (isZh ? '集合地點待確認' : 'Meeting point TBD'),
             timezone: options.timezone || 'Asia/Taipei'
@@ -1923,12 +2054,16 @@
                 <div class="border border-hp-border rounded-2xl bg-white p-4 min-h-[220px] flex flex-col">
                     <p class="text-xs font-bold text-hp-muted mb-3">${isZh ? '時段' : 'Time'}</p>
                     <div class="flex-1 flex items-center justify-center text-center">
-                        <p class="text-xs text-hp-muted leading-relaxed">${isZh ? '請先在左側日曆選擇日期' : 'Select a date on the calendar first'}</p>
+                        <p class="text-xs text-hp-muted leading-relaxed">${isZh ? '請先在日曆選擇日期' : 'Select a date on the calendar first'}</p>
                     </div>
                 </div>`;
         }
 
         const dayHeader = formatSelectedDayHeader(selectedDate, isZh);
+        const isFlexibleDay = (availability || []).some((slot) => isFlexibleDuration(slot.duration || slot.start_time || ''));
+        const flexHint = isFlexibleDay
+            ? `<p class="text-[10px] font-semibold text-hp-coral mb-2">${escapeHtml(isZh ? FLEXIBLE_DURATION_ZH : FLEXIBLE_DURATION_EN)}</p>`
+            : '';
         const slotButtons = slots.map(slot => {
             const label = use24 ? slot.label24 : (isZh ? format12hTime(parseInt(slot.label24.split(':')[0], 10), parseInt(slot.label24.split(':')[1], 10), true) : slot.label12);
             return `<button type="button" data-action="click->dashboard#confirmExpBooking" data-slot="${escapeHtml(slot.value)}"
@@ -1944,6 +2079,7 @@
                         ${fmtBtn('24', isZh ? '24 小時' : '24h')}
                     </div>
                 </div>
+                ${flexHint}
                 <div class="space-y-2 overflow-y-auto hide-scrollbar max-h-[240px] flex-1">${slotButtons}</div>
             </div>`;
     }
@@ -1955,11 +2091,14 @@
         const customTimezone = options.customTimezone ?? '';
         const showCustomTimezone = timezoneSelect === BOOKING_TIMEZONE_OTHER;
         const timeFormat = options.timeFormat || '24';
-        const viewDate = options.viewDate instanceof Date ? new Date(options.viewDate) : new Date(2026, 5, 1);
+        const viewDate = options.viewDate instanceof Date ? new Date(options.viewDate) : bookingMonthStart();
         const year = viewDate.getFullYear();
         const monthIndex = viewDate.getMonth();
         const selectedDate = options.selectedDate || null;
         const bookable = getBookableDateKeys(availability, year, monthIndex);
+        const todayKey = todayBookingDateKey();
+        const now = new Date();
+        const canPrevMonth = year > now.getFullYear() || (year === now.getFullYear() && monthIndex > now.getMonth());
 
         const monthLabel = isZh
             ? `${monthIndex + 1}月 ${year}`
@@ -1976,7 +2115,7 @@
             const key = bookingDateKey(year, monthIndex + 1, d);
             const available = bookable.has(key);
             const selected = selectedDate === key;
-            const today = year === 2026 && monthIndex === 5 && d === 24;
+            const today = key === todayKey;
             cells += `<button type="button" data-action="click->dashboard#selectBookingDate" data-date="${key}"
                 ${available ? '' : 'disabled'}
                 class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition
@@ -2038,7 +2177,8 @@
                             <span class="text-sm font-black text-hp-dark">${monthLabel}</span>
                             <div class="flex gap-1">
                                 <button type="button" data-action="click->dashboard#prevBookingMonth"
-                                        class="w-7 h-7 rounded-lg border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition">
+                                        ${canPrevMonth ? '' : 'disabled'}
+                                        class="w-7 h-7 rounded-lg border border-hp-border flex items-center justify-center text-hp-dark hover:border-hp-coral transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-hp-border">
                                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
                                 </button>
                                 <button type="button" data-action="click->dashboard#nextBookingMonth"
@@ -2116,6 +2256,28 @@
         return listing[`recExperienceId${recIndex}`] || null;
     }
 
+    function parseFiniteNumber(raw) {
+        if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function parseFiniteInt(raw) {
+        if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+        const n = parseInt(String(raw), 10);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function formatRatingDisplay(value) {
+        const n = parseFiniteNumber(value);
+        return n === null ? '—' : String(n);
+    }
+
+    function formatReviewCount(value) {
+        const n = parseFiniteInt(value);
+        return (n === null ? 0 : n).toLocaleString();
+    }
+
     function hasHostText(val) {
         return val !== undefined && val !== null && String(val).trim() !== '';
     }
@@ -2141,14 +2303,8 @@
     function getRecRatingFromListing(listingData, recIndex) {
         const num = Number(recIndex);
         if (!listingData || num < 1 || num > 4) return null;
-        const ratingRaw = listingData[`recRating${num}`];
-        const reviewsRaw = listingData[`recReviews${num}`];
-        const rating = ratingRaw !== undefined && ratingRaw !== null && String(ratingRaw).trim() !== ''
-            ? Number(ratingRaw)
-            : null;
-        const reviews = reviewsRaw !== undefined && reviewsRaw !== null && String(reviewsRaw).trim() !== ''
-            ? parseInt(String(reviewsRaw), 10)
-            : null;
+        const rating = parseFiniteNumber(listingData[`recRating${num}`]);
+        const reviews = parseFiniteInt(listingData[`recReviews${num}`]);
         if (rating === null && reviews === null) return null;
         return { rating, reviews };
     }
@@ -2183,8 +2339,8 @@
             descriptionZh: descZh || descEn || titleZh || titleEn,
             category: categoryEn || categoryZh || 'Experience',
             categoryZh: categoryZh || categoryEn || '體驗',
-            rating: rating ?? 0,
-            reviews: reviews ?? 0,
+            rating,
+            reviews,
             cover,
             priceLabel: priceEn || priceZh || '',
             priceLabelZh: priceZh || priceEn || '',
@@ -2198,8 +2354,8 @@
         payload.experience.media = media.length ? media : [{ type: 'image', url: cover }];
         payload.experience.cover_image = cover;
         applyRecVideoMedia(payload.experience, listingData, num, options.listingId);
-        if (rating !== null && rating !== undefined) payload.experience.rating = rating;
-        if (reviews !== null && reviews !== undefined) payload.experience.reviews = reviews;
+        if (rating !== null) payload.experience.rating = rating;
+        if (reviews !== null) payload.experience.reviews = reviews;
         if (hasHostText(categoryEn)) payload.experience.category = categoryEn;
         if (hasHostText(categoryZh) && payload.i18n?.zh) payload.i18n.zh.category = categoryZh;
         if (hasHostText(distEn)) {
@@ -2317,8 +2473,14 @@
         patchLayer(payload.experience, false);
         if (payload.i18n?.zh) patchLayer(payload.i18n.zh, true);
 
-        if (hasHostText(ratingVal)) payload.experience.rating = Number(ratingVal);
-        if (hasHostText(reviewsVal)) payload.experience.reviews = parseInt(String(reviewsVal), 10);
+        if (hasHostText(ratingVal)) {
+            const rating = parseFiniteNumber(ratingVal);
+            if (rating !== null) payload.experience.rating = rating;
+        }
+        if (hasHostText(reviewsVal)) {
+            const reviews = parseFiniteInt(reviewsVal);
+            if (reviews !== null) payload.experience.reviews = reviews;
+        }
         applyRecVideoMedia(payload.experience, listingData, num, options.listingId);
 
         if (hasHostText(hostFirstName(listingData, isZh)) || hasHostText(pick(descZh, descEn, isZh))) {
@@ -2358,6 +2520,8 @@
         isDesktopDetailLayout,
         renderBookingCalendar,
         getBookingMeta,
+        bookingMonthStart,
+        todayBookingDateKey,
         buildShareContext,
         buildGuideShareUrl,
         buildGuideBrowserUrl,
