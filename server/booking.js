@@ -65,8 +65,17 @@ async function createBooking(bookingInput) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(booking.date)) {
         throw new Error('Invalid date format (expected YYYY-MM-DD)');
     }
-    if (!/^\d{1,2}:\d{2}$/.test(booking.time)) {
+    const timeOk = /^\d{1,2}:\d{2}$/.test(booking.time)
+        || booking.time === '彈性'
+        || /any\s*time|flexible/i.test(booking.time);
+    if (!timeOk) {
         throw new Error('Invalid time format (expected HH:MM)');
+    }
+    if (booking.time === '彈性' || /any\s*time|flexible/i.test(booking.time)) {
+        booking.time = '00:00';
+        if (!booking.timeLabel) {
+            booking.timeLabel = booking.locale === 'en' ? 'Any time today' : '當日時段皆可預約';
+        }
     }
 
     if (!isEmailConfigured()) {

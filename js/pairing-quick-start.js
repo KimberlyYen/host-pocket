@@ -84,7 +84,7 @@
             : 'hp-pairing-quick-start space-y-3 shrink-0 mt-4';
 
         const footer = hideHeading ? '' : `
-    <div class="hp-pairing-quick-start__footer text-center pt-1">
+    <div class="hp-pairing-quick-start__footer text-center mt-4 pt-0">
         <a href="${escapeHtml(settingsHref)}"
            data-pairing-target="settingsLink"
            class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">

@@ -660,9 +660,30 @@ SMTP_APP_PASSWORD=xxxx xxxx xxxx xxxx
 
 | 端點 | 說明 |
 |------|------|
-| `GET /api/health` | 檢查 Resend / SMTP 是否已設定 |
+| `GET /api/health` | 檢查 Resend / SMTP / ECPay 是否已設定 |
 | `POST /api/booking` | 寄送預定確認信（body: guestEmail, title, date, time, timezone…） |
+| `POST /api/payment/ecpay/create` | 建立綠界 AIO 訂單，回傳導轉表單欄位 |
+| `POST /api/payment/ecpay/notify` | 綠界付款結果伺服器通知（ReturnURL） |
+| `POST /api/payment/ecpay/result` | 綠界付款完成導回（OrderResultURL） |
 | `POST /api/test-email` | 管理者 SMTP 測試寄信 |
+
+### 綠界 ECPay（體驗預定收款）
+
+房客在付費體驗按「付款並預定」後，會導向綠界全方位金流。**免費體驗**仍走原確認信／mailto，不開金流。
+
+本機測試（官方沙盒，免申請）：
+
+```
+ECPAY_USE_STAGE=1
+ECPAY_MODE=stage
+PUBLIC_BASE_URL=http://localhost:3000
+ECPAY_DEFAULT_AMOUNT=100
+```
+
+- 健康檢查：`/api/health` → `"ecpayConfigured": true`
+- 測試卡：`4311-9522-2222-2222`（安全碼任意）
+- 本機 `ReturnURL` 綠界伺服器打不到時，瀏覽器仍會回到 `payment-result.html`；完整 notify 請用公開網址（Vercel）或 ngrok
+- 正式環境：申請綠界特店後填 `ECPAY_MERCHANT_ID` / `ECPAY_HASH_KEY` / `ECPAY_HASH_IV`，並設 `ECPAY_MODE=production`
 
 #### Vercel 部署（https://host-pocket.vercel.app）
 
@@ -810,9 +831,14 @@ Admin test page: [email-test.html](email-test.html) (`/email-test.html`, not lin
 
 | Endpoint | Purpose |
 |----------|---------|
-| `GET /api/health` | Check whether Resend / SMTP is configured |
+| `GET /api/health` | Check whether Resend / SMTP / ECPay is configured |
 | `POST /api/booking` | Send booking confirmation email |
+| `POST /api/payment/ecpay/create` | Create ECPay AIO checkout form fields |
+| `POST /api/payment/ecpay/notify` | ECPay server ReturnURL |
+| `POST /api/payment/ecpay/result` | ECPay browser OrderResultURL |
 | `POST /api/test-email` | Admin SMTP test send |
+
+Local ECPay sandbox: set `ECPAY_USE_STAGE=1` (see `.env.example`). Test card `4311-9522-2222-2222`.
 
 ### Prototype tips
 

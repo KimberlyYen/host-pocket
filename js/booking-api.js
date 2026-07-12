@@ -29,7 +29,7 @@
 
     async function checkHealth() {
         if (global.HP_MOCK_DATA !== false) {
-            return { ok: true, mock: true, bookingConfigured: true };
+            return { ok: true, mock: true, bookingConfigured: true, ecpayConfigured: true };
         }
         const res = await fetch(`${getApiBase()}/api/health`);
         if (!res.ok) throw new Error('Health check failed');
@@ -75,6 +75,76 @@
         } catch {
             return false;
         }
+    }
+
+    async function isEcpayConfigured() {
+        if (global.HP_MOCK_DATA !== false) return true;
+        try {
+            const health = await checkHealth();
+            return Boolean(health.ecpayConfigured);
+        } catch {
+            return false;
+        }
+    }
+
+    async function createEcpayPayment(payload) {
+        if (global.HP_MOCK_DATA !== false) {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            return {
+                ok: true,
+                mock: true,
+                skipPayment: Number(payload.amountTwd) === 0,
+                amountTwd: payload.amountTwd == null ? 100 : Number(payload.amountTwd)
+            };
+        }
+
+        const base = getApiBase();
+        let res;
+        try {
+            res = await fetch(`${base}/api/payment/ecpay/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error(
+                base === BACKEND_ORIGIN
+                    ? `無法連線至綠界 API（${BACKEND_ORIGIN}）。${bookingServerHint()}`
+                    : `無法連線至綠界 API。${bookingServerHint()}`
+            );
+        }
+
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 503) {
+            const err = new Error(data.error || 'ECPay not configured');
+            err.code = 'ECPAY_NOT_CONFIGURED';
+            throw err;
+        }
+        if (!res.ok || !data.ok) {
+            throw new Error(data.error || `ECPay create failed (${res.status})`);
+        }
+        return data;
+    }
+
+    function submitEcpayForm(actionUrl, params) {
+        if (!actionUrl || !params) {
+            throw new Error('Missing ECPay checkout form');
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = actionUrl;
+        form.acceptCharset = 'UTF-8';
+        form.style.display = 'none';
+        Object.keys(params).forEach((key) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = params[key] == null ? '' : String(params[key]);
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        return { ok: true, method: 'ecpay' };
     }
 
     function buildBookingMailtoUrl(booking) {
@@ -123,7 +193,10 @@
         getApiBase,
         checkHealth,
         createBooking,
+        createEcpayPayment,
+        submitEcpayForm,
         isEmailApiConfigured,
+        isEcpayConfigured,
         buildBookingMailtoUrl,
         openBookingMailto
     };

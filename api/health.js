@@ -1,6 +1,7 @@
 const { isEmailConfigured } = require('../server/booking');
 const { isSmtpConfigured } = require('../server/smtp-mail');
 const { isDatabaseConfigured, checkDatabaseConnection } = require('../server/listing-settings');
+const { isEcpayConfigured } = require('../server/ecpay');
 
 module.exports = async (_req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,6 +12,7 @@ module.exports = async (_req, res) => {
     res.status(200).json({
         ok: true,
         bookingConfigured: isEmailConfigured(),
+        ecpayConfigured: isEcpayConfigured(),
         resendConfigured,
         smtpConfigured,
         dbConfigured: dbUrlSet,
