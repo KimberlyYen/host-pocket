@@ -119,9 +119,20 @@
                     <span data-global-lang="en" class="hidden">Back</span>
                 </button>
             </header>
+            <div class="hp-attraction-picker__toolbar">
+                <div data-attraction-picker-target="categories" class="hp-attraction-cats" role="tablist" aria-label="景點分類"></div>
+                <p data-attraction-picker-target="status" class="hp-attraction-status text-[10px] text-hp-muted px-1"></p>
+            </div>
             <div class="hp-attraction-picker__body">
                 <p data-attraction-picker-target="empty" class="hidden text-xs text-hp-muted text-center py-8">此 Listing 尚無景點範本</p>
                 <div data-attraction-picker-target="list" class="space-y-2"></div>
+            </div>
+            <div data-attraction-picker-target="pager" class="hp-attraction-pager">
+                <button type="button" data-attraction-picker-target="prevBtn" data-action="click->attraction-picker#prevPage"
+                        class="hp-attraction-pager__btn">上一頁</button>
+                <span data-attraction-picker-target="pageInfo" class="hp-attraction-pager__info">—</span>
+                <button type="button" data-attraction-picker-target="nextBtn" data-action="click->attraction-picker#nextPage"
+                        class="hp-attraction-pager__btn">下一頁</button>
             </div>
         </div>
     </div>
@@ -278,9 +289,85 @@
             border-bottom: 1px solid #EBE5DF;
             border-radius: 1.25rem 1.25rem 0 0;
         }
+        .hp-attraction-picker__toolbar {
+            background: white;
+            border-bottom: 1px solid #EBE5DF;
+            padding: 0.5rem 0.75rem 0.65rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .hp-attraction-cats {
+            display: flex;
+            gap: 0.35rem;
+            overflow-x: auto;
+            padding-bottom: 0.15rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .hp-attraction-cat {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid #EBE5DF;
+            background: #FAF8F5;
+            color: #8C807A;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+        }
+        .hp-attraction-cat:hover { border-color: #FF5B3E; color: #FF5B3E; }
+        .hp-attraction-cat.is-active {
+            background: #FF5B3E;
+            border-color: #FF5B3E;
+            color: #fff;
+        }
+        .hp-attraction-cat__count {
+            font-weight: 700;
+            opacity: 0.85;
+        }
+        .hp-attraction-status:empty,
+        .hp-attraction-status.hidden { display: none; }
         .hp-attraction-picker__body {
             overflow-y: auto;
             padding: 0.75rem;
+            flex: 1;
+            min-height: 0;
+        }
+        .hp-attraction-pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.65rem 0.75rem;
+            background: white;
+            border-top: 1px solid #EBE5DF;
+            border-radius: 0 0 1.25rem 1.25rem;
+        }
+        .hp-attraction-pager.hidden { display: none; }
+        .hp-attraction-pager__btn {
+            min-height: 2rem;
+            padding: 0 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #EBE5DF;
+            background: #FAF8F5;
+            color: #1F1A18;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .hp-attraction-pager__btn:hover:not(:disabled) { border-color: #FF5B3E; color: #FF5B3E; }
+        .hp-attraction-pager__btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .hp-attraction-pager__info {
+            font-size: 10px;
+            font-weight: 700;
+            color: #8C807A;
         }
         body.hp-attraction-picker-open { overflow: hidden; }
 
@@ -301,6 +388,7 @@
     <script src="/js/demo-theme-picker.js"></script>
     <script src="/js/host-settings-presets.js"></script>
     <script src="/js/host-image-upload.js"></script>
+    <script src="/js/geolocation.js"></script>
     <script src="/js/mock/attractions-by-listing.js"></script>
     <script src="/js/partials-client.js"></script>
     <script src="/js/controllers/application.js"></script>

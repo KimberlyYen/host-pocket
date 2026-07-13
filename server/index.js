@@ -13,6 +13,8 @@ const searchExperiences = require('../api/search/experiences');
 const searchExperienceDetails = require('../api/search/experience-details');
 const ecpayNotify = require('../api/payment/ecpay/notify');
 const ecpayResult = require('../api/payment/ecpay/result');
+const tourismNearby = require('../api/tourism/nearby');
+const { isTdxConfigured } = require('./tdx');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -43,6 +45,7 @@ app.get('/api/health', async (_req, res) => {
         ok: true,
         bookingConfigured: isEmailConfigured(),
         ecpayConfigured: isEcpayConfigured(),
+        tdxConfigured: isTdxConfigured(),
         resendConfigured,
         smtpConfigured,
         dbConfigured: dbUrlSet,
@@ -65,6 +68,7 @@ app.delete('/api/listings/:listingId/settings', (req, res) => {
 
 app.get('/api/search/experiences', (req, res) => searchExperiences(req, res));
 app.get('/api/search/experience-details', (req, res) => searchExperienceDetails(req, res));
+app.get('/api/tourism/nearby', (req, res) => tourismNearby(req, res));
 
 app.post('/api/booking', async (req, res) => {
     try {
