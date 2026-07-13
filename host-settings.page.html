@@ -41,9 +41,10 @@
                 <h1 class="text-sm font-black mt-0.5">編輯住宿指南</h1>
                 <p class="text-[10px] text-hp-muted mt-1">Wi‑Fi、門鎖、照片，以及要推薦給房客的地點</p>
             </div>
-            <a href="/" data-turbo="false" class="text-xs font-bold text-hp-coral hover:underline shrink-0 inline-flex items-center gap-1">
-                <span data-global-lang="zh">&lt; 返回</span>
-                <span data-global-lang="en" class="hidden">&lt; Back</span>
+            <a href="/" data-turbo="false" data-hp-step-back class="hp-back-btn text-xs font-bold text-hp-coral hover:underline shrink-0 inline-flex items-center gap-1" aria-label="上一步">
+                <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                <span data-global-lang="zh">上一步</span>
+                <span data-global-lang="en" class="hidden">Back</span>
             </a>
         </div>
     </header>
@@ -84,8 +85,11 @@
                         <button type="button" data-host-preview-target="langEnBtn" data-action="click->host-preview#switchLanguage" data-lang="en"
                                 class="hp-preview-lang__btn px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all">EN</button>
                     </div>
-                    <button type="button" data-host-preview-target="closeBtn" data-action="click->host-preview#close" class="shrink-0 w-9 h-9 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-hp-muted hover:text-hp-coral transition" aria-label="關閉預覽">
-                        <i class="fa-solid fa-xmark"></i>
+                    <button type="button" data-host-preview-target="closeBtn" data-action="click->host-preview#close" data-hp-step-back
+                            class="hp-back-btn shrink-0 inline-flex items-center gap-1 min-h-9 px-2.5 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-hp-muted hover:text-hp-coral transition" aria-label="上一步">
+                        <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                        <span data-global-lang="zh">上一步</span>
+                        <span data-global-lang="en" class="hidden">Back</span>
                     </button>
                 </div>
             </header>
@@ -108,8 +112,11 @@
                     <h2 id="attractionPickerTitle" data-attraction-picker-target="title" class="text-xs font-black">快速選擇景點</h2>
                     <p data-attraction-picker-target="subtitle" class="text-[10px] text-hp-muted mt-0.5 truncate"></p>
                 </div>
-                <button type="button" data-action="click->attraction-picker#close" class="shrink-0 w-9 h-9 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-hp-muted hover:text-hp-coral transition" aria-label="關閉">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" data-action="click->attraction-picker#close" data-hp-step-back
+                        class="hp-back-btn shrink-0 inline-flex items-center gap-1 min-h-9 px-2.5 rounded-xl border border-hp-border bg-white hover:border-hp-coral text-hp-muted hover:text-hp-coral transition" aria-label="上一步">
+                    <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                    <span data-global-lang="zh">上一步</span>
+                    <span data-global-lang="en" class="hidden">Back</span>
                 </button>
             </header>
             <div class="hp-attraction-picker__body">
@@ -303,5 +310,24 @@
     <script src="/js/controllers/attraction_picker_controller.js"></script>
     <script src="/js/controllers/host_preview_controller.js"></script>
     <script src="/js/controllers/host_settings_controller.js"></script>
+    <script>
+        (function () {
+            function applyLang(lang) {
+                const chosen = lang === 'en' ? 'en' : 'zh';
+                document.querySelectorAll('[data-global-lang]').forEach((el) => {
+                    el.classList.toggle('hidden', el.getAttribute('data-global-lang') !== chosen);
+                });
+                document.querySelectorAll('[data-hp-step-back]').forEach((el) => {
+                    el.setAttribute('aria-label', chosen === 'en' ? 'Back' : '上一步');
+                });
+            }
+            let lang = 'zh';
+            try {
+                const fromUrl = new URLSearchParams(window.location.search || '').get('lang');
+                if (fromUrl === 'en' || fromUrl === 'zh') lang = fromUrl;
+            } catch (_) { /* ignore */ }
+            applyLang(lang);
+        })();
+    </script>
 </body>
 </html>

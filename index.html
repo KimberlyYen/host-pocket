@@ -108,11 +108,18 @@
             font-weight: 800;
             letter-spacing: 0.01em;
             line-height: 1.2;
+            font-family: inherit;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
         }
         .hp-back-btn__chevron {
             font-size: 0.95em;
             font-weight: 800;
             line-height: 1;
+        }
+        .hp-back-btn--on-media {
+            background: rgba(255, 255, 255, 0.9);
         }
         html.hp-boot-dashboard [data-dashboard-target="airbnbListingCta"] {
             display: none !important;
@@ -534,10 +541,10 @@
                                 </g>
                             </svg>
                         </button>
-                        <button type="button" data-action="click->dashboard#goBackToPairing" data-dashboard-target="backBtn" aria-label="返回"
+                        <button type="button" data-action="click->dashboard#goBackToPairing" data-dashboard-target="backBtn" data-hp-step-back aria-label="上一步"
                                 class="hp-back-btn inline-flex items-center gap-1 -ml-2 min-h-10 px-1.5 text-hp-dark hover:text-hp-coral transition active:scale-95 shrink-0">
                             <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
-                            <span data-global-lang="zh">返回</span>
+                            <span data-global-lang="zh">上一步</span>
                             <span data-global-lang="en" class="hidden">Back</span>
                         </button>
                         <button type="button" data-hp-share-button data-dashboard-target="shareLink"
@@ -786,9 +793,11 @@
                                 <img data-dashboard-target="overlayHeroImg" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="Room Photo" class="w-full h-full object-cover transition-opacity duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent pointer-events-none"></div>
 
-                                <button type="button" data-action="click->dashboard#closeRoomOverlay" aria-label="關閉"
-                                        class="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur hover:bg-white flex items-center justify-center text-hp-dark shadow-md transition active:scale-95">
-                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                <button type="button" data-action="click->dashboard#closeRoomOverlay" data-hp-step-back aria-label="上一步"
+                                        class="hp-back-btn hp-back-btn--on-media absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-20 inline-flex items-center gap-1 min-h-8 px-2.5 rounded-full bg-white/90 backdrop-blur hover:bg-white text-hp-dark shadow-md transition active:scale-95">
+                                    <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                                    <span data-global-lang="zh">上一步</span>
+                                    <span data-global-lang="en" class="hidden">Back</span>
                                 </button>
 
                                 <button type="button" data-action="click->dashboard#prevRoomPhoto" aria-label="Previous photo"
@@ -880,22 +889,26 @@
 
                     <!-- Experience Details Overlay (Airbnb Experience Details API) -->
                     <div data-dashboard-target="expDetailOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col overflow-hidden">
-                        <button data-action="click->dashboard#closeExperienceDetail" aria-label="Close"
-                                class="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-50 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-hp-dark flex items-center justify-center shadow-md transition active:scale-95 pointer-events-auto">
-                            <i class="fa-solid fa-xmark text-sm"></i>
+                        <button type="button" data-action="click->dashboard#closeExperienceDetail" data-hp-step-back aria-label="上一步"
+                                class="hp-back-btn hp-back-btn--on-media absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-50 inline-flex items-center gap-1 min-h-8 px-2.5 rounded-full bg-white/90 hover:bg-white text-hp-dark shadow-md transition active:scale-95 pointer-events-auto">
+                            <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                            <span data-global-lang="zh">上一步</span>
+                            <span data-global-lang="en" class="hidden">Back</span>
                         </button>
                         <div data-dashboard-target="expDetailBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar"></div>
                         <div data-dashboard-target="expDetailBookingBar" class="shrink-0"></div>
                         <!-- Booking Calendar Sheet -->
                         <div data-dashboard-target="expBookingOverlay" class="absolute inset-0 bg-[#FAF8F5] z-[60] transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                             <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-[max(2.75rem,env(safe-area-inset-top))]">
-                                <button type="button" data-action="click->dashboard#closeExpBookingCalendar" aria-label="Close calendar"
-                                        class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
-                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                <button type="button" data-action="click->dashboard#closeExpBookingCalendar" data-hp-step-back aria-label="上一步"
+                                        class="hp-back-btn inline-flex items-center gap-1 -ml-1.5 min-h-8 px-1.5 text-hp-dark hover:text-hp-coral transition">
+                                    <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                                    <span data-global-lang="zh">上一步</span>
+                                    <span data-global-lang="en" class="hidden">Back</span>
                                 </button>
                                 <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">選擇日期</span>
                                 <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Select Date</span>
-                                <div class="w-8"></div>
+                                <span class="w-16" aria-hidden="true"></span>
                             </div>
                             <div data-dashboard-target="expBookingCalendar" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar p-5 pb-8"></div>
                         </div>
@@ -978,13 +991,16 @@
                         <div class="relative bg-[#FAF8F5] rounded-t-3xl shadow-2xl max-h-[85%] flex flex-col transform translate-y-full transition-transform duration-500 ease-out" data-dashboard-target="expShareSheet">
                             <div class="shrink-0 px-5 pt-3 pb-4 border-b border-hp-border bg-white rounded-t-3xl">
                                 <div class="w-10 h-1 bg-hp-border rounded-full mx-auto mb-4"></div>
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between gap-3">
+                                    <button type="button" data-action="click->dashboard#closeExpShareSheet" data-hp-step-back aria-label="上一步"
+                                            class="hp-back-btn inline-flex items-center gap-1 -ml-1.5 min-h-8 px-1.5 text-hp-dark hover:text-hp-coral transition">
+                                        <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                                        <span data-global-lang="zh">上一步</span>
+                                        <span data-global-lang="en" class="hidden">Back</span>
+                                    </button>
                                     <h3 class="text-sm font-black text-hp-dark" data-share-sheet-title="zh" data-global-lang="zh">分享體驗</h3>
                                     <h3 class="text-sm font-black text-hp-dark hidden" data-share-sheet-title="en" data-global-lang="en">Share experience</h3>
-                                    <button type="button" data-action="click->dashboard#closeExpShareSheet" aria-label="Close"
-                                            class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
-                                        <i class="fa-solid fa-xmark text-sm"></i>
-                                    </button>
+                                    <span class="w-16" aria-hidden="true"></span>
                                 </div>
                             </div>
                             <div data-dashboard-target="expShareBody" class="flex-1 min-h-0 overflow-y-auto hide-scrollbar p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"></div>
@@ -1012,12 +1028,15 @@
                     <!-- Help / Contact Host Overlay -->
                     <div data-dashboard-target="helpOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <div class="px-5 py-4 flex items-center justify-between bg-white shrink-0 pt-10">
-                            <button data-action="click->dashboard#closeHelpOverlay" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
-                                <i class="fa-solid fa-xmark text-sm"></i>
+                            <button type="button" data-action="click->dashboard#closeHelpOverlay" data-hp-step-back aria-label="上一步"
+                                    class="hp-back-btn inline-flex items-center gap-1 -ml-1.5 min-h-8 px-1.5 text-hp-dark hover:text-hp-coral transition">
+                                <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                                <span data-global-lang="zh">上一步</span>
+                                <span data-global-lang="en" class="hidden">Back</span>
                             </button>
                             <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">求助房東</span>
                             <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Contact Host</span>
-                            <div class="w-8"></div>
+                            <span class="w-16" aria-hidden="true"></span>
                         </div>
                         <div class="flex-grow overflow-y-auto hide-scrollbar p-5 space-y-4">
                             <div class="flex items-center gap-3.5 pb-4">
@@ -1043,12 +1062,15 @@
                     <!-- Lock Guide Overlay -->
                     <div data-dashboard-target="lockOverlay" class="absolute inset-0 bg-[#FAF8F5] z-50 transform translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
                         <div class="px-5 py-4 border-b border-hp-border flex items-center justify-between bg-white shrink-0 pt-10">
-                            <button data-action="click->dashboard#closeLockGuide" class="w-8 h-8 rounded-full bg-hp-bgLight hover:bg-hp-border/50 flex items-center justify-center text-hp-dark transition">
-                                <i class="fa-solid fa-xmark text-sm"></i>
+                            <button type="button" data-action="click->dashboard#closeLockGuide" data-hp-step-back aria-label="上一步"
+                                    class="hp-back-btn inline-flex items-center gap-1 -ml-1.5 min-h-8 px-1.5 text-hp-dark hover:text-hp-coral transition">
+                                <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                                <span data-global-lang="zh">上一步</span>
+                                <span data-global-lang="en" class="hidden">Back</span>
                             </button>
                             <span class="text-xs font-black tracking-widest text-hp-dark uppercase" data-global-lang="zh">大門解鎖步驟</span>
                             <span class="text-xs font-black tracking-widest text-hp-dark uppercase hidden" data-global-lang="en">Door Access</span>
-                            <div class="w-8"></div>
+                            <span class="w-16" aria-hidden="true"></span>
                         </div>
                         <div class="flex-grow overflow-y-auto hide-scrollbar p-5 space-y-4">
                             <div class="flex items-center gap-3 pb-4 border-b border-hp-border">
@@ -1096,6 +1118,19 @@
 
             <!-- 畫面 3：實境探索 -->
             <div data-controller="explorer" data-app-target="screen" data-screen="explorer" class="app-screen absolute inset-0 flex flex-col bg-[#EADCC9] text-hp-dark overflow-hidden">
+                    <div class="shrink-0 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 flex items-center justify-between relative z-20 bg-[#EADCC9]/95 backdrop-blur-sm">
+                        <button type="button" data-action="click->global#navigateToDashboard" data-hp-step-back aria-label="上一步"
+                                class="hp-back-btn inline-flex items-center gap-1 -ml-2 min-h-10 px-1.5 text-hp-dark hover:text-hp-coral transition active:scale-95 shrink-0">
+                            <span class="hp-back-btn__chevron" aria-hidden="true">&lt;</span>
+                            <span data-global-lang="zh">上一步</span>
+                            <span data-global-lang="en" class="hidden">Back</span>
+                        </button>
+                        <span class="text-xs font-black tracking-widest text-hp-dark uppercase">
+                            <span data-global-lang="zh">實境探索</span>
+                            <span data-global-lang="en" class="hidden">Explore</span>
+                        </span>
+                        <span class="w-16" aria-hidden="true"></span>
+                    </div>
                     <div class="flex flex-col flex-1 min-h-0 pb-14 overflow-hidden">
                         <!-- Map View -->
                         <div class="relative flex-1 min-h-[38%] overflow-hidden">
@@ -2157,6 +2192,10 @@
                         this.enBtnTarget.className = 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-hp-coral text-white shadow-sm';
                     }
                 }
+
+                document.querySelectorAll('[data-hp-step-back]').forEach((el) => {
+                    el.setAttribute('aria-label', chosenLang === 'en' ? 'Back' : '上一步');
+                });
 
                 this.updateActiveLangUI();
                 document.title = chosenLang === 'zh' ? '房東私藏' : 'host-pocket';

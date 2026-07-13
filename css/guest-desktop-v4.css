@@ -855,7 +855,7 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         opacity: 1;
     }
 
-    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal > button[aria-label="Close"] {
+    html.hp-v4-desktop [data-dashboard-target="expDetailOverlay"].hp-exp-detail--modal > [data-hp-step-back] {
         top: 0.75rem;
         left: 0.75rem;
         right: auto;
@@ -1108,6 +1108,10 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         font-size: 0.95em;
         font-weight: 800;
         line-height: 1;
+    }
+
+    .hp-back-btn--on-media {
+        backdrop-filter: blur(8px);
     }
 
     .hp-mobile-home-logo {
