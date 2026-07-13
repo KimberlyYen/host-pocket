@@ -8,7 +8,7 @@
 
     /** Host Pocket SaaS plan — keep in sync with pricing panel copy. */
     const PRICING = {
-        amount: 10,
+        amount: 40,
         currency: 'NT$',
         intervalZh: '月',
         intervalEn: 'mo',
