@@ -120,6 +120,15 @@
                 </button>
             </header>
             <div class="hp-attraction-picker__toolbar">
+                <label class="hp-attraction-search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search"
+                           data-attraction-picker-target="search"
+                           data-action="input->attraction-picker#onSearch"
+                           placeholder="搜尋景點名稱…"
+                           autocomplete="off"
+                           enterkeyhint="search">
+                </label>
                 <div data-attraction-picker-target="categories" class="hp-attraction-cats" role="tablist" aria-label="景點分類"></div>
                 <p data-attraction-picker-target="status" class="hp-attraction-status text-[10px] text-hp-muted px-1"></p>
             </div>
@@ -297,6 +306,38 @@
             flex-direction: column;
             gap: 0.4rem;
         }
+        .hp-attraction-search {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 0.75rem;
+            border: 1px solid #EBE5DF;
+            background: #FAF8F5;
+        }
+        .hp-attraction-search:focus-within {
+            border-color: #FF5B3E;
+            background: #fff;
+        }
+        .hp-attraction-search i {
+            color: #8C807A;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .hp-attraction-search input {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            outline: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1F1A18;
+        }
+        .hp-attraction-search input::placeholder {
+            color: #8C807A;
+            font-weight: 500;
+        }
         .hp-attraction-cats {
             display: flex;
             gap: 0.35rem;
@@ -384,6 +425,7 @@
     <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>
     <script src="/js/listing-settings-api.js"></script>
+    <script src="/js/rec-slots.js"></script>
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/demo-theme-picker.js"></script>
     <script src="/js/host-settings-presets.js"></script>

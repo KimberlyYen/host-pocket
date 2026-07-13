@@ -4,6 +4,20 @@
     const _pending = Object.create(null);
     let _dbAvailable = null;
 
+    const MAX_REC_SLOTS = global.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+    function fallbackRecFields(max) {
+        const fields = [];
+        for (let i = 1; i <= max; i += 1) {
+            fields.push(
+                `recExperienceId${i}`, `recTitle${i}Zh`, `recTitle${i}En`, `recImg${i}`,
+                `recBadge${i}Zh`, `recBadge${i}En`, `recDist${i}Zh`, `recDist${i}En`,
+                `recPrice${i}Zh`, `recPrice${i}En`, `recRating${i}`, `recReviews${i}`,
+                `recCategory${i}Zh`, `recCategory${i}En`, `desc${i}Zh`, `desc${i}En`,
+                `recExplorerDist${i}Zh`, `recExplorerDist${i}En`, `recExplorerEst${i}Zh`, `recExplorerEst${i}En`
+            );
+        }
+        return fields;
+    }
     const EDITABLE_FIELDS = [
         'hostNameZh', 'hostNameEn',
         'roomTitleZh', 'roomTitleEn',
@@ -11,26 +25,7 @@
         'listingLabelZh', 'listingLabelEn',
         'wifi', 'lockCode', 'lockZh', 'lockEn', 'hostEmail',
         'roomImg',
-        'recExperienceId1', 'recTitle1Zh', 'recTitle1En', 'recImg1',
-        'recBadge1Zh', 'recBadge1En', 'recDist1Zh', 'recDist1En',
-        'recPrice1Zh', 'recPrice1En', 'recRating1', 'recReviews1',
-        'recCategory1Zh', 'recCategory1En', 'desc1Zh', 'desc1En',
-        'recExplorerDist1Zh', 'recExplorerDist1En', 'recExplorerEst1Zh', 'recExplorerEst1En',
-        'recExperienceId2', 'recTitle2Zh', 'recTitle2En', 'recImg2',
-        'recBadge2Zh', 'recBadge2En', 'recDist2Zh', 'recDist2En',
-        'recPrice2Zh', 'recPrice2En', 'recRating2', 'recReviews2',
-        'recCategory2Zh', 'recCategory2En', 'desc2Zh', 'desc2En',
-        'recExplorerDist2Zh', 'recExplorerDist2En', 'recExplorerEst2Zh', 'recExplorerEst2En',
-        'recExperienceId3', 'recTitle3Zh', 'recTitle3En', 'recImg3',
-        'recBadge3Zh', 'recBadge3En', 'recDist3Zh', 'recDist3En',
-        'recPrice3Zh', 'recPrice3En', 'recRating3', 'recReviews3',
-        'recCategory3Zh', 'recCategory3En', 'desc3Zh', 'desc3En',
-        'recExplorerDist3Zh', 'recExplorerDist3En', 'recExplorerEst3Zh', 'recExplorerEst3En',
-        'recExperienceId4', 'recTitle4Zh', 'recTitle4En', 'recImg4',
-        'recBadge4Zh', 'recBadge4En', 'recDist4Zh', 'recDist4En',
-        'recPrice4Zh', 'recPrice4En', 'recRating4', 'recReviews4',
-        'recCategory4Zh', 'recCategory4En', 'desc4Zh', 'desc4En',
-        'recExplorerDist4Zh', 'recExplorerDist4En', 'recExplorerEst4Zh', 'recExplorerEst4En',
+        ...(global.HostPocketRecSlots?.buildAllRecFields?.(MAX_REC_SLOTS) || fallbackRecFields(MAX_REC_SLOTS)),
         'targetTitleZh', 'targetTitleEn', 'descZh', 'descEn',
         'explorerDistZh', 'explorerDistEn', 'explorerEstZh', 'explorerEstEn'
     ];
@@ -90,17 +85,22 @@
         return Object.keys(readAllLocal()).sort();
     }
 
-    function pickEditable(source) {
+    function pickEditable(source, options = {}) {
+        const allowEmpty = new Set(options.allowEmpty || []);
         const out = {};
         EDITABLE_FIELDS.forEach((key) => {
-            if (source[key] !== undefined && source[key] !== null && String(source[key]).trim() !== '') {
-                out[key] = source[key];
+            if (source[key] === undefined || source[key] === null) return;
+            const asString = String(source[key]);
+            if (asString.trim() === '') {
+                if (allowEmpty.has(key)) out[key] = '';
+                return;
             }
+            out[key] = source[key];
         });
         if (Array.isArray(source.roomGallery) && source.roomGallery.length) {
             out.roomGallery = source.roomGallery.filter(Boolean);
         }
-        for (let i = 1; i <= 4; i += 1) {
+        for (let i = 1; i <= MAX_REC_SLOTS; i += 1) {
             const key = `recGallery${i}`;
             if (Array.isArray(source[key]) && source[key].length) {
                 out[key] = source[key].filter(Boolean);
@@ -167,8 +167,16 @@
                     if (_dbAvailable !== true) _dbAvailable = false;
                 }
             }
+            const local = loadLocal(id);
             if (!overrides) {
-                overrides = loadLocal(id);
+                overrides = local;
+            } else if (local && typeof local === 'object') {
+                // Prefer local mirror when it is newer (e.g. just-saved slots the DB omitted).
+                const localTs = Date.parse(local.updatedAt || '') || 0;
+                const remoteTs = Date.parse(overrides.updatedAt || '') || 0;
+                if (localTs >= remoteTs) {
+                    overrides = { ...overrides, ...local };
+                }
             }
             setCacheEntry(id, overrides);
             delete _pending[id];
@@ -201,14 +209,40 @@
             // continue with local/preset merge
         }
         const existing = load(id) || {};
-        const payload = pickEditable({ ...existing, ...(data || {}) });
+        const formData = data || {};
+        const experienceClearKeys = Array.from({ length: MAX_REC_SLOTS }, (_, i) => `recExperienceId${i + 1}`);
+        const payload = pickEditable(
+            { ...existing, ...formData },
+            { allowEmpty: experienceClearKeys }
+        );
+        // Empty experience IDs mean "clear legacy demo id" so merges don't keep Mia/Emma IDs.
+        experienceClearKeys.forEach((key) => {
+            if (!Object.prototype.hasOwnProperty.call(formData, key)) return;
+            if (String(formData[key] || '').trim() === '') {
+                payload[key] = '';
+            }
+        });
         payload.updatedAt = new Date().toISOString();
 
         if (await isDatabaseAvailable()) {
             const record = await ListingSettingsAPI.saveSettings(id, payload);
-            const saved = { ...(record.data || payload), updatedAt: record.updatedAt || payload.updatedAt };
+            const fromDb = record?.data && typeof record.data === 'object' ? record.data : {};
+            // Payload wins so client-submitted slots (e.g. 5–10) are not lost if the
+            // server process is still running an older EDITABLE_FIELDS list.
+            const saved = {
+                ...fromDb,
+                ...payload,
+                updatedAt: record.updatedAt || payload.updatedAt
+            };
             setCacheEntry(id, saved);
             removeLocal(id);
+            // Keep a local mirror so preview/guest can still read the latest save
+            // even before the next DB fetch.
+            try {
+                saveLocal(id, saved);
+            } catch {
+                // ignore quota / private mode
+            }
             return saved;
         }
 
@@ -251,7 +285,7 @@
 
     const REC_BLOCK_FIELDS = EDITABLE_FIELDS.filter((key) =>
         /^rec(ExperienceId|[A-Za-z]+\d)/.test(key)
-        || /^desc[1-4]/.test(key)
+        || /^desc([1-9]|10)/.test(key)
         || /^recExplorer/.test(key)
         || key.startsWith('targetTitle')
         || key === 'descZh'
@@ -266,11 +300,25 @@
         return [1, 2, 3, 4].some((i) => legacy.has(String(data[`recExperienceId${i}`] || '').trim()));
     }
 
+    /**
+     * Old DB rows may still store Mia/Emma demo experience IDs.
+     * Clear only those IDs so host-edited / TDX titles are not wiped on load.
+     */
     function stripLegacyDemoRecOverrides(listingId, overrides) {
-        if (!overrides || !usesLegacyDemoRecs(listingId, overrides)) return overrides;
+        if (!overrides) return overrides;
+        const legacy = LEGACY_DEMO_REC_IDS[normalizeListingId(listingId)];
+        if (!legacy) return overrides;
+
         const out = { ...overrides };
-        REC_BLOCK_FIELDS.forEach((key) => { delete out[key]; });
-        return out;
+        let stripped = false;
+        for (let i = 1; i <= 4; i += 1) {
+            const key = `recExperienceId${i}`;
+            const expId = String(out[key] || '').trim();
+            if (!legacy.has(expId)) continue;
+            delete out[key];
+            stripped = true;
+        }
+        return stripped ? out : overrides;
     }
 
     function merge(base, overrides) {

@@ -700,10 +700,10 @@
                             </div>
 
                             <!-- Carousel -->
-                            <div class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
+                            <div data-dashboard-target="recCarousel" class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
                                 
                                 <!-- Card 1 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition" data-rec-card="1">
                                     <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="1"
                                          class="w-full text-left cursor-pointer active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative bg-black">
@@ -726,7 +726,7 @@
                                 </div>
 
                                 <!-- Card 2 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition" data-rec-card="2">
                                     <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="2"
                                          class="w-full text-left cursor-pointer active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative bg-black">
@@ -749,7 +749,7 @@
                                 </div>
 
                                 <!-- Card 3 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition" data-rec-card="3">
                                     <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="3"
                                          class="w-full text-left cursor-pointer active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative bg-black">
@@ -772,7 +772,7 @@
                                 </div>
 
                                 <!-- Card 4 -->
-                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition">
+                                <div class="min-w-[210px] w-[210px] snap-start bg-white rounded-2xl overflow-hidden shadow-sm border border-hp-border group text-left hover:border-hp-coral transition" data-rec-card="4">
                                     <div role="button" tabindex="0" data-action="click->dashboard#openExperienceDetail" data-rec="4"
                                          class="w-full text-left cursor-pointer active:scale-[0.98] transition">
                                     <div class="h-32 overflow-hidden relative bg-black">
@@ -1380,6 +1380,7 @@
     <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>
     <script src="/js/listing-settings-api.js"></script>
+    <script src="/js/rec-slots.js"></script>
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/booking-api.js"></script>
     <script src="/js/rec-card-videos.js"></script>
@@ -1493,19 +1494,29 @@
 
             const video = root.querySelector(`[data-dashboard-target="recVideo${num}"]`);
             const videoUrl = getRecCardVideoUrl(data, listingId, num);
+            const cover = String(data?.[`recImg${num}`] || '').trim();
 
             if (!video) return;
 
             if (!videoUrl) {
-                video.classList.add('hidden');
-                video.pause();
-                video.removeAttribute('src');
-                video.removeAttribute('poster');
+                if (cover) {
+                    video.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                    video.pause();
+                    video.removeAttribute('src');
+                    video.poster = cover;
+                    video.load();
+                } else {
+                    video.classList.add('hidden');
+                    video.pause();
+                    video.removeAttribute('src');
+                    video.removeAttribute('poster');
+                }
                 return;
             }
 
             video.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-            video.removeAttribute('poster');
+            if (cover) video.poster = cover;
+            else video.removeAttribute('poster');
             video.onerror = () => {
                 video.onerror = null;
                 const fallback = REC_CARD_VIDEO_DEFAULT;
@@ -1517,7 +1528,7 @@
                     playRecCardVideo(video);
                 }
             };
-            const mediaKey = `${String(listingId || '').trim().toUpperCase()}:${num}:${videoUrl}`;
+            const mediaKey = `${String(listingId || '').trim().toUpperCase()}:${num}:${videoUrl}:${cover}`;
             if (video.dataset.hpRecMediaKey !== mediaKey) {
                 video.dataset.hpRecMediaKey = mediaKey;
                 video.dataset.hpRecVideoSrc = videoUrl;
@@ -1539,12 +1550,39 @@
         }
 
         function setAllRecCardMedia(data, root, listingId) {
-            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+            const count = ensureGuestRecCards(root, data);
+            for (let i = 1; i <= count; i += 1) {
                 setRecCardMedia(i, data, root, listingId);
             }
         }
 
-        const LOCAL_REC_COUNT = 4;
+        const LOCAL_REC_COUNT = window.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+        const DEFAULT_REC_COUNT = window.HostPocketRecSlots?.DEFAULT_REC_SLOTS || 4;
+
+        function ensureGuestRecCards(root, data) {
+            const carousel = root?.querySelector('[data-dashboard-target="recCarousel"]');
+            if (!carousel || !window.HostPocketRecSlots?.buildGuestRecCardHtml) {
+                return DEFAULT_REC_COUNT;
+            }
+
+            const needed = Math.max(
+                DEFAULT_REC_COUNT,
+                window.HostPocketRecSlots.highestFilledRecSlot(data, LOCAL_REC_COUNT)
+            );
+
+            for (let i = 1; i <= needed; i += 1) {
+                if (carousel.querySelector(`[data-rec-card="${i}"]`)) continue;
+                carousel.insertAdjacentHTML('beforeend', window.HostPocketRecSlots.buildGuestRecCardHtml(i));
+            }
+
+            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+                const card = carousel.querySelector(`[data-rec-card="${i}"]`);
+                if (!card) continue;
+                card.classList.toggle('hidden', i > needed);
+            }
+
+            return needed;
+        }
 
         function getRecExplorerDetail(data, recIndex) {
             const num = Number(recIndex);
@@ -1650,7 +1688,8 @@
         function hpFindRecIndexForExperience(listingData, experienceId) {
             const expId = String(experienceId || '').trim();
             if (!expId || !listingData) return null;
-            const match = [1, 2, 3, 4].find((i) => String(listingData[`recExperienceId${i}`] || '').trim() === expId);
+            const match = Array.from({ length: LOCAL_REC_COUNT }, (_, i) => i + 1)
+                .find((i) => String(listingData[`recExperienceId${i}`] || '').trim() === expId);
             return match || null;
         }
 
@@ -1791,9 +1830,10 @@
         function hpSyncRecCardRatings(root, listingId, listingData) {
             if (!window.ExperienceDetailsAPI) return;
             const data = listingData || getGuestListingData(listingId);
-            [1, 2, 3, 4].forEach((recIndex) => {
+            const count = ensureGuestRecCards(root, data);
+            for (let recIndex = 1; recIndex <= count; recIndex += 1) {
                 const target = root.querySelector(`[data-dashboard-target="recRating${recIndex}"]`);
-                if (!target) return;
+                if (!target) continue;
 
                 const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
                 if (fromListing?.rating != null && Number.isFinite(fromListing.rating)) {
@@ -1801,25 +1841,25 @@
                     target.title = fromListing.reviews != null && Number.isFinite(fromListing.reviews)
                         ? `${fromListing.reviews} reviews`
                         : '';
-                    return;
+                    continue;
                 }
 
                 if (window.HP_MOCK_DATA === false) {
                     target.textContent = '';
                     target.title = '';
-                    return;
+                    continue;
                 }
 
                 const expId = getExperienceIdForRec(listingId, recIndex);
                 const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                 if (!fixture?.experience) {
                     target.textContent = '';
-                    return;
+                    continue;
                 }
                 const { rating, reviews } = fixture.experience;
                 target.textContent = `★ ${rating}`;
                 target.title = `${reviews} reviews`;
-            });
+            }
         }
 
         function hpApplyGuideDashboardData(root, data, listingId) {
@@ -1860,7 +1900,8 @@
                 if (img && heroSrc) setImgWithFallback(img, heroSrc, IMAGE_FALLBACKS.room);
             });
 
-            for (let i = 1; i <= LOCAL_REC_COUNT; i += 1) {
+            const recCount = ensureGuestRecCards(root, data);
+            for (let i = 1; i <= recCount; i += 1) {
                 setText(`recTitle${i}`, data[`recTitle${i}Zh`], data[`recTitle${i}En`]);
                 setText(`recBadge${i}`, data[`recBadge${i}Zh`], data[`recBadge${i}En`]);
                 setText(`recDist${i}`, data[`recDist${i}Zh`], data[`recDist${i}En`]);
@@ -2619,7 +2660,7 @@
                 "recVideo2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "recVideo3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
-                "stayGuides", "localRecs",
+                "stayGuides", "localRecs", "recCarousel",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "mobileHomeLogo", "headerBar", "airbnbListingCta",
                 "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmAmount", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
@@ -2993,28 +3034,17 @@
 
                 setAllRecCardMedia(data, this.element, id);
                 requestAnimationFrame(() => replayAllRecCardVideos(this.element));
-                if (this.hasRecTitle1Target) {
-                    this.recTitle1Target.innerText = isZh ? (data.recTitle1Zh || '') : (data.recTitle1En || '');
+                const recCount = ensureGuestRecCards(this.element, data);
+                for (let recIndex = 1; recIndex <= recCount; recIndex += 1) {
+                    const setRecText = (suffix, zhKey, enKey) => {
+                        const el = this.element.querySelector(`[data-dashboard-target="rec${suffix}${recIndex}"]`);
+                        if (el) el.innerText = isZh ? (data[zhKey] || '') : (data[enKey] || '');
+                    };
+                    setRecText('Title', `recTitle${recIndex}Zh`, `recTitle${recIndex}En`);
+                    setRecText('Badge', `recBadge${recIndex}Zh`, `recBadge${recIndex}En`);
+                    setRecText('Dist', `recDist${recIndex}Zh`, `recDist${recIndex}En`);
+                    setRecText('Price', `recPrice${recIndex}Zh`, `recPrice${recIndex}En`);
                 }
-                if (this.hasRecBadge1Target) this.recBadge1Target.innerText = isZh ? data.recBadge1Zh : data.recBadge1En;
-                if (this.hasRecDist1Target) this.recDist1Target.innerText = isZh ? data.recDist1Zh : data.recDist1En;
-                if (this.hasRecPrice1Target) this.recPrice1Target.innerText = isZh ? data.recPrice1Zh : data.recPrice1En;
-                if (this.hasRecTitle2Target) {
-                    this.recTitle2Target.innerText = isZh ? (data.recTitle2Zh || '') : (data.recTitle2En || '');
-                }
-                if (this.hasRecBadge2Target) this.recBadge2Target.innerText = isZh ? data.recBadge2Zh : data.recBadge2En;
-                if (this.hasRecDist2Target) this.recDist2Target.innerText = isZh ? data.recDist2Zh : data.recDist2En;
-                if (this.hasRecPrice2Target) this.recPrice2Target.innerText = isZh ? data.recPrice2Zh : data.recPrice2En;
-                [3, 4].forEach((recIndex) => {
-                    const titleTarget = this[`recTitle${recIndex}Target`];
-                    if (titleTarget) titleTarget.innerText = isZh ? data[`recTitle${recIndex}Zh`] : data[`recTitle${recIndex}En`];
-                    const badgeTarget = this[`recBadge${recIndex}Target`];
-                    if (this[`hasRecBadge${recIndex}Target`]) badgeTarget.innerText = isZh ? data[`recBadge${recIndex}Zh`] : data[`recBadge${recIndex}En`];
-                    const distTarget = this[`recDist${recIndex}Target`];
-                    if (this[`hasRecDist${recIndex}Target`]) distTarget.innerText = isZh ? data[`recDist${recIndex}Zh`] : data[`recDist${recIndex}En`];
-                    const priceTarget = this[`recPrice${recIndex}Target`];
-                    if (this[`hasRecPrice${recIndex}Target`]) priceTarget.innerText = isZh ? data[`recPrice${recIndex}Zh`] : data[`recPrice${recIndex}En`];
-                });
                 this.syncRecCardRatings(id, data);
 
                 // Also sync targets of the hidden/connectable Airbnb room details overlay!
@@ -3184,10 +3214,10 @@
             syncRecCardRatings(listingId, listingData) {
                 if (!window.ExperienceDetailsAPI) return;
                 const data = listingData || this.currentListingData || getGuestListingData(listingId);
-                [1, 2, 3, 4].forEach(recIndex => {
-                    const target = this[`recRating${recIndex}Target`];
-                    const hasTarget = this[`hasRecRating${recIndex}Target`];
-                    if (!hasTarget || !target) return;
+                const count = ensureGuestRecCards(this.element, data);
+                for (let recIndex = 1; recIndex <= count; recIndex += 1) {
+                    const target = this.element.querySelector(`[data-dashboard-target="recRating${recIndex}"]`);
+                    if (!target) continue;
 
                     const fromListing = data && ExperienceDetailsAPI.getRecRatingFromListing(data, recIndex);
                     if (fromListing?.rating != null && Number.isFinite(fromListing.rating)) {
@@ -3195,25 +3225,25 @@
                         target.title = fromListing.reviews != null && Number.isFinite(fromListing.reviews)
                             ? `${fromListing.reviews} reviews`
                             : '';
-                        return;
+                        continue;
                     }
 
                     if (window.HP_MOCK_DATA === false) {
                         target.innerText = '';
                         target.title = '';
-                        return;
+                        continue;
                     }
 
                     const expId = getExperienceIdForRec(listingId, recIndex);
                     const fixture = expId && ExperienceDetailsAPI.FIXTURES[expId];
                     if (!fixture?.experience) {
                         target.innerText = '';
-                        return;
+                        continue;
                     }
                     const { rating, reviews } = fixture.experience;
                     target.innerText = `★ ${rating}`;
                     target.title = `${reviews} reviews`;
-                });
+                }
             }
 
             getShareLinkOptions() {
@@ -3234,7 +3264,8 @@
                 const listingData = await hpResolveListingDataAsync(id);
                 let recIndex = hpFindRecIndexForExperience(listingData, expIdNorm);
                 if (!recIndex) {
-                    recIndex = [1, 2, 3, 4].find(i => getExperienceIdForRec(id, i) === expIdNorm) || 1;
+                    recIndex = Array.from({ length: LOCAL_REC_COUNT }, (_, i) => i + 1)
+                        .find(i => getExperienceIdForRec(id, i) === expIdNorm) || 1;
                 }
                 this.currentExpRecIndex = recIndex;
 

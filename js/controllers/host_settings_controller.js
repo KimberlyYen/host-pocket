@@ -7,7 +7,10 @@
     const { Controller } = Stimulus;
 
     global.registerHostSettingsController('host-settings', class extends Controller {
-        static targets = ['formFrame', 'form', 'statusMsg', 'errorMsg', 'basicInfoListingId'];
+        static targets = [
+            'formFrame', 'form', 'statusMsg', 'errorMsg', 'basicInfoListingId',
+            'extraRecSlots', 'addRecBtn', 'addRecHint'
+        ];
 
         static outlets = ['listing-selector', 'host-preview'];
 
@@ -18,6 +21,92 @@
         connect() {
             void global.HostGuideSettings?.isDatabaseAvailable?.();
             this.reloadFormFrame(this.resolveInitialListing());
+        }
+
+        maxRecSlots() {
+            return global.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+        }
+
+        defaultRecSlots() {
+            return global.HostPocketRecSlots?.DEFAULT_REC_SLOTS || 4;
+        }
+
+        nextRecSlotIndex() {
+            if (!this.hasFormTarget) return this.defaultRecSlots() + 1;
+            let highest = this.defaultRecSlots();
+            this.formTarget.querySelectorAll('[data-rec-slot], [data-experience-pick-index-value]').forEach((el) => {
+                const n = Number(el.getAttribute('data-rec-slot') || el.getAttribute('data-experience-pick-index-value'));
+                if (Number.isFinite(n) && n > highest) highest = n;
+            });
+            // Slots 1–4 live in static partials without data-rec-slot on the outer card.
+            for (let i = 1; i <= this.maxRecSlots(); i += 1) {
+                if (this.formTarget.querySelector(`[name="recTitle${i}Zh"]`)) {
+                    highest = Math.max(highest, i);
+                }
+            }
+            return highest + 1;
+        }
+
+        syncAddRecButton() {
+            const next = this.nextRecSlotIndex();
+            const atMax = next > this.maxRecSlots();
+            if (this.hasAddRecBtnTarget) {
+                this.addRecBtnTarget.disabled = atMax;
+                this.addRecBtnTarget.classList.toggle('opacity-40', atMax);
+                this.addRecBtnTarget.classList.toggle('pointer-events-none', atMax);
+            }
+            if (this.hasAddRecHintTarget) {
+                this.addRecHintTarget.textContent = atMax
+                    ? '已達上限（景點 10）'
+                    : `可新增至景點 ${this.maxRecSlots()}`;
+            }
+        }
+
+        appendRecSlot(slot) {
+            const n = Number(slot);
+            if (!Number.isFinite(n) || n < 5 || n > this.maxRecSlots()) return false;
+            if (!this.hasFormTarget) return false;
+            if (this.formTarget.querySelector(`[name="recTitle${n}Zh"]`)) return false;
+
+            const html = global.HostPocketRecSlots?.buildExperiencePickHtml?.(n);
+            if (!html) return false;
+
+            const mount = this.hasExtraRecSlotsTarget
+                ? this.extraRecSlotsTarget
+                : this.formTarget.querySelector('[data-host-settings-target="extraRecSlots"]');
+
+            if (mount) {
+                mount.insertAdjacentHTML('beforeend', html);
+            } else {
+                const actions = this.formTarget.querySelector('[data-host-settings-target="statusMsg"]')?.closest('div');
+                if (actions) actions.insertAdjacentHTML('beforebegin', html);
+                else this.formTarget.insertAdjacentHTML('beforeend', html);
+            }
+
+            this.syncAddRecButton();
+            return true;
+        }
+
+        ensureExtraRecSlots(data) {
+            const needed = global.HostPocketRecSlots?.highestFilledRecSlot?.(data, this.maxRecSlots())
+                || this.defaultRecSlots();
+            for (let i = this.defaultRecSlots() + 1; i <= needed; i += 1) {
+                this.appendRecSlot(i);
+            }
+            this.syncAddRecButton();
+        }
+
+        addRecSlot() {
+            const next = this.nextRecSlotIndex();
+            if (next > this.maxRecSlots()) {
+                this.showError(`最多只能設定 ${this.maxRecSlots()} 個推薦景點`);
+                return;
+            }
+            if (!this.appendRecSlot(next)) return;
+            const panel = this.formTarget.querySelector(`[data-rec-slot="${next}"] details`);
+            if (panel) panel.open = true;
+            panel?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+            this.showStatus(`已新增推薦地點 ${next}`);
         }
 
         resolveInitialListing() {
@@ -214,6 +303,8 @@
         fillForm(data) {
             if (!this.hasFormTarget) return;
 
+            this.ensureExtraRecSlots(data || {});
+
             global.HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
                 const el = this.formField(name);
                 if (el) el.value = data[name] ?? '';
@@ -226,6 +317,7 @@
             }
 
             this.syncFormWidgets();
+            this.syncAddRecButton();
         }
 
         readForm() {
@@ -294,8 +386,13 @@
 
         async submitSettings() {
             try {
-                const { id, mode } = await this.persistFormSettings();
-                const data = await this.loadFormData(id);
+                const { id, mode, formData } = await this.persistFormSettings();
+                let data = await this.loadFormData(id);
+                // Prefer just-saved form values so newly added rec slots stay visible
+                // even if a stale API response omitted them.
+                if (formData && global.HostGuideSettings?.merge) {
+                    data = global.HostGuideSettings.merge(data || {}, formData);
+                }
                 if (this.hasFormTarget) this.fillForm(data);
 
                 this.showStatus(mode === 'database' ? '已儲存' : '已儲存（本機瀏覽器）');

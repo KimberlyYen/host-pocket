@@ -85,7 +85,7 @@
     }
 
     function applyRecVideoMedia(exp, listingData, recIndex, listingId) {
-        if (!exp || Number(recIndex) < 1 || Number(recIndex) > 4) return;
+        if (!exp || Number(recIndex) < 1 || Number(recIndex) > 10) return;
 
         delete exp._mediaImagesOnly;
         const resolvedListingId = String(listingId || listingData?.listingId || '').trim().toUpperCase();

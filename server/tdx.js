@@ -53,7 +53,8 @@ async function getAccessToken() {
 async function fetchNearbyTourism({ longitude, latitude, distance = 500 }) {
     const lng = Number(longitude);
     const lat = Number(latitude);
-    const dist = Math.min(Math.max(Number(distance) || 500, 1), 5000);
+    // TDX Nearby rejects Distance > 1000 (returns HTTP 400 with empty body).
+    const dist = Math.min(Math.max(Math.round(Number(distance) || 500), 1), 1000);
 
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
         throw new Error('Invalid coordinates. Expected numeric longitude (X) and latitude (Y).');
@@ -63,9 +64,12 @@ async function fetchNearbyTourism({ longitude, latitude, distance = 500 }) {
     }
 
     const token = await getAccessToken();
+    // Round to ~0.1m precision — long float strings can confuse some TDX validators.
+    const x = Number(lng.toFixed(6));
+    const y = Number(lat.toFixed(6));
     const url = new URL(NEARBY_URL);
-    url.searchParams.set('X', String(lng));
-    url.searchParams.set('Y', String(lat));
+    url.searchParams.set('X', String(x));
+    url.searchParams.set('Y', String(y));
     url.searchParams.set('Distance', String(dist));
 
     const response = await fetch(url.toString(), {
@@ -75,12 +79,21 @@ async function fetchNearbyTourism({ longitude, latitude, distance = 500 }) {
         }
     });
 
-    const data = await response.json().catch(() => ({}));
+    const rawText = await response.text();
+    let data = {};
+    try {
+        data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+        data = { message: rawText };
+    }
+
     if (!response.ok) {
         const message = data.error?.message
             || data.message
             || data.error
-            || `TDX Nearby request failed (${response.status})`;
+            || (response.status === 400
+                ? 'TDX Nearby rejected the query (Distance must be 1–1000 meters).'
+                : `TDX Nearby request failed (${response.status})`);
         const err = new Error(typeof message === 'string' ? message : JSON.stringify(message));
         err.status = response.status;
         throw err;
@@ -89,8 +102,8 @@ async function fetchNearbyTourism({ longitude, latitude, distance = 500 }) {
     const value = normalizeNearbyValue(data);
     return {
         ok: true,
-        x: lng,
-        y: lat,
+        x,
+        y,
         distance: dist,
         count: value.length,
         value,
@@ -99,8 +112,9 @@ async function fetchNearbyTourism({ longitude, latitude, distance = 500 }) {
 }
 
 function normalizeNearbyValue(data) {
-    if (Array.isArray(data?.value)) return data.value;
-    if (Array.isArray(data)) return data;
+    // Prefer a non-empty OData-style list; ignore empty `value: []` placeholders.
+    if (Array.isArray(data?.value) && data.value.length) return data.value;
+    if (Array.isArray(data) && data.length) return data;
 
     const groups = [
         ['attraction', data?.RelatedAttractions],
@@ -110,7 +124,16 @@ function normalizeNearbyValue(data) {
         ['trail', data?.RelatedTrails],
         ['cycling', data?.RelatedCyclingRoutes],
         ['event', data?.RelatedEvents],
-        ['bus', data?.RelatedBusStations]
+        ['bus', data?.RelatedBusStations],
+        ['bus', data?.RelatedBusStops],
+        ['bus', data?.RelatedInterCityBusStations],
+        ['bus', data?.RelatedInterCityBusStops],
+        ['bike', data?.RelatedBikeStations],
+        ['metro', data?.RelatedMetroStations],
+        ['rail', data?.RelatedThsrRailStations],
+        ['rail', data?.RelatedTraRailStations],
+        ['airport', data?.RelatedAirports],
+        ['port', data?.RelatedPorts]
     ];
 
     const out = [];
@@ -118,17 +141,19 @@ function normalizeNearbyValue(data) {
         if (!Array.isArray(list)) continue;
         for (const item of list) {
             if (!item || typeof item !== 'object') continue;
+            const name = item.AttractionName || item.RestaurantName || item.HotelName
+                || item.TourismServiceName || item.TrailName || item.RouteName
+                || item.EventName || item.StationName || item.Name || null;
             out.push({
+                ...item,
                 type,
                 id: item.AttractionID || item.RestaurantID || item.HotelID
                     || item.TourismServiceID || item.TrailID || item.RouteID
                     || item.EventID || item.StationUID || item.StationID || null,
-                name: item.AttractionName || item.RestaurantName || item.HotelName
-                    || item.TourismServiceName || item.TrailName || item.RouteName
-                    || item.EventName || item.StationName || item.Name || null,
+                name,
+                AttractionName: item.AttractionName || (type === 'attraction' ? name : item.AttractionName),
                 lat: item.PositionLat ?? item.Latitude ?? null,
-                lng: item.PositionLon ?? item.Longitude ?? null,
-                ...item
+                lng: item.PositionLon ?? item.Longitude ?? null
             });
         }
     }

@@ -10,5 +10,15 @@
     {{> host_settings/sections/experience_pick_2}}
     {{> host_settings/sections/experience_pick_3}}
     {{> host_settings/sections/experience_pick_4}}
+    <div data-host-settings-target="extraRecSlots" class="space-y-4"></div>
+    <div class="space-y-1.5">
+        <button type="button"
+                data-host-settings-target="addRecBtn"
+                data-action="click->host-settings#addRecSlot"
+                class="w-full px-3 py-2.5 rounded-xl border border-dashed border-hp-coral/40 bg-hp-coral/5 text-xs font-bold text-hp-coral hover:bg-hp-coral/10 transition">
+            + 新增推薦景點
+        </button>
+        <p data-host-settings-target="addRecHint" class="text-[11px] text-hp-muted text-center">最多 10 個</p>
+    </div>
     {{> host_settings/form_actions}}
 </form>

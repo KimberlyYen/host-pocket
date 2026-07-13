@@ -3,9 +3,8 @@
 
     const { Controller } = Stimulus;
 
-    const IMAGE_FALLBACK = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80';
     const PAGE_SIZE = 10;
-    const NEARBY_DISTANCE_M = 2000;
+    const NEARBY_DISTANCE_M = 1000;
 
     const TYPE_META = {
         all: { zh: '全部', en: 'All' },
@@ -16,20 +15,12 @@
         trail: { zh: '步道', en: 'Trails' },
         cycling: { zh: '自行車', en: 'Cycling' },
         event: { zh: '活動', en: 'Events' },
-        service: { zh: '服務', en: 'Services' },
-        template: { zh: '範本', en: 'Templates' }
-    };
-
-    const TYPE_IMAGES = {
-        attraction: 'https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=300&q=80',
-        restaurant: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=300&q=80',
-        hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80',
-        bus: 'https://images.unsplash.com/photo-1544620341-5adcce6e85ad?auto=format&fit=crop&w=300&q=80',
-        trail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=300&q=80',
-        cycling: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=300&q=80',
-        event: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80',
-        service: IMAGE_FALLBACK,
-        template: IMAGE_FALLBACK
+        bike: { zh: 'YouBike', en: 'Bike' },
+        metro: { zh: '捷運', en: 'Metro' },
+        rail: { zh: '鐵路', en: 'Rail' },
+        airport: { zh: '機場', en: 'Airport' },
+        port: { zh: '港口', en: 'Port' },
+        service: { zh: '服務', en: 'Services' }
     };
 
     function haversineMeters(lat1, lng1, lat2, lng2) {
@@ -58,13 +49,14 @@
     global.registerHostSettingsController('attraction-picker', class extends Controller {
         static targets = [
             'modal', 'backdrop', 'list', 'title', 'subtitle', 'empty',
-            'categories', 'status', 'pager', 'pageInfo', 'prevBtn', 'nextBtn'
+            'categories', 'status', 'pager', 'pageInfo', 'prevBtn', 'nextBtn', 'search'
         ];
 
         connect() {
             this.pickIndex = null;
             this.items = [];
             this.category = 'all';
+            this.query = '';
             this.page = 1;
             this.origin = null;
             this.source = null;
@@ -82,6 +74,7 @@
 
             this.pickIndex = index;
             this.category = 'all';
+            this.query = '';
             this.page = 1;
             this.items = [];
             this.origin = null;
@@ -91,19 +84,20 @@
             this.subtitleTarget.textContent = '正在取得附近景點…';
             this.emptyTarget.classList.add('hidden');
             this.listTarget.innerHTML = '';
+            if (this.hasSearchTarget) this.searchTarget.value = '';
             this.setStatus('定位並載入 TDX 附近資料中…');
             this.renderCategories([]);
             this.renderPager(0);
             this.show();
 
             try {
-                const loaded = await this.loadNearbyItems();
-                if (!loaded) {
-                    this.loadTemplateFallback();
+                const result = await this.loadNearbyItems();
+                if (!result.ok) {
+                    this.showApiEmpty(result.reason || 'load-failed');
                 }
             } catch (error) {
                 console.warn('[attraction-picker]', error);
-                this.loadTemplateFallback();
+                this.showApiEmpty(error?.message || 'load-failed');
             }
 
             this.refreshView();
@@ -111,7 +105,9 @@
 
         async loadNearbyItems() {
             const geo = await this.resolveGeolocation();
-            if (!geo) return false;
+            if (!geo) {
+                return { ok: false, reason: 'no-location' };
+            }
 
             this.origin = { lat: geo.lat, lng: geo.lng };
             const url = new URL('/api/tourism/nearby', global.location.origin);
@@ -123,21 +119,60 @@
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.ok === false) {
                 this.setStatus(data.error || `載入失敗（${response.status}）`);
-                return false;
+                return { ok: false, reason: data.error || `http-${response.status}` };
             }
 
-            const rows = Array.isArray(data.value) ? data.value : [];
+            const rows = this.extractNearbyRows(data);
             this.items = rows
                 .map((row) => this.mapNearbyRow(row, geo))
                 .filter((item) => item?.titleZh);
             this.source = 'tdx';
             this.subtitleTarget.textContent = `依目前位置 · ${NEARBY_DISTANCE_M}m 內 · ${this.items.length} 筆`;
-            return this.items.length > 0;
+
+            if (!this.items.length) {
+                return { ok: false, reason: 'empty' };
+            }
+            return { ok: true };
+        }
+
+        extractNearbyRows(data) {
+            if (Array.isArray(data?.value) && data.value.length) return data.value;
+            const raw = data?.raw && typeof data.raw === 'object' ? data.raw : data;
+            const groups = [
+                raw?.RelatedAttractions,
+                raw?.RelatedRestaurants,
+                raw?.RelatedHotels,
+                raw?.RelatedTourismServiceSites,
+                raw?.RelatedTrails,
+                raw?.RelatedCyclingRoutes,
+                raw?.RelatedEvents,
+                raw?.RelatedBusStations,
+                raw?.RelatedBusStops,
+                raw?.RelatedBikeStations,
+                raw?.RelatedMetroStations
+            ];
+            const rows = [];
+            groups.forEach((list) => {
+                if (!Array.isArray(list)) return;
+                list.forEach((item) => {
+                    if (!item || typeof item !== 'object') return;
+                    const type = item.AttractionName ? 'attraction'
+                        : item.RestaurantName ? 'restaurant'
+                            : item.HotelName ? 'hotel'
+                                : item.StationName ? 'bus'
+                                    : item.TrailName ? 'trail'
+                                        : item.type || 'attraction';
+                    rows.push({ ...item, type, name: item.AttractionName || item.RestaurantName
+                        || item.HotelName || item.StationName || item.TrailName || item.Name || item.name });
+                });
+            });
+            return rows;
         }
 
         async resolveGeolocation() {
             if (global.HostPocketGeolocation?.request) {
-                return global.HostPocketGeolocation.request({ force: false, timeoutMs: 10000 });
+                // Prefer a live fix when opening the picker so results match the user.
+                return global.HostPocketGeolocation.request({ force: true, timeoutMs: 12000 });
             }
             if (!global.navigator?.geolocation) return null;
 
@@ -150,37 +185,46 @@
                         at: Date.now()
                     }),
                     () => resolve(null),
-                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
                 );
             });
         }
 
-        loadTemplateFallback() {
-            const listingId = this.readListingId();
-            const catalog = global.HostSettingsAttractions?.getForListing(listingId);
-            if (!catalog?.known || !catalog.attractions?.length) {
-                this.items = [];
-                this.source = 'empty';
-                this.subtitleTarget.textContent = `Listing「${listingId}」尚無資料，且附近 API 無法載入。`;
-                this.setStatus('請允許定位，或改選示範主題後再試。');
+        showApiEmpty(reason) {
+            this.items = [];
+            this.source = 'empty';
+            if (reason === 'no-location') {
+                this.subtitleTarget.textContent = '需要位置權限才能載入附近景點';
+                this.setStatus('請允許瀏覽器定位後，再點一次「快速選擇景點」。');
                 return;
             }
-
-            this.items = catalog.attractions.map((item) => ({
-                ...item,
-                type: 'template',
-                _source: 'template'
-            }));
-            this.source = 'template';
-            this.subtitleTarget.textContent = `${catalog.label} 範本（${listingId}）· 定位／Nearby 不可用時的備援`;
-            this.setStatus('已改用示範範本。允許定位後可載入附近真實景點。');
+            if (reason === 'empty') {
+                this.subtitleTarget.textContent = `附近 ${NEARBY_DISTANCE_M}m 尚無 TDX 資料`;
+                this.setStatus('請稍後再試，或手動填寫推薦地點。');
+                return;
+            }
+            this.subtitleTarget.textContent = '無法從 TDX API 取得資料';
+            this.setStatus(typeof reason === 'string' && reason !== 'load-failed'
+                ? reason
+                : '請確認已設定 TDX_CLIENT_ID／TDX_CLIENT_SECRET，並重新整理後再試。');
         }
 
         mapNearbyRow(row, geo) {
             const type = row.type || 'attraction';
             const meta = TYPE_META[type] || TYPE_META.attraction;
-            const name = String(row.name || row.AttractionName || row.RestaurantName
-                || row.HotelName || row.StationName || '').trim();
+            // Prefer official TDX name fields (AttractionName / RestaurantName / …).
+            const name = String(
+                row.AttractionName
+                || row.RestaurantName
+                || row.HotelName
+                || row.TourismServiceName
+                || row.TrailName
+                || row.RouteName
+                || row.EventName
+                || row.StationName
+                || row.name
+                || ''
+            ).trim();
             if (!name) return null;
 
             const id = String(row.id || row.AttractionID || row.RestaurantID
@@ -193,18 +237,20 @@
             return {
                 id,
                 type,
-                experienceId: '',
+                attractionName: name,
+                experienceId: id ? `tdx:${id}` : '',
                 titleZh: name,
                 titleEn: name,
-                img: TYPE_IMAGES[type] || IMAGE_FALLBACK,
+                // Cover image is uploaded by the host — never fill from API / stock photos.
+                img: '',
                 badgeZh: meta.zh,
                 badgeEn: meta.en,
                 distZh: dist.zh,
                 distEn: dist.en,
-                priceZh: type === 'attraction' || type === 'trail' ? '免費／現場計價' : '現場計價',
-                priceEn: 'Check on site',
-                descZh: `附近推薦（TDX）：${name}`,
-                descEn: `Nearby tip (TDX): ${name}`,
+                priceZh: '',
+                priceEn: '',
+                descZh: '',
+                descEn: '',
                 explorerDistZh: dist.zh,
                 explorerDistEn: dist.en,
                 lat: Number.isFinite(lat) ? lat : null,
@@ -221,22 +267,45 @@
                 || 'TAIPEI-CITY';
         }
 
+        matchQuery(item, query) {
+            if (!query) return true;
+            const haystack = [
+                item.titleZh, item.titleEn, item.attractionName,
+                item.badgeZh, item.badgeEn
+            ].map((v) => String(v || '').toLowerCase()).join(' ');
+            return haystack.includes(query);
+        }
+
+        itemsMatchingSearch() {
+            const q = String(this.query || '').trim().toLowerCase();
+            if (!q) return this.items;
+            return this.items.filter((item) => this.matchQuery(item, q));
+        }
+
         filteredItems() {
-            if (this.category === 'all') return this.items;
-            return this.items.filter((item) => item.type === this.category);
+            const list = this.itemsMatchingSearch();
+            if (this.category === 'all') return list;
+            return list.filter((item) => item.type === this.category);
         }
 
         availableCategories() {
+            const list = this.itemsMatchingSearch();
             const counts = new Map();
-            this.items.forEach((item) => {
+            list.forEach((item) => {
                 const key = item.type || 'attraction';
                 counts.set(key, (counts.get(key) || 0) + 1);
             });
-            const cats = [{ id: 'all', count: this.items.length }];
+            const cats = [{ id: 'all', count: list.length }];
             Array.from(counts.entries())
                 .sort((a, b) => b[1] - a[1])
                 .forEach(([id, count]) => cats.push({ id, count }));
             return cats;
+        }
+
+        onSearch(event) {
+            this.query = event.currentTarget?.value || '';
+            this.page = 1;
+            this.refreshView();
         }
 
         refreshView() {
@@ -250,13 +319,19 @@
             if (!filtered.length) {
                 this.listTarget.innerHTML = '';
                 this.emptyTarget.classList.remove('hidden');
-                this.emptyTarget.textContent = this.source === 'empty'
-                    ? '目前沒有可選景點'
-                    : '此分類尚無資料';
-                this.renderPager(0);
-                if (this.source === 'tdx') {
-                    this.setStatus('附近沒有找到資料，可稍後再試或改用手動填寫。');
+                const q = String(this.query || '').trim();
+                if (q) {
+                    this.emptyTarget.textContent = `找不到「${q}」相關景點`;
+                    this.setStatus('請換個關鍵字，或切換分類後再試。');
+                } else {
+                    this.emptyTarget.textContent = this.source === 'empty'
+                        ? '目前沒有可選的 API 景點'
+                        : '此分類尚無資料';
+                    if (this.source === 'tdx') {
+                        this.setStatus('附近沒有找到資料，可稍後再試或手動填寫。');
+                    }
                 }
+                this.renderPager(0);
                 return;
             }
 
@@ -268,7 +343,9 @@
 
             const from = start + 1;
             const to = start + pageItems.length;
-            this.setStatus(`顯示第 ${from}–${to} 筆，共 ${filtered.length} 筆（每頁 ${PAGE_SIZE} 筆）`);
+            const q = String(this.query || '').trim();
+            const searchNote = q ? ` · 搜尋「${q}」` : '';
+            this.setStatus(`顯示第 ${from}–${to} 筆，共 ${filtered.length} 筆（每頁 ${PAGE_SIZE} 筆）${searchNote}`);
         }
 
         renderCategories(cats) {
@@ -295,21 +372,18 @@
         }
 
         renderList(attractions) {
-            this.listTarget.innerHTML = attractions.map((item) => `
+            this.listTarget.innerHTML = attractions.map((item) => {
+                const name = item.attractionName || item.titleZh || '';
+                return `
                 <button type="button"
-                        class="hp-attraction-item w-full text-left rounded-xl border border-hp-border bg-white p-3 hover:border-hp-coral hover:shadow-sm transition flex gap-3"
+                        class="hp-attraction-item w-full text-left rounded-xl border border-hp-border bg-white px-3.5 py-3 hover:border-hp-coral hover:shadow-sm transition"
                         data-action="click->attraction-picker#select"
                         data-attraction-id="${this.escapeAttr(item.id)}">
-                    <img src="${this.escapeAttr(item.img || IMAGE_FALLBACK)}" alt="" loading="lazy"
-                         onerror="this.onerror=null;this.src='${IMAGE_FALLBACK}'"
-                         class="w-14 h-14 rounded-lg object-cover shrink-0 bg-hp-bgLight">
-                    <span class="min-w-0 flex-1">
-                        <span class="block text-xs font-black text-hp-dark line-clamp-1">${this.escapeHtml(item.titleZh)}</span>
-                        <span class="block text-[10px] text-hp-muted mt-0.5 line-clamp-1">${this.escapeHtml(item.badgeZh)} · ${this.escapeHtml(item.distZh)}</span>
-                        <span class="block text-[10px] font-bold text-hp-coral mt-1">${this.escapeHtml(item.priceZh)}</span>
-                    </span>
+                    <span class="block text-sm font-black text-hp-dark leading-snug">${this.escapeHtml(name)}</span>
+                    <span class="block text-[10px] text-hp-muted mt-1">${this.escapeHtml(item.badgeZh)}${item.distZh ? ` · ${this.escapeHtml(item.distZh)}` : ''}</span>
                 </button>
-            `).join('');
+            `;
+            }).join('');
         }
 
         renderPager(total) {
@@ -368,10 +442,13 @@
 
             const fields = global.HostSettingsAttractions.toFormFields(index, attraction);
             Object.entries(fields).forEach(([name, value]) => {
+                // Cover image stays empty — hosts upload it themselves.
+                if (/^recImg\d+$/.test(name)) return;
                 const el = form.elements.namedItem(name);
                 if (!el) return;
-                el.value = value;
+                el.value = value ?? '';
                 el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
             });
         }
 
