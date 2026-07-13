@@ -54,7 +54,7 @@
         <div data-hp-pairing-quick-start></div>
     </div>
     </div>
-    <div class="hp-pairing-tabs__settings text-center pt-2">
+    <div class="hp-pairing-tabs__settings text-center mt-4">
         <a href="/host-settings.html"
            data-pairing-target="settingsLink"
            class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
@@ -77,24 +77,9 @@
     function syncPanelsMinHeight(root) {
         const wrap = root.querySelector('.hp-pairing-tabs__panels');
         if (!wrap) return;
-
-        const panels = root.querySelectorAll('.hp-pairing-tabs__panel');
-        let maxHeight = 0;
-
-        panels.forEach((panel) => {
-            const wasHidden = panel.hasAttribute('hidden');
-            panel.removeAttribute('hidden');
-            panel.classList.remove('hidden');
-            maxHeight = Math.max(maxHeight, panel.offsetHeight);
-            if (wasHidden) {
-                panel.setAttribute('hidden', '');
-                panel.classList.add('hidden');
-            }
-        });
-
-        if (maxHeight > 0) {
-            wrap.style.minHeight = `${maxHeight}px`;
-        }
+        // Keep panels at natural height so「編輯住宿指南」stays ~1rem under the active content
+        // (equalizing to the taller「連接房源」card left a large empty gap on Quick Start).
+        wrap.style.minHeight = '';
     }
 
     function mountChildComponents(root, options = {}) {
@@ -256,6 +241,9 @@
             }
             .hp-pairing-tabs__panels {
                 width: 100%;
+            }
+            .hp-pairing-tabs__settings {
+                margin-top: 1rem;
             }
         `;
         doc.head.appendChild(style);

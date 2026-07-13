@@ -8,8 +8,11 @@ const { getPublicSmtpConfig, writeSmtpConfigFile, isReadOnlyConfigStorage } = re
 const { handleListingSettings } = require('./listing-settings-handler');
 const { handleFormGet, handleFormPost } = require('./host-settings-form');
 const { isDatabaseConfigured, checkDatabaseConnection } = require('./listing-settings');
+const { createCheckout, isEcpayConfigured } = require('./ecpay');
 const searchExperiences = require('../api/search/experiences');
 const searchExperienceDetails = require('../api/search/experience-details');
+const ecpayNotify = require('../api/payment/ecpay/notify');
+const ecpayResult = require('../api/payment/ecpay/result');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -39,6 +42,7 @@ app.get('/api/health', async (_req, res) => {
     res.json({
         ok: true,
         bookingConfigured: isEmailConfigured(),
+        ecpayConfigured: isEcpayConfigured(),
         resendConfigured,
         smtpConfigured,
         dbConfigured: dbUrlSet,
@@ -73,6 +77,29 @@ app.post('/api/booking', async (req, res) => {
         res.status(status).json({ ok: false, error: message });
     }
 });
+
+app.post('/api/payment/ecpay/create', (req, res) => {
+    try {
+        if (!isEcpayConfigured()) {
+            res.status(503).json({
+                ok: false,
+                error: 'ECPay is not configured. Set ECPAY_USE_STAGE=1 or provide MerchantID / HashKey / HashIV.'
+            });
+            return;
+        }
+        const result = createCheckout(req.body || {}, req);
+        res.json(result);
+    } catch (error) {
+        console.error('[ecpay/create]', error);
+        const message = error?.message || 'Failed to create ECPay checkout';
+        const status = /invalid|missing|not configured/i.test(message) ? 400 : 500;
+        res.status(status).json({ ok: false, error: message });
+    }
+});
+
+app.post('/api/payment/ecpay/notify', (req, res) => ecpayNotify(req, res));
+app.post('/api/payment/ecpay/result', (req, res) => ecpayResult(req, res));
+app.get('/api/payment/ecpay/result', (req, res) => ecpayResult(req, res));
 
 app.post('/api/test-email', async (req, res) => {
     try {

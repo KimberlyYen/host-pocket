@@ -343,17 +343,48 @@
         syncSidebarActive('pairing');
     }
 
+    function closePricingPanel() {
+        const panel = document.getElementById('hp-v4-pricing-panel');
+        if (panel) {
+            panel.hidden = true;
+            panel.setAttribute('aria-hidden', 'true');
+        }
+        document.documentElement.classList.remove('hp-v4-pricing-open');
+        document.body?.classList.remove('hp-v4-pricing-open');
+    }
+
+    function openPricingPanel() {
+        const panel = document.getElementById('hp-v4-pricing-panel');
+        if (!panel) return;
+        panel.hidden = false;
+        panel.setAttribute('aria-hidden', 'false');
+        document.documentElement.classList.add('hp-v4-pricing-open');
+        syncSidebarActive(getActiveScreen(), 'pricing');
+        panel.querySelector('.hp-v4-pricing__close')?.focus?.();
+    }
+
+    function navigatePricing() {
+        openPricingPanel();
+    }
+
     function navigate(nav) {
         if (nav === 'home') {
+            closePricingPanel();
             navigateHome();
             return;
         }
         if (nav === 'dashboard') {
+            closePricingPanel();
             navigateDashboard();
             return;
         }
         if (nav === 'contact') {
+            closePricingPanel();
             navigateContact();
+            return;
+        }
+        if (nav === 'pricing') {
+            navigatePricing();
         }
     }
 
@@ -377,6 +408,85 @@
                 event.preventDefault();
                 getGlobalController()?.setLanguage?.(langBtn.dataset.hpV4Lang, { silent: true });
             }
+        });
+    }
+
+    function isAppHomePath() {
+        const path = (window.location.pathname || '/')
+            .replace(/\/index\.html$/i, '/')
+            .replace(/\/+$/, '') || '/';
+        return path === '/';
+    }
+
+    function repairHomeShellAfterReturn(options = {}) {
+        closePricingPanel();
+
+        if (!isAppHomePath()) {
+            syncSidebarActive(getActiveScreen());
+            return;
+        }
+
+        const dash = getDashboardController();
+        if (dash?.activatePairingHome) {
+            dash.activatePairingHome();
+        } else {
+            window.appNavigate?.('pairing');
+            document.documentElement.classList.remove('hp-boot-dashboard', 'hp-boot-experience');
+        }
+
+        window.HostPocketPairingTabs?.restoreAfterBackNavigation?.({
+            forceRemount: Boolean(options.forceRemount)
+        });
+
+        syncGuestChrome();
+        syncListingQueryNav();
+        syncSidebarActive(getActiveScreen());
+    }
+
+    function bindPricingPanel() {
+        const panel = document.getElementById('hp-v4-pricing-panel');
+        if (!panel || panel.dataset.hpV4Bound === 'true') return;
+        panel.dataset.hpV4Bound = 'true';
+
+        panel.addEventListener('click', (event) => {
+            if (event.target.closest('[data-hp-v4-pricing-close]')) {
+                event.preventDefault();
+                closePricingPanel();
+                syncSidebarActive(getActiveScreen());
+                return;
+            }
+
+            // Close overlay before leaving so bfcache snapshots are clean.
+            const continueLink = event.target.closest('[data-hp-v4-pricing-continue], a.hp-v4-pricing__cta');
+            if (continueLink) {
+                event.preventDefault();
+                const href = continueLink.getAttribute('href') || '/host-settings.html';
+                closePricingPanel();
+                syncSidebarActive(getActiveScreen());
+                window.setTimeout(() => {
+                    window.location.assign(href);
+                }, 0);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const openBtn = event.target.closest('[data-hp-v4-pricing-open]');
+            if (!openBtn) return;
+            event.preventDefault();
+            openPricingPanel();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !panel.hidden) {
+                closePricingPanel();
+                syncSidebarActive(getActiveScreen());
+            }
+        });
+
+        // Safari/Chrome may restore this page with the pricing sheet still open.
+        window.addEventListener('pagehide', closePricingPanel);
+        window.addEventListener('pageshow', (event) => {
+            repairHomeShellAfterReturn({ forceRemount: Boolean(event.persisted) });
         });
     }
 
@@ -407,6 +517,7 @@
     function init() {
         syncDesktopClass();
         bindSidebar();
+        bindPricingPanel();
         initSidebarCollapse();
         hookAppNavigate();
         observeGuestBoot();
@@ -417,6 +528,7 @@
         syncDashboardColumnHeights();
         syncSidebarActive(getActiveScreen());
         syncSidebarLang();
+        closePricingPanel();
 
         window.addEventListener('hp:v4-screen', (event) => {
             syncSidebarActive(event.detail?.screen || getActiveScreen());
@@ -470,6 +582,8 @@
         isDesktop,
         mq: DESKTOP_MQ,
         isListingQueryRoute,
-        syncListingQueryNav
+        syncListingQueryNav,
+        openPricingPanel,
+        closePricingPanel
     };
 })();

@@ -2036,8 +2036,37 @@
             duration: formatDurationLabel(minutes, isZh, availability),
             durationMinutes: minutes,
             location: exp.meeting_point || exp.location?.display_label || exp.location?.address || (isZh ? '集合地點待確認' : 'Meeting point TBD'),
-            timezone: options.timezone || 'Asia/Taipei'
+            timezone: options.timezone || 'Asia/Taipei',
+            amountTwd: resolveBookingAmountTwd(exp, options.priceZh, options.priceEn)
         };
+    }
+
+    function resolveBookingAmountTwd(exp, priceZh, priceEn) {
+        const labels = [
+            exp?.price?.price_label,
+            exp?.price?.price,
+            priceZh,
+            priceEn
+        ].filter(Boolean).join(' ');
+        const freeOnly = /^(免費|free)\b/i.test(String(labels).trim())
+            || (/免費|free/i.test(labels) && !/NT\$|TWD|\d+\s*元/i.test(labels));
+        if (freeOnly) return 0;
+
+        const nt = labels.match(/NT\$\s*([\d,]+)/i)
+            || labels.match(/TWD\s*([\d,]+)/i)
+            || labels.match(/([\d,]+)\s*元/);
+        if (nt) {
+            const n = parseInt(String(nt[1]).replace(/,/g, ''), 10);
+            if (Number.isFinite(n) && n >= 0) return n;
+        }
+
+        const extracted = Number(exp?.price?.extracted_price);
+        if (Number.isFinite(extracted) && extracted >= 0 && /NT\$|TWD|元/i.test(labels)) {
+            return Math.round(extracted);
+        }
+        // Non-TWD demo prices: let server apply ECPAY_DEFAULT_AMOUNT
+        if (Number.isFinite(extracted) && extracted === 0) return 0;
+        return null;
     }
 
     function renderBookingTimeColumn(availability, selectedDate, isZh, timeFormat) {

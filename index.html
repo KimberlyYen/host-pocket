@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="h-full">
+<html lang="zh-TW" class="h-full" data-turbo="false">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -219,6 +219,22 @@
             line-height: 1;
             color: #FF5A5F;
         }
+        .partner-icon-slot .fa-tags {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--slot-size) * 0.55);
+            line-height: 1;
+            color: #FF5B3E;
+        }
+        button.partner-bar-link {
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            appearance: none;
+        }
         .partner-bar-link {
             text-decoration: none;
         }
@@ -417,6 +433,7 @@
                 </div>
             </div>
             <nav class="hp-v4-sidebar__nav" aria-label="App sections" data-hp-v4-sidebar-nav></nav>
+            <div class="hp-v4-sidebar__pricing" data-hp-v4-sidebar-pricing aria-label="Pricing"></div>
             <div class="hp-v4-sidebar__contact" data-hp-v4-sidebar-contact aria-label="Contact host"></div>
             <button type="button" id="hp-v4-sidebar-toggle" class="hp-v4-sidebar__toggle" aria-expanded="false" aria-controls="hp-v4-sidebar">
                 <i class="fa-solid fa-angles-right hp-v4-sidebar__toggle-icon" aria-hidden="true"></i>
@@ -501,16 +518,17 @@
                                     <span data-global-lang="en" class="hidden">host-pocket</span>
                                 </span>
                             </a>
-                            <a href="https://www.linkedin.com/company/searchapi/"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               aria-label="SearchAPI on LinkedIn"
+                            <button type="button"
+                               data-hp-v4-pricing-open
+                               aria-label="定價策略"
+                               aria-haspopup="dialog"
                                class="partner-bar-item partner-bar-link flex items-center justify-center gap-1.5 min-w-0 px-2 border-x border-white/10">
                                 <div class="partner-icon-slot shadow-sm">
-                                    <img src="/searchapi-icon.png" alt="" aria-hidden="true">
+                                    <i class="fa-solid fa-tags" aria-hidden="true"></i>
                                 </div>
-                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate">SearchAPI</span>
-                            </a>
+                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate" data-global-lang="zh">定價策略</span>
+                                <span class="partner-bar-label partner-bar-label--partner font-semibold truncate hidden" data-global-lang="en">Pricing</span>
+                            </button>
                             <a href="https://www.airbnb.com.tw/"
                                target="_blank"
                                rel="noopener noreferrer"
@@ -947,6 +965,10 @@
                                             <i class="fa-regular fa-clock text-hp-coral w-4 text-center shrink-0"></i>
                                             <span data-dashboard-target="expBookingConfirmSlot"></span>
                                         </p>
+                                        <p class="text-xs text-hp-muted flex items-center gap-2">
+                                            <i class="fa-solid fa-dollar-sign text-hp-coral w-4 text-center shrink-0"></i>
+                                            <span data-dashboard-target="expBookingConfirmAmount" class="font-bold text-hp-dark"></span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="mt-4 text-left">
@@ -963,8 +985,8 @@
                                                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-hp-border bg-white text-xs text-hp-dark placeholder:text-hp-muted/45 focus:outline-none focus:border-hp-coral transition">
                                     </div>
                                     <p data-dashboard-target="expBookingConfirmEmailHint" class="mt-1.5 text-[10px] text-hp-muted leading-relaxed" aria-live="polite">
-                                        <span data-global-lang="zh">確認後將開啟郵件 app，請寄出預定確認信</span>
-                                        <span data-global-lang="en" class="hidden">Confirming opens your mail app — review and send the booking email</span>
+                                        <span data-global-lang="zh">確認後將導向綠界付款（免費體驗則直接完成預定）</span>
+                                        <span data-global-lang="en" class="hidden">You’ll be redirected to ECPay (free experiences skip payment)</span>
                                     </p>
                                 </div>
                                 <p data-dashboard-target="expBookingConfirmFeedback" class="hidden text-[11px] font-bold leading-relaxed rounded-xl px-3 py-2.5"></p>
@@ -976,8 +998,8 @@
                                     </button>
                                     <button type="button" data-action="click->dashboard#finalizeExpBooking" data-dashboard-target="expBookingConfirmSubmit"
                                             class="py-2.5 rounded-xl bg-hp-coral hover:bg-hp-coral/90 text-white text-xs font-bold transition active:scale-[0.98] shadow-md disabled:opacity-60 disabled:pointer-events-none">
-                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="zh">確認預定</span>
-                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="en" class="hidden">Confirm</span>
+                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="zh">付款並預定</span>
+                                        <span data-dashboard-target="expBookingConfirmSubmitLabel" data-global-lang="en" class="hidden">Pay & book</span>
                                     </button>
                                 </div>
                             </div>
@@ -1265,6 +1287,87 @@
 
     </div><!-- /#app-root -->
     </div><!-- /#hp-v4-layout -->
+
+    <!-- Pricing strategy panel — outside layout so overlay never breaks the app shell grid -->
+    <div id="hp-v4-pricing-panel" class="hp-v4-pricing" hidden aria-hidden="true">
+        <button type="button" class="hp-v4-pricing__backdrop" data-hp-v4-pricing-close aria-label="Close pricing"></button>
+        <aside class="hp-v4-pricing__sheet" role="dialog" aria-modal="true" aria-labelledby="hp-v4-pricing-title">
+            <div class="hp-v4-pricing__head">
+                <div>
+                    <p class="hp-v4-pricing__eyebrow">
+                        <span data-global-lang="zh">房東方案</span>
+                        <span class="hidden" data-global-lang="en">Host plan</span>
+                    </p>
+                    <h2 id="hp-v4-pricing-title" class="hp-v4-pricing__title">
+                        <span data-global-lang="zh">定價策略</span>
+                        <span class="hidden" data-global-lang="en">Pricing strategy</span>
+                    </h2>
+                </div>
+                <button type="button" class="hp-v4-pricing__close" data-hp-v4-pricing-close aria-label="Close">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="hp-v4-pricing__plan">
+                <div class="hp-v4-pricing__plan-top">
+                    <span class="hp-v4-pricing__plan-name">
+                        <span data-global-lang="zh">Host Pocket 月費</span>
+                        <span class="hidden" data-global-lang="en">Host Pocket Monthly</span>
+                    </span>
+                    <span class="hp-v4-pricing__chip">
+                        <span data-global-lang="zh">低門檻訂閱</span>
+                        <span class="hidden" data-global-lang="en">Low-friction</span>
+                    </span>
+                </div>
+                <p class="hp-v4-pricing__amount">
+                    <span class="hp-v4-pricing__currency">NT$</span>
+                    <span class="hp-v4-pricing__number">40</span>
+                    <span class="hp-v4-pricing__interval">
+                        <span data-global-lang="zh">/ 月</span>
+                        <span class="hidden" data-global-lang="en">/ mo</span>
+                    </span>
+                </p>
+                <p class="hp-v4-pricing__strategy">
+                    <span data-global-lang="zh">用超低月費換房東持續使用：指南、體驗預定與收款都綁在同一個入口，先養成習慣再擴充加值。</span>
+                    <span class="hidden" data-global-lang="en">A tiny monthly fee keeps hosts on one hub—stay guide, experience booking, and payments—before upsells.</span>
+                </p>
+            </div>
+
+            <ul class="hp-v4-pricing__features">
+                <li>
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span data-global-lang="zh">無限房源指南與分享連結</span>
+                    <span class="hidden" data-global-lang="en">Unlimited stay guides & share links</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span data-global-lang="zh">在地體驗卡片與預定流程</span>
+                    <span class="hidden" data-global-lang="en">Local experience cards & booking</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span data-global-lang="zh">綠界收款（測試／正式）</span>
+                    <span class="hidden" data-global-lang="en">ECPay checkout (stage / live)</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span data-global-lang="zh">繁中／英文雙語房客介面</span>
+                    <span class="hidden" data-global-lang="en">Bilingual guest UI (ZH / EN)</span>
+                </li>
+            </ul>
+
+            <div class="hp-v4-pricing__actions">
+                <a class="hp-v4-pricing__cta" href="/host-settings.html" data-hp-v4-pricing-continue data-turbo="false">
+                    <span data-global-lang="zh">開始設定</span>
+                    <span class="hidden" data-global-lang="en">Start setup</span>
+                </a>
+                <button type="button" class="hp-v4-pricing__secondary" data-hp-v4-pricing-close>
+                    <span data-global-lang="zh">稍後再說</span>
+                    <span class="hidden" data-global-lang="en">Not now</span>
+                </button>
+            </div>
+        </aside>
+    </div>
 
     <!-- Simulated Backend Database within Hotwire Client -->
     <script src="/js/toast.js"></script>
@@ -2516,7 +2619,7 @@
                 "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
                 "stayGuides", "localRecs",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "mobileHomeLogo", "headerBar", "airbnbListingCta",
-                "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
+                "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmAmount", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
                 "overlayHero", "overlayHeroImg", "overlayPhotoDots", "overlayTitle", "overlayLocation", "overlayHostLine",
                 "hostRecLabelZh", "hostRecLabelEn"
@@ -3424,10 +3527,16 @@
             showExpBookingConfirm(slot) {
                 if (!this.hasExpBookingConfirmOverlayTarget || !this.currentExpPayload) return;
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const listing = getResolvedListing(this.currentListingId || 'TAIPEI-CITY');
+                const recIndex = this.currentExpRecIndex || 1;
                 const meta = ExperienceDetailsAPI.getBookingMeta(this.currentExpPayload, {
                     isZh,
-                    timezone: this.getEffectiveBookingTimezone()
+                    timezone: this.getEffectiveBookingTimezone(),
+                    hostEmail: listing?.hostEmail || '',
+                    priceZh: listing?.[`recPrice${recIndex}Zh`],
+                    priceEn: listing?.[`recPrice${recIndex}En`]
                 });
+                this.pendingBookingAmountTwd = meta.amountTwd;
                 if (this.hasExpBookingConfirmTitleTarget) {
                     this.expBookingConfirmTitleTarget.textContent = meta.title;
                 }
@@ -3449,6 +3558,19 @@
                 if (this.hasExpBookingConfirmSlotTarget) {
                     this.expBookingConfirmSlotTarget.textContent = this.formatBookingSlotLabel(slot, isZh);
                 }
+                if (this.hasExpBookingConfirmAmountTarget) {
+                    if (meta.amountTwd === 0) {
+                        this.expBookingConfirmAmountTarget.textContent = isZh ? '免費' : 'Free';
+                    } else if (meta.amountTwd == null) {
+                        this.expBookingConfirmAmountTarget.textContent = isZh
+                            ? '依綠界結帳金額（預設測試價）'
+                            : 'Amount set at ECPay checkout';
+                    } else {
+                        this.expBookingConfirmAmountTarget.textContent = `NT$${meta.amountTwd}`;
+                    }
+                }
+                this.pendingBookingNeedsPayment = meta.amountTwd !== 0;
+                this.updateBookingSubmitIdleLabel(isZh);
                 if (this.hasExpBookingConfirmEmailTarget) {
                     this.expBookingConfirmEmailTarget.value = '';
                     this.resetBookingEmailValidation();
@@ -3467,6 +3589,19 @@
                 });
             }
 
+            updateBookingSubmitIdleLabel(isZh) {
+                if (!this.hasExpBookingConfirmSubmitLabelTarget) return;
+                const pay = this.pendingBookingNeedsPayment !== false;
+                this.expBookingConfirmSubmitLabelTargets.forEach((el) => {
+                    const lang = el.dataset.globalLang;
+                    if (lang === 'en') {
+                        el.textContent = pay ? 'Pay & book' : 'Confirm';
+                    } else {
+                        el.textContent = pay ? '付款並預定' : '確認預定';
+                    }
+                });
+            }
+
             setBookingSubmitLoading(loading, isZh) {
                 if (this.hasExpBookingConfirmSubmitTarget) {
                     this.expBookingConfirmSubmitTarget.disabled = loading;
@@ -3475,9 +3610,12 @@
                     this.expBookingConfirmSubmitLabelTargets.forEach((el) => {
                         const lang = el.dataset.globalLang;
                         if (loading) {
-                            el.textContent = lang === 'en' ? 'Opening…' : '開啟中…';
+                            el.textContent = lang === 'en' ? 'Redirecting…' : '前往付款…';
                         } else {
-                            el.textContent = lang === 'en' ? 'Confirm' : '確認預定';
+                            const pay = this.pendingBookingNeedsPayment !== false;
+                            el.textContent = lang === 'en'
+                                ? (pay ? 'Pay & book' : 'Confirm')
+                                : (pay ? '付款並預定' : '確認預定');
                         }
                     });
                 }
@@ -3508,10 +3646,15 @@
 
             bookingEmailHintCopy(key) {
                 const isZh = (window.currentLanguage || 'zh') === 'zh';
+                const pay = this.pendingBookingNeedsPayment !== false;
                 const copy = {
                     helper: {
-                        zh: '確認後將開啟郵件 app，請寄出預定確認信',
-                        en: 'Confirming opens your mail app — review and send the booking email'
+                        zh: pay
+                            ? '確認後將導向綠界付款（測試環境可用測試卡）'
+                            : '免費體驗：確認後完成預定（可寄確認信或開啟郵件 app）',
+                        en: pay
+                            ? 'You’ll be redirected to ECPay (use stage test cards)'
+                            : 'Free experience — confirm to finish (email or mailto fallback)'
                     },
                     empty: {
                         zh: '請輸入電子郵件',
@@ -3640,7 +3783,7 @@
                     );
                     return;
                 }
-                if (!window.BookingAPI?.openBookingMailto) {
+                if (!window.BookingAPI?.createEcpayPayment && !window.BookingAPI?.openBookingMailto) {
                     this.triggerToast(
                         isZh ? '預定服務未載入' : 'Booking service unavailable',
                         isZh ? '請重新整理頁面後再試' : 'Please refresh the page and try again.',
@@ -3652,10 +3795,14 @@
                 const slot = this.pendingBookingSlot;
                 const dateLabel = this.formatBookingDateLabel(this.selectedBookingDate, isZh);
                 const timeLabel = this.formatBookingSlotLabel(slot, isZh);
+                const listing = getResolvedListing(this.currentListingId || 'TAIPEI-CITY');
+                const recIndex = this.currentExpRecIndex || 1;
                 const meta = ExperienceDetailsAPI.getBookingMeta(this.currentExpPayload, {
                     isZh,
                     timezone: this.getEffectiveBookingTimezone(),
-                    hostEmail: getResolvedListing(this.currentListingId || 'TAIPEI-CITY')?.hostEmail || ''
+                    hostEmail: listing?.hostEmail || '',
+                    priceZh: listing?.[`recPrice${recIndex}Zh`],
+                    priceEn: listing?.[`recPrice${recIndex}En`]
                 });
 
                 const bookingPayload = {
@@ -3670,36 +3817,112 @@
                     durationMinutes: meta.durationMinutes,
                     locale: isZh ? 'zh' : 'en',
                     dateLabel,
-                    timeLabel
+                    timeLabel,
+                    amountTwd: meta.amountTwd
                 };
 
                 this.setBookingSubmitLoading(true, isZh);
+                this.setBookingConfirmFeedback(
+                    'loading',
+                    isZh ? '正在準備綠界付款…' : 'Preparing ECPay checkout…'
+                );
 
-                try {
-                    BookingAPI.openBookingMailto(bookingPayload);
-                    const mailtoNote = isZh
-                        ? `已開啟郵件 app，收件人為 ${email}，請確認後寄出`
-                        : `Email app opened — recipient ${email}, review and send`;
-                    this.setBookingConfirmFeedback('success', mailtoNote);
-                    this.triggerToast(
-                        isZh ? '預定成功' : 'Booking confirmed',
-                        `${dateLabel} · ${timeLabel}\n${mailtoNote}`,
-                        'success'
-                    );
-                    setTimeout(() => {
-                        this.closeExpBookingConfirm(false);
-                        this.closeExpBookingCalendar();
+                const finishFreeOrMailto = async () => {
+                    try {
+                        if (window.BookingAPI.createBooking && await BookingAPI.isEmailApiConfigured()) {
+                            await BookingAPI.createBooking(bookingPayload);
+                            this.setBookingConfirmFeedback(
+                                'success',
+                                isZh ? '預定成功，確認信已寄出' : 'Booked — confirmation email sent'
+                            );
+                        } else {
+                            BookingAPI.openBookingMailto(bookingPayload);
+                            this.setBookingConfirmFeedback(
+                                'success',
+                                isZh
+                                    ? `已開啟郵件 app，收件人為 ${email}`
+                                    : `Email app opened — recipient ${email}`
+                            );
+                        }
+                        this.triggerToast(
+                            isZh ? '預定成功' : 'Booking confirmed',
+                            `${dateLabel} · ${timeLabel}`,
+                            'success'
+                        );
+                        setTimeout(() => {
+                            this.closeExpBookingConfirm(false);
+                            this.closeExpBookingCalendar();
+                            this.setBookingSubmitLoading(false, isZh);
+                        }, 800);
+                    } catch (error) {
+                        console.error('[Host Pocket] free booking failed', error);
+                        try {
+                            BookingAPI.openBookingMailto(bookingPayload);
+                            this.setBookingConfirmFeedback(
+                                'success',
+                                isZh ? '改以郵件 app 完成預定' : 'Fell back to mail app'
+                            );
+                            setTimeout(() => {
+                                this.closeExpBookingConfirm(false);
+                                this.closeExpBookingCalendar();
+                                this.setBookingSubmitLoading(false, isZh);
+                            }, 800);
+                        } catch (mailtoError) {
+                            const errMsg = error?.message
+                                || (isZh ? '預定失敗，請稍後再試' : 'Booking failed. Please try again.');
+                            this.setBookingConfirmFeedback('error', errMsg);
+                            this.triggerToast(isZh ? '預定失敗' : 'Booking failed', errMsg, 'error');
+                            this.setBookingSubmitLoading(false, isZh);
+                        }
+                    }
+                };
+
+                (async () => {
+                    try {
+                        if (meta.amountTwd === 0) {
+                            await finishFreeOrMailto();
+                            return;
+                        }
+
+                        const checkout = await BookingAPI.createEcpayPayment(bookingPayload);
+                        if (checkout.skipPayment) {
+                            await finishFreeOrMailto();
+                            return;
+                        }
+                        if (checkout.mock) {
+                            this.setBookingConfirmFeedback(
+                                'success',
+                                isZh
+                                    ? `模擬付款 NT$${checkout.amountTwd}（mock）`
+                                    : `Mock payment NT$${checkout.amountTwd}`
+                            );
+                            this.triggerToast(
+                                isZh ? '模擬付款成功' : 'Mock payment OK',
+                                `${dateLabel} · ${timeLabel}`,
+                                'success'
+                            );
+                            setTimeout(() => {
+                                this.closeExpBookingConfirm(false);
+                                this.closeExpBookingCalendar();
+                                this.setBookingSubmitLoading(false, isZh);
+                            }, 800);
+                            return;
+                        }
+
+                        BookingAPI.submitEcpayForm(checkout.actionUrl, checkout.params);
+                    } catch (error) {
+                        console.error('[Host Pocket] ECPay booking failed', error);
+                        if (error?.code === 'ECPAY_NOT_CONFIGURED') {
+                            await finishFreeOrMailto();
+                            return;
+                        }
+                        const errMsg = error?.message
+                            || (isZh ? '無法建立綠界訂單，請稍後再試' : 'Could not start ECPay checkout.');
+                        this.setBookingConfirmFeedback('error', errMsg);
+                        this.triggerToast(isZh ? '付款失敗' : 'Payment failed', errMsg, 'error');
                         this.setBookingSubmitLoading(false, isZh);
-                    }, 800);
-                } catch (error) {
-                    console.error('[Host Pocket] mailto booking failed', error);
-                    const errMsg = isZh
-                        ? '無法開啟郵件 app，請稍後再試或聯絡房東'
-                        : 'Could not open your mail app. Please try again or contact your host.';
-                    this.setBookingConfirmFeedback('error', errMsg);
-                    this.triggerToast(isZh ? '預定失敗' : 'Booking failed', errMsg, 'error');
-                    this.setBookingSubmitLoading(false, isZh);
-                }
+                    }
+                })();
             }
 
             renderBookingCalendarView() {

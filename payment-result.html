@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付款結果 · host-pocket</title>
+    <link rel="icon" href="/pocket-icon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hp: { coral: '#FF5A5F', dark: '#2E2421', muted: '#8A7E78', cream: '#FAF8F5' }
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="min-h-screen bg-hp-cream text-hp-dark flex items-center justify-center p-6">
+    <main class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-black/5 p-8 text-center">
+        <div id="icon" class="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5 bg-hp-coral/10 text-hp-coral">…</div>
+        <h1 id="title" class="text-xl font-black tracking-tight">處理中</h1>
+        <p id="detail" class="mt-3 text-sm text-hp-muted leading-relaxed"></p>
+        <p id="meta" class="mt-4 text-[11px] font-mono text-hp-muted"></p>
+        <a href="/index.html" class="mt-8 inline-flex items-center justify-center w-full rounded-2xl bg-hp-coral text-white font-bold text-sm py-3.5 hover:opacity-95 transition">
+            回到 Host Pocket
+        </a>
+        <p class="mt-4 text-[10px] text-hp-muted">測試卡（綠界 stage）：4311-9522-2222-2222 · 安全碼任意</p>
+    </main>
+    <script>
+        (function () {
+            const params = new URLSearchParams(location.search);
+            const status = params.get('status') || 'error';
+            const tradeNo = params.get('tradeNo') || '';
+            const amount = params.get('amount') || '';
+            const map = {
+                success: {
+                    icon: '✓',
+                    title: '付款成功',
+                    detail: '體驗預定已完成。若後台有設定寄信，確認信會寄到你的 Email。',
+                    tone: 'bg-emerald-50 text-emerald-600'
+                },
+                failed: {
+                    icon: '!',
+                    title: '付款未完成',
+                    detail: '交易未成功，請回到 App 重新預定。',
+                    tone: 'bg-amber-50 text-amber-700'
+                },
+                cancel: {
+                    icon: '←',
+                    title: '已取消付款',
+                    detail: '你已離開綠界付款頁，尚未扣款。',
+                    tone: 'bg-slate-100 text-slate-600'
+                },
+                error: {
+                    icon: '?',
+                    title: '付款結果異常',
+                    detail: '請稍後再試，或聯絡房東協助確認。',
+                    tone: 'bg-rose-50 text-rose-600'
+                }
+            };
+            const view = map[status] || map.error;
+            const icon = document.getElementById('icon');
+            icon.textContent = view.icon;
+            icon.className = 'mx-auto w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5 ' + view.tone;
+            document.getElementById('title').textContent = view.title;
+            document.getElementById('detail').textContent = view.detail;
+            const bits = [];
+            if (tradeNo) bits.push('訂單 ' + tradeNo);
+            if (amount) bits.push('NT$' + amount);
+            document.getElementById('meta').textContent = bits.join(' · ');
+        })();
+    </script>
+</body>
+</html>
