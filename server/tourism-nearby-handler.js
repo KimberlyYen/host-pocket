@@ -1,11 +1,14 @@
-const { isTdxConfigured, fetchNearbyTourism } = require('../../server/tdx');
+const { isTdxConfigured, fetchNearbyTourism } = require('./tdx');
 
 /**
  * GET /api/tourism/nearby?lng=&lat=  (preferred)
  * or  /api/tourism/nearby?X=&Y=&Distance=
  * X = longitude, Y = latitude (TDX convention)
+ *
+ * Shared handler for Express + Vercel (mounted via api/search/experiences.js
+ * to stay within the Hobby plan's 12 serverless function limit).
  */
-module.exports = async (req, res) => {
+async function handleTourismNearby(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -50,4 +53,15 @@ module.exports = async (req, res) => {
             error: message
         });
     }
+}
+
+function isTourismNearbyRequest(req) {
+    if (req.query?.__tdxNearby === '1' || req.query?.source === 'tdx-nearby') return true;
+    const url = String(req.url || '');
+    return /\/api\/tourism\/nearby(?:\?|$)/.test(url) || /tourism\/nearby/.test(url);
+}
+
+module.exports = {
+    handleTourismNearby,
+    isTourismNearbyRequest
 };

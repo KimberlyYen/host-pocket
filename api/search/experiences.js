@@ -1,4 +1,12 @@
+const { handleTourismNearby, isTourismNearbyRequest } = require('../../server/tourism-nearby-handler');
+
 module.exports = async (req, res) => {
+    // Mounted here so /api/tourism/nearby can rewrite onto this function
+    // without exceeding Vercel Hobby's 12 serverless function limit.
+    if (isTourismNearbyRequest(req)) {
+        return handleTourismNearby(req, res);
+    }
+
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');

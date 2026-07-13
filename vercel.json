@@ -1,13 +1,14 @@
 {
   "functions": {
     "api/host/settings/[listingId]/form.js": {
-      "includeFiles": "{partials/**,js/presets/**}"
+      "includeFiles": "{partials/**,js/presets/**,js/rec-slots.js}"
     },
     "api/host/settings/[listingId].js": {
-      "includeFiles": "{partials/**,js/presets/**}"
+      "includeFiles": "{partials/**,js/presets/**,js/rec-slots.js}"
     }
   },
   "rewrites": [
+    { "source": "/api/tourism/nearby", "destination": "/api/search/experiences?__tdxNearby=1" },
     { "source": "/host/settings/:listingId/form", "destination": "/api/host/settings/:listingId/form" },
     { "source": "/host/settings/:listingId", "destination": "/api/host/settings/:listingId" },
     { "source": "/guide/:listing/experience/:experience", "destination": "/index.html" },

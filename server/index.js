@@ -13,7 +13,7 @@ const searchExperiences = require('../api/search/experiences');
 const searchExperienceDetails = require('../api/search/experience-details');
 const ecpayNotify = require('../api/payment/ecpay/notify');
 const ecpayResult = require('../api/payment/ecpay/result');
-const tourismNearby = require('../api/tourism/nearby');
+const tourismNearby = require('./tourism-nearby-handler').handleTourismNearby;
 const { isTdxConfigured } = require('./tdx');
 
 const app = express();
