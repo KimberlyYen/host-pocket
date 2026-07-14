@@ -28,9 +28,9 @@
             loadAction: overrides.loadAction || ds.hpListingIdFieldLoadAction || `click->${controller}#load`,
             enterAction: overrides.enterAction || ds.hpListingIdFieldEnterAction || `keydown.enter->${controller}#load`,
             placeholderZh: overrides.placeholderZh || ds.hpListingIdFieldPlaceholderZh
-                || 'TAIPEI-CITY 或 Airbnb rooms/ 後的數字',
+                || '貼 Airbnb 網址，或 rooms/ 後的數字',
             placeholderEn: overrides.placeholderEn || ds.hpListingIdFieldPlaceholderEn
-                || 'TAIPEI-CITY or numbers after rooms/ in URL',
+                || 'Paste Airbnb URL, or numbers after rooms/',
             value: overrides.value ?? ds.hpListingIdFieldValue ?? '',
             hideLabel: overrides.hideLabel === true || ds.hpListingIdFieldHideLabel === 'true'
         };

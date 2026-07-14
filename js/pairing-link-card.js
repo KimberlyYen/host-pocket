@@ -36,16 +36,16 @@
             <span data-global-lang="zh">Airbnb 房源編號</span>
             <span data-global-lang="en" class="hidden">Airbnb Listing ID</span>
         </label>
-        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">打開 Airbnb 房源頁，複製網址中 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
-        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Open your Airbnb listing page and copy the numbers after <span class="text-hp-coral font-semibold">rooms/</span> in the URL</p>
+        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">可貼完整 Airbnb 房源網址，或 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
+        <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Paste the full Airbnb listing URL, or the numbers after <span class="text-hp-coral font-semibold">rooms/</span></p>
         <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
         <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
         <div class="hp-pairing-link-card__input-wrap bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
             <input type="text"
                    data-pairing-target="input"
-                   placeholder="12345678"
+                   placeholder="貼上 Airbnb 網址或房源編號"
                    value=""
-                   class="hp-pairing-link-card__input bg-transparent text-base font-mono font-bold text-white focus:outline-none w-full uppercase tracking-widest placeholder:text-hp-muted/40">
+                   class="hp-pairing-link-card__input bg-transparent text-sm font-mono font-bold text-white focus:outline-none w-full tracking-wide placeholder:text-hp-muted/40">
         </div>
     </div>
     <div class="hp-pairing-link-card__actions px-5 pb-5">

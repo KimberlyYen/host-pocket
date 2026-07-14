@@ -14,6 +14,7 @@ const searchExperienceDetails = require('../api/search/experience-details');
 const ecpayNotify = require('../api/payment/ecpay/notify');
 const ecpayResult = require('../api/payment/ecpay/result');
 const tourismNearby = require('./tourism-nearby-handler').handleTourismNearby;
+const { handleAirbnbListingProperty } = require('./airbnb-listing-handler');
 const { isTdxConfigured } = require('./tdx');
 
 const app = express();
@@ -68,6 +69,7 @@ app.delete('/api/listings/:listingId/settings', (req, res) => {
 
 app.get('/api/search/experiences', (req, res) => searchExperiences(req, res));
 app.get('/api/search/experience-details', (req, res) => searchExperienceDetails(req, res));
+app.get('/api/search/listing-property', (req, res) => handleAirbnbListingProperty(req, res));
 app.get('/api/tourism/nearby', (req, res) => tourismNearby(req, res));
 
 app.post('/api/booking', async (req, res) => {

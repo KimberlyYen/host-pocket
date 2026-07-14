@@ -609,7 +609,7 @@
                                     <!-- Bottom Info Text inside Room Photo -->
                                     <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end z-10 pointer-events-none">
                                         <div>
-                                            <p data-dashboard-target="roomTitle" class="text-xs font-bold text-white drop-shadow-md">西陣町家織屋 · 百年包棟古民家</p>
+                                            <p data-dashboard-target="roomTitle" class="text-xs font-bold text-white drop-shadow-md line-clamp-2 pr-2">西陣町家織屋 · 百年包棟古民家</p>
                                             <p data-dashboard-target="hostLocation" class="text-xs text-[#FAF8F5]/80 drop-shadow-sm">京都, 日本 - 3 晚預訂</p>
                                         </div>
                                     </div>
@@ -625,7 +625,7 @@
                                                 Sarah 的京都西陣織屋
                                             </h3>
                                         </div>
-                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-white px-2 py-0.5 rounded-full border border-hp-border shrink-0">台北·大安</span>
+                                        <span data-dashboard-target="activeId" class="text-xs font-mono font-bold text-hp-coral bg-white px-2 py-0.5 rounded-full border border-hp-border shrink-0 max-w-[9.5rem] truncate" title="">台北·大安</span>
                                     </div>
                                     
                                     <div data-dashboard-target="airbnbListingCta" class="pt-2.5 border-t border-hp-border">
@@ -1376,6 +1376,7 @@
     <script src="/js/confetti-celebration.js"></script>
     <script src="/js/share-button.js"></script>
     <script src="/js/image-swipe.js"></script>
+    <script src="/js/airbnb-listing.js"></script>
     <script src="/js/guide-defaults.js"></script>
     <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>
@@ -1875,7 +1876,11 @@
             setText('roomTitle', data.roomTitleZh, data.roomTitleEn);
             setText('hostTitle', data.hostNameZh, data.hostNameEn);
             setText('hostLocation', data.locationZh, data.locationEn);
-            setText('activeId', data.listingLabelZh || id, data.listingLabelEn || id);
+            const badge = window.AirbnbListing?.resolveListingBadge?.(data, id, isZh)
+                || (isZh ? (data.listingLabelZh || id) : (data.listingLabelEn || id));
+            setText('activeId', badge, badge);
+            const activeIdEl = root.querySelector('[data-dashboard-target="activeId"]');
+            if (activeIdEl) activeIdEl.title = badge;
             setText('overlayTitle', data.roomTitleZh, data.roomTitleEn);
             setText('overlayLocation', data.locationZh, data.locationEn);
 
@@ -2574,9 +2579,16 @@
                 return this.element.querySelector('[data-pairing-target="input"]');
             }
 
-            async performPairing(presetId) {
+            async performPairing(presetOrEvent) {
                 const input = this.pairingInputEl();
-                let val = String(presetId || input?.value || '').trim().toUpperCase();
+                // Stimulus click actions pass the Event as arg 1 — only accept string presets.
+                const presetId = (typeof presetOrEvent === 'string' || typeof presetOrEvent === 'number')
+                    ? presetOrEvent
+                    : '';
+                const raw = String(presetId || input?.value || '').trim();
+                let val = window.AirbnbListing?.parseAirbnbListingId?.(raw)
+                    || window.HostGuideSettings?.normalizeListingId?.(raw)
+                    || raw.toUpperCase();
                 if (input && val) input.value = val;
                 window.HostPocketPairingTabs?.saveListingInput?.(val);
                 this.updateSettingsLink();
@@ -2584,7 +2596,7 @@
                 if (!val) {
                     this.triggerToast(
                         isZh ? '請輸入 Airbnb 房源編號' : 'Enter Airbnb listing ID',
-                        isZh ? '請貼上房源網址 rooms/ 後面的數字' : 'Paste the numbers after rooms/ from your listing URL',
+                        isZh ? '可貼完整網址，或 rooms/ 後面的數字' : 'Paste the full listing URL or the numbers after rooms/',
                         'error'
                     );
                     return;
@@ -2598,6 +2610,13 @@
                 if (dashCtrl) dashCtrl.currentListingId = val;
 
                 try {
+                    if (window.AirbnbListing?.isAirbnbNumericId?.(val) && window.HP_MOCK_DATA === false) {
+                        try {
+                            await window.AirbnbListing.seedMissingSettings(val);
+                        } catch (seedError) {
+                            console.warn('[pairing] Airbnb listing seed failed', seedError);
+                        }
+                    }
                     const data = window.HP_MOCK_DATA === false
                         ? await hpLoadGuideSettingsDataAsync(val)
                         : getGuestListingData(val);
@@ -3015,9 +3034,10 @@
                     this.hostLocationTarget.innerText = isZh ? (data.locationZh || '') : (data.locationEn || '');
                 }
                 if (this.hasActiveIdTarget) {
-                    this.activeIdTarget.innerText = isZh
-                        ? (data.listingLabelZh || id)
-                        : (data.listingLabelEn || id);
+                    const badge = window.AirbnbListing?.resolveListingBadge?.(data, id, isZh)
+                        || (isZh ? (data.listingLabelZh || id) : (data.listingLabelEn || id));
+                    this.activeIdTarget.innerText = badge;
+                    this.activeIdTarget.title = badge;
                 }
                 if (this.hasWifiValueTarget) {
                     hpApplyWifiDisplay(this.wifiValueTarget, data.wifi, false);

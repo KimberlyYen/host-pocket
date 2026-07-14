@@ -31,10 +31,20 @@
     ];
 
     function normalizeListingId(id) {
+        if (id && typeof id === 'object') return 'TAIPEI-CITY';
+        if (global.AirbnbListing?.parseAirbnbListingId) {
+            return global.AirbnbListing.parseAirbnbListingId(id) || 'TAIPEI-CITY';
+        }
         if (global.GuideDefaults?.normalizeListingId) {
             return global.GuideDefaults.normalizeListingId(id);
         }
-        return String(id || '').trim().toUpperCase() || 'TAIPEI-CITY';
+        const s = String(id || '').trim();
+        if (!s || /\[object\s+/i.test(s)) return 'TAIPEI-CITY';
+        const fromUrl = s.match(/(?:https?:\/\/)?(?:www\.)?airbnb\.[^/\s]+\/rooms\/(\d+)/i)
+            || s.match(/\/rooms\/(\d{5,})/i);
+        if (fromUrl?.[1]) return fromUrl[1];
+        if (/^\d{5,}$/.test(s)) return s;
+        return s.toUpperCase() || 'TAIPEI-CITY';
     }
 
     function readAllLocal() {

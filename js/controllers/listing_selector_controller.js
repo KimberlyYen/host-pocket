@@ -23,6 +23,9 @@
         }
 
         normalizeId(id) {
+            if (global.AirbnbListing?.parseAirbnbListingId) {
+                return global.AirbnbListing.parseAirbnbListingId(id) || 'TAIPEI-CITY';
+            }
             if (global.HostGuideSettings?.normalizeListingId) {
                 return global.HostGuideSettings.normalizeListingId(id);
             }

@@ -66,8 +66,8 @@
         <input id="listingIdInput" type="text"
                data-listing-selector-target="input"
                data-action="keydown.enter->listing-selector#load"
-               placeholder="TAIPEI-CITY 或 Airbnb rooms/ 後的數字"
-               data-placeholder-en="TAIPEI-CITY or numbers after rooms/ in URL"
+               placeholder="貼 Airbnb 網址，或 rooms/ 後的數字"
+               data-placeholder-en="Paste Airbnb URL, or numbers after rooms/"
                value=""
                class="hp-listing-id-field__input flex-1 min-w-[200px] px-3 py-2.5 rounded-xl border border-hp-border font-mono uppercase focus:outline-none focus:border-hp-coral">
         <button type="button" data-action="click->listing-selector#load"
@@ -470,6 +470,7 @@
         .hp-listing-id-field__input:focus-visible { outline: none; }
     </style>
 
+    <script src="/js/airbnb-listing.js"></script>
     <script src="/js/guide-defaults.js"></script>
     <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>

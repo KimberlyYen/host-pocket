@@ -22,7 +22,9 @@
     }
 
     function encodeListingId(listingId) {
-        return encodeURIComponent(String(listingId || '').trim().toUpperCase());
+        const parsed = global.AirbnbListing?.parseAirbnbListingId?.(listingId)
+            || String(listingId || '').trim();
+        return encodeURIComponent(parsed);
     }
 
     async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {

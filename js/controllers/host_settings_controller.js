@@ -357,6 +357,18 @@
             }
 
             if (this.hasListingSelectorOutlet) this.listingSelectorOutlet.setValue(id);
+
+            if (global.AirbnbListing?.isAirbnbNumericId?.(id)) {
+                this.showStatus('正在從 Airbnb 帶入房源資料…');
+                try {
+                    await global.AirbnbListing.seedMissingSettings(id);
+                    this.showStatus('已帶入 Airbnb 房源資料（僅填補空白欄位）');
+                } catch (error) {
+                    console.warn('[host-settings] Airbnb listing seed failed', error);
+                    this.showError(error?.message || '無法從 Airbnb 帶入資料，仍可手動填寫');
+                }
+            }
+
             this.reloadFormFrame(id);
         }
 
