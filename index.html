@@ -2515,8 +2515,12 @@
                 this.updateSettingsLink = this.updateSettingsLink.bind(this);
                 this.onPairingInput = this.onPairingInput.bind(this);
                 if (this.hasInputTarget) {
+                    const sanitize = window.HostPocketPairingTabs?.sanitizeListingInputValue
+                        || ((v) => (typeof v === 'string' && !/\[object\s+/i.test(v) ? v.trim() : ''));
+                    const current = sanitize(this.inputTarget.value);
+                    if (this.inputTarget.value && !current) this.inputTarget.value = '';
                     const saved = window.HostPocketPairingTabs?.getSavedListingInput?.() || '';
-                    if (saved && !this.inputTarget.value.trim()) {
+                    if (saved && !current) {
                         this.inputTarget.value = saved;
                     }
                     this.inputTarget.addEventListener('input', this.onPairingInput);
@@ -2585,10 +2589,16 @@
                 const presetId = (typeof presetOrEvent === 'string' || typeof presetOrEvent === 'number')
                     ? presetOrEvent
                     : '';
-                const raw = String(presetId || input?.value || '').trim();
-                let val = window.AirbnbListing?.parseAirbnbListingId?.(raw)
-                    || window.HostGuideSettings?.normalizeListingId?.(raw)
-                    || raw.toUpperCase();
+                const sanitize = window.HostPocketPairingTabs?.sanitizeListingInputValue
+                    || ((v) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : ''));
+                const raw = sanitize(presetId) || sanitize(input?.value) || '';
+                if (input && input.value && !sanitize(input.value)) input.value = '';
+                let val = raw
+                    ? (window.AirbnbListing?.parseAirbnbListingId?.(raw)
+                        || window.HostGuideSettings?.normalizeListingId?.(raw)
+                        || raw.toUpperCase())
+                    : '';
+                if (/\[object\s+/i.test(String(val))) val = '';
                 if (input && val) input.value = val;
                 window.HostPocketPairingTabs?.saveListingInput?.(val);
                 this.updateSettingsLink();

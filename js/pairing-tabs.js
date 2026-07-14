@@ -113,9 +113,23 @@
         } catch (_) { /* ignore */ }
     }
 
+    function sanitizeListingInputValue(value) {
+        // Stimulus click handlers may pass Event objects; never persist those.
+        if (value == null) return '';
+        if (typeof value === 'object') return '';
+        const s = String(value).trim();
+        if (!s || /\[object\s+/i.test(s)) return '';
+        return s;
+    }
+
     function getSavedListingInput() {
         try {
-            return sessionStorage.getItem(INPUT_STORAGE_KEY) || '';
+            const raw = sessionStorage.getItem(INPUT_STORAGE_KEY) || '';
+            const cleaned = sanitizeListingInputValue(raw);
+            if (raw && !cleaned) {
+                sessionStorage.removeItem(INPUT_STORAGE_KEY);
+            }
+            return cleaned;
         } catch (_) {
             return '';
         }
@@ -123,15 +137,22 @@
 
     function saveListingInput(value) {
         try {
-            sessionStorage.setItem(INPUT_STORAGE_KEY, String(value || '').trim());
+            const cleaned = sanitizeListingInputValue(value);
+            if (!cleaned) {
+                sessionStorage.removeItem(INPUT_STORAGE_KEY);
+                return;
+            }
+            sessionStorage.setItem(INPUT_STORAGE_KEY, cleaned);
         } catch (_) { /* ignore */ }
     }
 
     function restoreListingInput() {
         const saved = getSavedListingInput();
-        if (!saved) return;
         const input = global.document?.querySelector('[data-pairing-target="input"]');
-        if (input && !input.value.trim()) {
+        if (!input) return;
+        const current = sanitizeListingInputValue(input.value);
+        if (input.value && !current) input.value = '';
+        if (saved && !current) {
             input.value = saved;
         }
     }
@@ -142,7 +163,8 @@
     }
 
     function readPairingInputValue() {
-        return global.document?.querySelector('[data-pairing-target="input"]')?.value?.trim() || '';
+        const raw = global.document?.querySelector('[data-pairing-target="input"]')?.value || '';
+        return sanitizeListingInputValue(raw);
     }
 
     function refreshPairingController() {
@@ -265,6 +287,7 @@
         isMounted,
         getSavedTab,
         saveTab,
+        sanitizeListingInputValue,
         getSavedListingInput,
         saveListingInput,
         restoreListingInput,
