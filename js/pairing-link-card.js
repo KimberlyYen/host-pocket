@@ -38,12 +38,12 @@
         </label>
         <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed" data-global-lang="zh">可貼完整 Airbnb 房源網址，或 <span class="text-hp-coral font-semibold">rooms/</span> 後面的數字</p>
         <p class="text-xs text-hp-muted/80 mb-1.5 leading-relaxed hidden" data-global-lang="en">Paste the full Airbnb listing URL, or the numbers after <span class="text-hp-coral font-semibold">rooms/</span></p>
-        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">12345678</span></p>
-        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">12345678</span></p>
+        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed" data-global-lang="zh">例：airbnb.com.tw/rooms/<span class="text-hp-coral">1234567891011121314</span></p>
+        <p class="text-xs text-hp-muted/60 mb-2 font-mono leading-relaxed hidden" data-global-lang="en">e.g. airbnb.com/rooms/<span class="text-hp-coral">1234567891011121314</span></p>
         <div class="hp-pairing-link-card__input-wrap bg-hp-dark rounded-2xl px-4 py-3.5 border border-[#3A2F2C] focus-within:border-hp-coral/60 transition-all">
             <input type="text"
                    data-pairing-target="input"
-                   placeholder="貼上 Airbnb 網址或房源編號"
+                   placeholder="1234567891011121314"
                    value=""
                    class="hp-pairing-link-card__input bg-transparent text-sm font-mono font-bold text-white focus:outline-none w-full tracking-wide placeholder:text-hp-muted/40">
         </div>
