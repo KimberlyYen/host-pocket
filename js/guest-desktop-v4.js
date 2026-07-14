@@ -183,16 +183,10 @@
 
     function syncDashboardColumnHeights() {
         const left = document.querySelector('.hp-v4-dashboard-left');
-        const localRecs = document.querySelector('#localRecs');
         if (!left) return;
-
-        if (!isDesktop()) {
-            left.style.removeProperty('min-height');
-            return;
-        }
-
-        if (!localRecs) return;
-        left.style.minHeight = `${localRecs.offsetHeight}px`;
+        // Desktop columns scroll independently; do not force left column
+        // to match experiences height (that clipped 5+ attraction cards).
+        left.style.removeProperty('min-height');
     }
 
     function observeDashboardColumnHeights() {
@@ -931,6 +925,13 @@
         syncDashboardColumnHeights();
         syncSidebarActive(getActiveScreen());
         syncSidebarLang();
+
+        // Deep-link from host-settings avatar: /#member
+        try {
+            if ((window.location.hash || '').replace(/^#/, '') === 'member') {
+                openMemberPanel();
+            }
+        } catch (_) { /* ignore */ }
 
         window.addEventListener('hp:v4-screen', (event) => {
             syncSidebarActive(event.detail?.screen || getActiveScreen());

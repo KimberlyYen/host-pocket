@@ -131,6 +131,22 @@
         return Object.keys(readAllLocal()).sort();
     }
 
+    /** Most recently updated listing in browser mirror (localStorage / sessionStorage). */
+    function getMostRecentlySavedListingId() {
+        const all = readAllLocal();
+        let bestId = '';
+        let bestTs = -1;
+        Object.entries(all).forEach(([id, data]) => {
+            if (!id || !data || typeof data !== 'object') return;
+            const ts = Date.parse(data.updatedAt || '') || 0;
+            if (ts > bestTs) {
+                bestTs = ts;
+                bestId = id;
+            }
+        });
+        return bestId || '';
+    }
+
     function pickEditable(source, options = {}) {
         const allowEmpty = new Set(options.allowEmpty || []);
         const out = {};
@@ -471,6 +487,7 @@
         saveLocalMirror,
         remove,
         listSavedIds,
+        getMostRecentlySavedListingId,
         ensureLoaded,
         getMerged,
         getMergedAsync,

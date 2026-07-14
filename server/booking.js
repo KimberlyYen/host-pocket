@@ -44,6 +44,25 @@ async function sendBookingEmailViaResend(booking) {
     return { sent: true };
 }
 
+/** Dedupe paid-booking confirmation emails (notify + OrderResultURL may both fire). */
+const recentEmailKeys = new Map();
+
+function wasEmailRecentlySent(key) {
+    const id = String(key || '').trim();
+    if (!id) return false;
+    const now = Date.now();
+    for (const [k, ts] of recentEmailKeys) {
+        if (now - ts > 30 * 60 * 1000) recentEmailKeys.delete(k);
+    }
+    return recentEmailKeys.has(id);
+}
+
+function rememberEmailSent(key) {
+    const id = String(key || '').trim();
+    if (!id) return;
+    recentEmailKeys.set(id, Date.now());
+}
+
 async function createBooking(bookingInput) {
     const booking = {
         guestEmail: String(bookingInput.guestEmail || '').trim().toLowerCase(),
@@ -56,7 +75,8 @@ async function createBooking(bookingInput) {
         durationMinutes: parseDurationMinutes(bookingInput.durationMinutes),
         locale: bookingInput.locale === 'en' ? 'en' : 'zh',
         dateLabel: bookingInput.dateLabel || '',
-        timeLabel: bookingInput.timeLabel || ''
+        timeLabel: bookingInput.timeLabel || '',
+        tradeNo: String(bookingInput.tradeNo || bookingInput.MerchantTradeNo || '').trim()
     };
 
     if (!booking.guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(booking.guestEmail)) {
@@ -76,6 +96,12 @@ async function createBooking(bookingInput) {
         if (!booking.timeLabel) {
             booking.timeLabel = booking.locale === 'en' ? 'Any time today' : '當日時段皆可預約';
         }
+    }
+
+    const dedupeKey = booking.tradeNo
+        || `${booking.guestEmail}|${booking.date}|${booking.time}|${booking.title}`;
+    if (wasEmailRecentlySent(dedupeKey)) {
+        return { ok: true, emailSent: true, customEmailSent: true, duplicate: true };
     }
 
     if (!isEmailConfigured()) {
@@ -99,6 +125,8 @@ async function createBooking(bookingInput) {
     if (!resendResult.sent && !smtpResult.sent) {
         throw new Error(guestEmailSendFailed(booking.locale));
     }
+
+    rememberEmailSent(dedupeKey);
 
     return {
         ok: true,

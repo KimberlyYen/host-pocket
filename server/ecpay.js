@@ -72,13 +72,32 @@ function ecpayNetUrlEncode(value) {
         .replace(/%20/g, '+');
 }
 
-function generateCheckMacValue(params, hashKey, hashIV, encryptType = 1) {
+function normalizeCheckMacParamValue(val) {
+    if (val === undefined || val === null) return null;
+    // express.urlencoded({ extended: true }) may turn duplicate keys into arrays
+    if (Array.isArray(val)) {
+        if (!val.length) return '';
+        return String(val[val.length - 1]);
+    }
+    if (typeof val === 'object') return null;
+    return String(val);
+}
+
+/**
+ * ECPay CheckMacValue.
+ * AIO checkout rejects CheckMac that includes empty optional fields we POST;
+ * ReturnURL / OrderResultURL (esp. NeedExtraPaidInfo) may include blank fields.
+ * Use includeEmpty=false when creating; verify tries both.
+ */
+function generateCheckMacValue(params, hashKey, hashIV, encryptType = 1, options = {}) {
+    const includeEmpty = options.includeEmpty === true;
     const filtered = {};
-    Object.keys(params).forEach((key) => {
+    Object.keys(params || {}).forEach((key) => {
         if (key === 'CheckMacValue') return;
-        const val = params[key];
-        if (val === undefined || val === null || val === '') return;
-        filtered[key] = String(val);
+        const normalized = normalizeCheckMacParamValue(params[key]);
+        if (normalized === null) return;
+        if (!includeEmpty && normalized === '') return;
+        filtered[key] = normalized;
     });
 
     const sortedKeys = Object.keys(filtered).sort((a, b) => (
@@ -96,11 +115,28 @@ function generateCheckMacValue(params, hashKey, hashIV, encryptType = 1) {
 }
 
 function verifyCheckMacValue(params, hashKey, hashIV) {
-    const received = String(params.CheckMacValue || '');
+    const received = String(params.CheckMacValue || '').toUpperCase();
     if (!received) return false;
     const encryptType = params.EncryptType != null ? Number(params.EncryptType) : 1;
-    const expected = generateCheckMacValue(params, hashKey, hashIV, encryptType);
-    return expected === received.toUpperCase();
+    const excludeEmpty = generateCheckMacValue(params, hashKey, hashIV, encryptType, {
+        includeEmpty: false
+    });
+    if (excludeEmpty === received) return true;
+    const includeEmpty = generateCheckMacValue(params, hashKey, hashIV, encryptType, {
+        includeEmpty: true
+    });
+    return includeEmpty === received;
+}
+
+/** Drop empty optional fields so AIO checkout CheckMac matches ECPay. */
+function omitEmptyParams(params) {
+    const out = {};
+    Object.keys(params || {}).forEach((key) => {
+        const val = params[key];
+        if (val === undefined || val === null || val === '') return;
+        out[key] = val;
+    });
+    return out;
 }
 
 function getPublicBaseUrl(req) {
@@ -131,12 +167,17 @@ function buildMerchantTradeNo() {
 
 function encodeCustomFields(compact) {
     const encoded = Buffer.from(JSON.stringify(compact), 'utf8').toString('base64url');
-    return {
-        CustomField1: encoded.slice(0, 50),
-        CustomField2: encoded.slice(50, 100),
-        CustomField3: encoded.slice(100, 150),
-        CustomField4: encoded.slice(150, 200)
-    };
+    const out = {};
+    const slices = [
+        ['CustomField1', encoded.slice(0, 50)],
+        ['CustomField2', encoded.slice(50, 100)],
+        ['CustomField3', encoded.slice(100, 150)],
+        ['CustomField4', encoded.slice(150, 200)]
+    ];
+    slices.forEach(([key, value]) => {
+        if (value) out[key] = value;
+    });
+    return out;
 }
 
 function packBookingCustomFields(booking) {
@@ -273,7 +314,7 @@ function createCheckout(bookingInput, req) {
         ? `${base}/payment-result.html?status=cancel&next=${resultNext}`
         : `${base}/payment-result.html?status=cancel`;
 
-    const params = {
+    const params = omitEmptyParams({
         MerchantID: config.merchantId,
         MerchantTradeNo: tradeNo,
         MerchantTradeDate: formatMerchantTradeDate(),
@@ -288,13 +329,14 @@ function createCheckout(bookingInput, req) {
         EncryptType: '1',
         NeedExtraPaidInfo: 'Y',
         ...custom
-    };
+    });
 
     params.CheckMacValue = generateCheckMacValue(
         params,
         config.hashKey,
         config.hashIV,
-        1
+        1,
+        { includeEmpty: false }
     );
 
     return {
@@ -318,7 +360,13 @@ function parseNotifyBody(body) {
         });
         return out;
     }
-    return { ...body };
+    const out = {};
+    Object.keys(body).forEach((key) => {
+        const normalized = normalizeCheckMacParamValue(body[key]);
+        if (normalized === null) return;
+        out[key] = normalized;
+    });
+    return out;
 }
 
 module.exports = {

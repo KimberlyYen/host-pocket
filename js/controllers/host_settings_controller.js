@@ -8,7 +8,8 @@
 
     global.registerHostSettingsController('host-settings', class extends Controller {
         static targets = [
-            'formFrame', 'form', 'statusMsg', 'errorMsg', 'basicInfoListingId',
+            'formFrame', 'form', 'statusMsg', 'errorMsg',
+            'basicInfoListingId', 'basicInfoListingIdDetail', 'basicInfoRoomTitle',
             'extraRecSlots', 'addRecBtn', 'addRecHint'
         ];
 
@@ -23,10 +24,24 @@
             void global.HostGuideSettings?.isDatabaseAvailable?.();
             // Defer one tick so listing-selector can restore URL / session listing first.
             requestAnimationFrame(() => {
-                const id = this.resolveInitialListing();
-                this.rememberListingId(id);
-                this.reloadFormFrame(id);
+                void this.bootInitialListing();
             });
+        }
+
+        async bootInitialListing() {
+            const id = this.resolveInitialListing();
+            this.rememberListingId(id);
+
+            // On first open, seed blank fields from Airbnb so titles/photos appear.
+            if (global.AirbnbListing?.isAirbnbNumericId?.(id)) {
+                try {
+                    await global.AirbnbListing.seedMissingSettings(id);
+                } catch (error) {
+                    console.warn('[host-settings] initial Airbnb seed failed', error);
+                }
+            }
+
+            this.reloadFormFrame(id);
         }
 
         rememberListingId(listingId) {
@@ -166,12 +181,44 @@
                 // ignore
             }
 
+            try {
+                const recent = global.HostGuideSettings?.getMostRecentlySavedListingId?.();
+                if (recent) return global.HostGuideSettings.normalizeListingId(recent);
+            } catch {
+                // ignore
+            }
+
             if (this.hasListingSelectorOutlet) {
                 const fromOutlet = this.listingSelectorOutlet.getValue?.();
                 if (fromOutlet) return fromOutlet;
             }
 
             return 'TAIPEI-CITY';
+        }
+
+        async waitForFormTarget(timeoutMs = 2500) {
+            if (this.hasFormTarget) return true;
+            const started = Date.now();
+            while (Date.now() - started < timeoutMs) {
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+                if (this.hasFormTarget) return true;
+            }
+            return this.hasFormTarget;
+        }
+
+        async applyLoadedFormData(data, options = {}) {
+            const ready = await this.waitForFormTarget();
+            if (!ready) {
+                console.warn('[host-settings] form target not ready; skip fillForm');
+                this.syncBasicInfoPeek({ listingId: options.listingId });
+                return false;
+            }
+            this.fillForm(data, { collapse: options.collapse !== false });
+            this.syncBasicInfoPeek({
+                listingId: options.listingId || this.getListingId(),
+                roomTitleZh: options.roomTitleZh
+            });
+            return true;
         }
 
         formFrameUrl(listingId) {
@@ -202,22 +249,12 @@
             global.HostGuideSettings.invalidateCache(id);
             try {
                 const data = await this.loadFormData(id);
-                requestAnimationFrame(() => {
-                    if (this.hasFormTarget) this.fillForm(data, { collapse: true });
-                    else this.syncFormWidgets({ collapse: true });
-                    if (this.hasBasicInfoListingIdTarget) {
-                        this.basicInfoListingIdTarget.textContent = id;
-                    }
-                });
+                await this.applyLoadedFormData(data, { listingId: id, collapse: true });
             } catch (error) {
                 console.warn('[host-settings] cache refresh failed', error);
-                requestAnimationFrame(() => {
-                    // Keep server-hydrated field values; only refresh peeks.
-                    this.syncFormWidgets({ collapse: true });
-                    if (this.hasBasicInfoListingIdTarget) {
-                        this.basicInfoListingIdTarget.textContent = id;
-                    }
-                });
+                const ready = await this.waitForFormTarget();
+                if (ready) this.syncFormWidgets({ collapse: true });
+                this.syncBasicInfoPeek({ listingId: id });
             }
         }
 
@@ -261,28 +298,55 @@
                 el.dispatchEvent(new Event('input', { bubbles: true }));
             });
 
+            this.syncBasicInfoPeek();
             this.formTarget.dispatchEvent(new CustomEvent('host-settings:form-filled', { bubbles: true }));
+        }
+
+        syncBasicInfoPeek(options = {}) {
+            const opts = options && typeof options === 'object' && !options.target ? options : {};
+            const listingId = global.HostGuideSettings.normalizeListingId(
+                opts.listingId || this.getListingId() || ''
+            );
+            const roomTitleEl = this.formField('roomTitleZh')
+                || this.element.querySelector?.('[name="roomTitleZh"]');
+            const roomTitle = String(
+                opts.roomTitleZh
+                ?? roomTitleEl?.value
+                ?? ''
+            ).trim();
+
+            if (this.hasBasicInfoListingIdTarget) {
+                this.basicInfoListingIdTarget.textContent = listingId || '—';
+                this.basicInfoListingIdTarget.dataset.empty = listingId ? '0' : '1';
+            }
+            if (this.hasBasicInfoListingIdDetailTarget) {
+                this.basicInfoListingIdDetailTarget.textContent = listingId || '—';
+            }
+            if (this.hasBasicInfoRoomTitleTarget) {
+                this.basicInfoRoomTitleTarget.textContent = roomTitle || '尚未設定';
+                this.basicInfoRoomTitleTarget.dataset.empty = roomTitle ? '0' : '1';
+            }
         }
 
         async loadFormData(listingId) {
             const id = global.HostGuideSettings.normalizeListingId(listingId);
-            let data = {};
+            global.HostGuideSettings.invalidateCache(id);
 
+            // Load DB + localStorage into cache, then merge with GuideDefaults base.
+            await global.HostGuideSettings.ensureLoaded(id);
+            let data = global.HostGuideSettings.getMerged?.(id) || {};
+
+            // Demo preset JSON may include fields beyond GuideDefaults; merge under overrides.
             try {
                 const preset = await global.HostSettingsPresets.fetchPreset(id);
-                data = { ...preset.data };
+                if (preset?.data) {
+                    data = global.HostGuideSettings.merge(preset.data, data);
+                }
             } catch {
                 // preset optional for custom listing IDs
             }
 
-            global.HostGuideSettings.invalidateCache(id);
-            const overrides = await global.HostGuideSettings.ensureLoaded(id);
-            const cleaned = global.HostGuideSettings.stripLegacyDemoRecOverrides(id, overrides);
-            if (cleaned) {
-                data = global.HostGuideSettings.merge(data, cleaned);
-            }
-
-            return data;
+            return data && typeof data === 'object' ? data : {};
         }
 
         async renderFormClientSide(listingId) {
@@ -309,13 +373,7 @@
                 ]);
 
                 this.formFrameTarget.innerHTML = html;
-
-                requestAnimationFrame(() => {
-                    if (this.hasFormTarget) this.fillForm(data);
-                    if (this.hasBasicInfoListingIdTarget) {
-                        this.basicInfoListingIdTarget.textContent = id;
-                    }
-                });
+                await this.applyLoadedFormData(data, { listingId: id, collapse: true });
             } catch (error) {
                 console.error('[host-settings] client form render failed', error);
                 this.formFrameTarget.innerHTML = `<div class="hp-card p-6 text-center text-xs text-red-600">載入失敗：${error?.message || '未知錯誤'}</div>`;
@@ -464,6 +522,23 @@
                 galleryEl.value = fromGallery || (payload.roomImg ? String(payload.roomImg).trim() : '');
             }
 
+            const maxRec = global.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+            for (let i = 1; i <= maxRec; i += 1) {
+                const key = `recGallery${i}`;
+                const urls = Array.isArray(payload[key])
+                    ? payload[key].filter(Boolean)
+                    : (payload[`recImg${i}`] ? [payload[`recImg${i}`]] : []);
+                if (!urls.length) continue;
+                let input = this.formField(key);
+                if (!input && this.hasFormTarget) {
+                    input = global.document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    this.formTarget.appendChild(input);
+                }
+                if (input) input.value = urls.join('\n');
+            }
+
             this.syncFormWidgets({ collapse: options.collapse !== false });
             this.syncAddRecButton();
         }
@@ -539,6 +614,18 @@
             if (gallery.length) {
                 data.roomGallery = gallery;
                 data.roomImg = gallery[0];
+            }
+
+            const maxRec = global.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+            for (let i = 1; i <= maxRec; i += 1) {
+                const key = `recGallery${i}`;
+                const el = this.formField(key);
+                if (!el) continue;
+                const urls = global.HostGuideSettings.parseGalleryText(el.value || '');
+                if (urls.length) {
+                    data[key] = urls;
+                    if (!data[`recImg${i}`]) data[`recImg${i}`] = urls[0];
+                }
             }
 
             if (data.desc2Zh) {
@@ -632,6 +719,19 @@
             } catch (error) {
                 console.error(error);
                 this.showError(error?.message || '預覽前儲存失敗');
+            }
+        }
+
+        /** Save then open the live guest guide (same content as 預覽 App, full page). */
+        async goGuestHome() {
+            try {
+                const { id } = await this.persistFormSettings();
+                this.showStatus('已儲存，正在前往主頁…');
+                const url = `/?listing=${encodeURIComponent(id)}`;
+                global.location.assign(url);
+            } catch (error) {
+                console.error(error);
+                this.showError(error?.message || '前往主頁前儲存失敗');
             }
         }
 

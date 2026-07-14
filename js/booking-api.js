@@ -126,14 +126,39 @@
         return data;
     }
 
-    function submitEcpayForm(actionUrl, params) {
+    /**
+     * POST to ECPay checkout. Opens in a new window/tab by default so the
+     * guest guide stays open while payment completes.
+     */
+    function submitEcpayForm(actionUrl, params, options = {}) {
         if (!actionUrl || !params) {
             throw new Error('Missing ECPay checkout form');
         }
+
+        const openInNewWindow = options.newWindow !== false;
+        const windowName = options.windowName || 'hp_ecpay_checkout';
+        let target = '_self';
+
+        if (openInNewWindow) {
+            // Open during the user-gesture turn so popup blockers allow it.
+            const payWin = global.open('about:blank', windowName);
+            target = payWin ? windowName : '_blank';
+            try {
+                if (payWin?.document) {
+                    payWin.document.write('<!DOCTYPE html><title>Host Pocket</title><p style="font-family:sans-serif;padding:1.5rem">Redirecting to payment…</p>');
+                    payWin.document.close();
+                }
+            } catch {
+                // cross-origin / restricted — ignore
+            }
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = actionUrl;
+        form.target = target;
         form.acceptCharset = 'UTF-8';
+        form.rel = 'noopener';
         form.style.display = 'none';
         Object.keys(params).forEach((key) => {
             const input = document.createElement('input');
@@ -144,7 +169,8 @@
         });
         document.body.appendChild(form);
         form.submit();
-        return { ok: true, method: 'ecpay' };
+        window.setTimeout(() => form.remove(), 0);
+        return { ok: true, method: 'ecpay', newWindow: openInNewWindow, target };
     }
 
     function buildBookingMailtoUrl(booking) {

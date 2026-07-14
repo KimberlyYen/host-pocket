@@ -286,6 +286,39 @@
         .hp-image-swipe {
             touch-action: pan-y;
         }
+        .hp-rec-carousel-wrap {
+            position: relative;
+        }
+        .hp-rec-carousel__nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            border: 1px solid #EBE5DF;
+            background: rgba(255, 255, 255, 0.96);
+            color: #1F1A18;
+            box-shadow: 0 4px 14px rgba(31, 26, 24, 0.12);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+        .hp-rec-carousel__nav:hover {
+            border-color: rgba(255, 91, 62, 0.45);
+            color: #FF5B3E;
+            box-shadow: 0 6px 16px rgba(255, 91, 62, 0.16);
+        }
+        .hp-rec-carousel__nav:focus-visible {
+            outline: 2px solid rgba(255, 91, 62, 0.55);
+            outline-offset: 2px;
+        }
+        .hp-rec-carousel__nav--prev { left: 0.35rem; }
+        .hp-rec-carousel__nav--next { right: 0.35rem; }
+        .hp-rec-carousel__nav[hidden] { display: none !important; }
         .hp-copy-hint {
             position: fixed;
             z-index: 9999;
@@ -701,6 +734,7 @@
                             </div>
 
                             <!-- Carousel -->
+                            <div class="hp-rec-carousel-wrap relative">
                             <div data-dashboard-target="recCarousel" class="flex gap-4 overflow-x-auto px-5 py-1 hide-scrollbar snap-x snap-mandatory">
                                 
                                 <!-- Card 1 -->
@@ -792,7 +826,24 @@
                                             <span class="text-xs text-hp-muted font-bold hidden" data-global-lang="en">Details</span>
                                         </div>
                                     </div>
+                                    </div>
                                 </div>
+                            </div>
+                            <button type="button"
+                                    data-dashboard-target="recPrevBtn"
+                                    data-action="click->dashboard#scrollRecPrev"
+                                    class="hp-rec-carousel__nav hp-rec-carousel__nav--prev"
+                                    aria-label="上一則在地體驗"
+                                    hidden>
+                                <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
+                            </button>
+                            <button type="button"
+                                    data-dashboard-target="recNextBtn"
+                                    data-action="click->dashboard#scrollRecNext"
+                                    class="hp-rec-carousel__nav hp-rec-carousel__nav--next"
+                                    aria-label="下一則在地體驗">
+                                <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+                            </button>
                             </div>
                         </div>
 
@@ -2792,7 +2843,7 @@
                 "recVideo2", "recTitle2", "recBadge2", "recDist2", "recPrice2", "recRating2",
                 "recVideo3", "recTitle3", "recBadge3", "recDist3", "recPrice3", "recRating3",
                 "recVideo4", "recTitle4", "recBadge4", "recDist4", "recPrice4", "recRating4",
-                "stayGuides", "localRecs", "recCarousel",
+                "stayGuides", "localRecs", "recCarousel", "recPrevBtn", "recNextBtn",
                 "scrollContainer", "tabBtn", "scrollToTopBtn", "bottomNavBtn", "bottomNavBar", "contactHostNav", "shareLink", "backBtn", "mobileHomeLogo", "headerBar", "airbnbListingCta",
                 "roomOverlay", "helpOverlay", "lockOverlay", "slideOverlayBackdrop", "expDetailBackdrop", "expDetailOverlay", "expDetailBody", "expDetailBookingBar", "expShareOverlay", "expShareSheet", "expShareBody", "expBookingOverlay", "expBookingCalendar", "expBookingConfirmOverlay", "expBookingConfirmDialog", "expBookingConfirmTitle", "expBookingConfirmHost", "expBookingConfirmDuration", "expBookingConfirmLocation", "expBookingConfirmTimezone", "expBookingConfirmDate", "expBookingConfirmSlot", "expBookingConfirmAmount", "expBookingConfirmEmail", "expBookingConfirmEmailHint", "expBookingConfirmFeedback", "expBookingConfirmSubmit", "expBookingConfirmSubmitLabel", "helpHostName",
                 "lockCode", "lockDetail",
@@ -2809,6 +2860,7 @@
                 this.bindRoomHeroSwipe();
                 this.bindOverlayHeroSwipe();
                 this.bindScrollContainer();
+                this.bindRecCarouselNav();
                 this.bookingViewDate = ExperienceDetailsAPI.bookingMonthStart();
                 this.selectedBookingDate = null;
                 this.bookingTimeFormat = '24';
@@ -2970,7 +3022,10 @@
             }
 
             async loadExperienceDetailForRec(listingId, recIndex, listingData) {
-                const id = (listingId || this.currentListingId || 'TAIPEI-CITY').trim().toUpperCase();
+                const rawId = listingId || this.currentListingId || 'TAIPEI-CITY';
+                const id = window.HostGuideSettings?.normalizeListingId?.(rawId)
+                    || String(rawId || '').trim().toUpperCase()
+                    || 'TAIPEI-CITY';
                 const num = Number(recIndex);
                 if (num < 1 || num > LOCAL_REC_COUNT) return null;
 
@@ -2981,15 +3036,19 @@
                     }
                 } catch (error) {
                     console.warn('[dashboard] listing load failed', error);
+                    resolvedListing = this.currentListingData || null;
+                }
+
+                if (!resolvedListing) {
                     this.showExperienceDetailError();
                     return null;
                 }
 
-                if (!resolvedListing) return null;
-
                 let payload;
                 try {
-                    payload = await ExperienceDetailsAPI.fetchDetailsForRec(resolvedListing, num, { listingId: id });
+                    payload = await ExperienceDetailsAPI.fetchDetailsForRec(resolvedListing, num, {
+                        listingId: id
+                    });
                 } catch (error) {
                     console.warn('[dashboard] experience detail load failed', error);
                     this.showExperienceDetailError();
@@ -3210,6 +3269,68 @@
                     );
                 }
                 this.updateDeepLinkChrome(this.isGuestGuideRoute());
+                requestAnimationFrame(() => this.syncRecCarouselNav());
+            }
+
+            bindRecCarouselNav() {
+                if (!this.hasRecCarouselTarget || this.recCarouselTarget.dataset.hpRecNavBound === 'true') return;
+                this.recCarouselTarget.dataset.hpRecNavBound = 'true';
+                this._onRecCarouselScroll = () => this.syncRecCarouselNav();
+                this.recCarouselTarget.addEventListener('scroll', this._onRecCarouselScroll, { passive: true });
+                window.addEventListener('resize', this._onRecCarouselScroll);
+                requestAnimationFrame(() => this.syncRecCarouselNav());
+            }
+
+            recCarouselStep() {
+                if (!this.hasRecCarouselTarget) return 220;
+                const el = this.recCarouselTarget;
+                const card = el.querySelector('[data-rec-card]:not(.hidden)');
+                const gap = 16;
+                if (!card) return Math.max(180, Math.round(el.clientWidth * 0.85));
+                const cardWidth = card.getBoundingClientRect().width || card.offsetWidth || 210;
+                // Desktop shows ~2 cards; advance by one viewport page for clearer paging.
+                if (document.documentElement.classList.contains('hp-v4-desktop')) {
+                    return Math.max(cardWidth + gap, Math.round(el.clientWidth * 0.92));
+                }
+                return cardWidth + gap;
+            }
+
+            scrollRecNext(event) {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                if (!this.hasRecCarouselTarget) return;
+                this.recCarouselTarget.scrollBy({ left: this.recCarouselStep(), behavior: 'smooth' });
+                window.setTimeout(() => this.syncRecCarouselNav(), 280);
+            }
+
+            scrollRecPrev(event) {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                if (!this.hasRecCarouselTarget) return;
+                this.recCarouselTarget.scrollBy({ left: -this.recCarouselStep(), behavior: 'smooth' });
+                window.setTimeout(() => this.syncRecCarouselNav(), 280);
+            }
+
+            syncRecCarouselNav() {
+                if (!this.hasRecCarouselTarget) return;
+                // Desktop uses a 2×2 grid — hide carousel arrows there.
+                if (document.documentElement.classList.contains('hp-v4-desktop')) {
+                    if (this.hasRecPrevBtnTarget) this.recPrevBtnTarget.hidden = true;
+                    if (this.hasRecNextBtnTarget) this.recNextBtnTarget.hidden = true;
+                    return;
+                }
+                const el = this.recCarouselTarget;
+                const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth - 2);
+                const canScroll = maxScroll > 4;
+                const atStart = el.scrollLeft <= 4;
+                const atEnd = el.scrollLeft >= maxScroll;
+
+                if (this.hasRecPrevBtnTarget) {
+                    this.recPrevBtnTarget.hidden = !(canScroll && !atStart);
+                }
+                if (this.hasRecNextBtnTarget) {
+                    this.recNextBtnTarget.hidden = !canScroll || atEnd;
+                }
             }
 
             // --- Bottom Nav Actions ---
@@ -3422,7 +3543,13 @@
                 this.setSlideOverlay(this.expDetailOverlayTarget, true);
                 this.showExperienceDetailLoading();
 
-                await this.loadExperienceDetailForRec(listingId, recIndex).then((payload) => {
+                // Prefer in-memory dashboard data so host-picked TDX / custom spots
+                // still open even if a network refresh is slow or fails.
+                await this.loadExperienceDetailForRec(
+                    listingId,
+                    recIndex,
+                    this.currentListingData || null
+                ).then((payload) => {
                     if (!payload) this.showExperienceDetailError();
                 }).catch(() => {
                     this.showExperienceDetailError();
@@ -4056,12 +4183,33 @@
                             return;
                         }
                         if (checkout.mock) {
-                            this.setBookingConfirmFeedback(
-                                'success',
-                                isZh
-                                    ? `模擬付款 NT$${checkout.amountTwd}（mock）`
-                                    : `Mock payment NT$${checkout.amountTwd}`
-                            );
+                            // Mock charge still triggers the real confirmation email path.
+                            try {
+                                if (window.BookingAPI.createBooking && await BookingAPI.isEmailApiConfigured()) {
+                                    await BookingAPI.createBooking(bookingPayload);
+                                    this.setBookingConfirmFeedback(
+                                        'success',
+                                        isZh
+                                            ? `模擬付款 NT$${checkout.amountTwd}，確認信已寄出`
+                                            : `Mock payment NT$${checkout.amountTwd} — confirmation emailed`
+                                    );
+                                } else {
+                                    this.setBookingConfirmFeedback(
+                                        'success',
+                                        isZh
+                                            ? `模擬付款 NT$${checkout.amountTwd}（mock）`
+                                            : `Mock payment NT$${checkout.amountTwd}`
+                                    );
+                                }
+                            } catch (emailError) {
+                                console.warn('[Host Pocket] mock payment email failed', emailError);
+                                this.setBookingConfirmFeedback(
+                                    'success',
+                                    isZh
+                                        ? `模擬付款 NT$${checkout.amountTwd}（確認信稍後再試）`
+                                        : `Mock payment NT$${checkout.amountTwd} (email pending)`
+                                );
+                            }
                             this.triggerToast(
                                 isZh ? '模擬付款成功' : 'Mock payment OK',
                                 `${dateLabel} · ${timeLabel}`,
@@ -4075,7 +4223,19 @@
                             return;
                         }
 
-                        BookingAPI.submitEcpayForm(checkout.actionUrl, checkout.params);
+                        BookingAPI.submitEcpayForm(checkout.actionUrl, checkout.params, { newWindow: true });
+                        this.setBookingConfirmFeedback(
+                            'success',
+                            isZh
+                                ? '已另開付款視窗。完成付款後會自動寄出確認信。'
+                                : 'Payment opened in a new window. A confirmation email will be sent after payment.'
+                        );
+                        this.triggerToast(
+                            isZh ? '請在新視窗完成付款' : 'Complete payment in the new window',
+                            isZh ? '付款成功後會自動寄信' : 'Email sends automatically after payment',
+                            'info'
+                        );
+                        this.setBookingSubmitLoading(false, isZh);
                     } catch (error) {
                         console.error('[Host Pocket] ECPay booking failed', error);
                         if (error?.code === 'ECPAY_NOT_CONFIGURED') {

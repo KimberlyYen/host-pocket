@@ -4,6 +4,7 @@ const {
     unpackBookingCustomFields,
     parseNotifyBody
 } = require('../../../server/ecpay');
+const { fulfillPaidExperienceBooking } = require('../../../server/ecpay-fulfill');
 const { readRequestBody } = require('../../../server/read-request-body');
 
 function escapeHtml(value) {
@@ -49,8 +50,20 @@ module.exports = async (req, res) => {
                 detailZh = 'Host Pocket 月費已付款完成，可以開始設定住宿指南。';
                 detailEn = 'Host Pocket monthly fee paid. You can start setting up your stay guide.';
             } else {
-                detailZh = '預定已建立。若有設定寄信服務，確認信會寄到你的 Email。';
-                detailEn = 'Your booking is confirmed. If email is configured, a confirmation will be sent.';
+                let emailSent = false;
+                try {
+                    const fulfilled = await fulfillPaidExperienceBooking(params);
+                    emailSent = Boolean(fulfilled?.emailSent);
+                } catch (error) {
+                    console.error('[ecpay/result] auto email failed', error);
+                }
+                if (emailSent) {
+                    detailZh = '預定已建立，確認信已自動寄出。';
+                    detailEn = 'Your booking is confirmed and a confirmation email was sent.';
+                } else {
+                    detailZh = '預定已建立。若有設定寄信服務，確認信會寄到你的 Email。';
+                    detailEn = 'Your booking is confirmed. If email is configured, a confirmation will be sent.';
+                }
                 if (earlyPayload?.guestEmail) {
                     detailZh += `（${earlyPayload.guestEmail}）`;
                     detailEn += ` (${earlyPayload.guestEmail})`;
@@ -69,6 +82,17 @@ module.exports = async (req, res) => {
         titleEn = 'Payment cancelled';
         detailZh = '尚未完成綠界付款。';
         detailEn = 'ECPay checkout was not completed.';
+    } else if (config && params.CheckMacValue) {
+        console.error(
+            '[ecpay/result] CheckMacValue mismatch',
+            params.MerchantTradeNo || '',
+            'keys=',
+            Object.keys(params).length,
+            'RtnCode=',
+            params.RtnCode
+        );
+    } else if (config && req.method === 'POST' && !params.CheckMacValue) {
+        console.error('[ecpay/result] missing CheckMacValue on POST', params.MerchantTradeNo || '');
     }
 
     const qs = new URLSearchParams({

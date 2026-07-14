@@ -35,8 +35,20 @@
 </head>
 <body class="bg-hp-bgLight min-h-screen font-sans text-hp-dark text-xs">
     <header class="bg-white border-b border-hp-border px-5 py-4 sticky top-0 z-20">
-        <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
-            <div>
+        <div class="max-w-3xl mx-auto flex items-center gap-3">
+            <div class="hp-host-auth shrink-0" data-hp-host-auth hidden>
+                <a href="/#member"
+                   data-turbo="false"
+                   class="hp-host-auth__btn"
+                   data-hp-host-auth-btn
+                   aria-label="會員帳號">
+                    <img class="hp-host-auth__avatar" data-hp-host-auth-avatar alt="" width="40" height="40" hidden decoding="async" referrerpolicy="no-referrer">
+                    <span class="hp-host-auth__fallback" data-hp-host-auth-fallback aria-hidden="true">
+                        <i class="fa-solid fa-user text-[12px]"></i>
+                    </span>
+                </a>
+            </div>
+            <div class="min-w-0 flex-1">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-hp-muted">host-pocket · 房東</p>
                 <h1 class="text-sm font-black mt-0.5">編輯住宿指南</h1>
                 <p class="text-[10px] text-hp-muted mt-1">Wi‑Fi、門鎖、照片，以及要推薦給房客的地點</p>
@@ -499,34 +511,155 @@
             outline-offset: 2px;
         }
         .hp-listing-id-field__input:focus-visible { outline: none; }
+
+        .hp-host-auth__btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 999px;
+            border: 1px solid #EBE5DF;
+            background: #FAF8F5;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .hp-host-auth__btn:hover {
+            border-color: rgba(255, 91, 62, 0.45);
+            box-shadow: 0 0 0 3px rgba(255, 91, 62, 0.1);
+        }
+        .hp-host-auth__btn:focus-visible {
+            outline: 2px solid rgba(255, 91, 62, 0.55);
+            outline-offset: 2px;
+        }
+        .hp-host-auth__avatar {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #FAF8F5;
+        }
+        .hp-host-auth__avatar[hidden] { display: none !important; }
+        .hp-host-auth__fallback {
+            position: absolute;
+            inset: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF5B3E;
+            background: rgba(255, 91, 62, 0.1);
+        }
+        .hp-host-auth__fallback[hidden] { display: none !important; }
     </style>
 
     <script src="/js/listing-settings-api.js"></script>
     <script src="/js/auth-api.js"></script>
     <script>
-        (async function gateHostSettingsLogin() {
-            try {
-                const params = new URLSearchParams(window.location.search || '');
-                const auth = params.get('auth');
-                if (auth === 'ok' || auth === 'error') {
-                    params.delete('auth');
-                    params.delete('reason');
-                    const qs = params.toString();
-                    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`);
-                }
-                if (auth === 'ok') {
-                    window.hpTriggerToast?.(
-                        (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
-                        (window.currentLanguage || 'zh') === 'zh' ? '可以開始編輯住宿指南' : 'You can edit your guest guide now',
-                        'success'
-                    );
-                }
-                if (!window.AuthAPI?.requireLogin) return;
-                const next = `${window.location.pathname}${window.location.search || ''}`;
-                await window.AuthAPI.requireLogin({ next });
-            } catch (error) {
-                console.warn('[host-settings] login gate failed', error);
+        (function () {
+            function normalizeAvatarUrl(raw) {
+                const url = String(raw || '').trim();
+                if (!url) return '';
+                // Prefer a sharper Google photo size to avoid pixelated / broken-looking crops.
+                try {
+                    if (/googleusercontent\.com/i.test(url)) {
+                        return url
+                            .replace(/=s\d+(-c)?(?=$|[&#])/i, '=s192$1')
+                            .replace(/\/s\d+(-c)?\//i, '/s192$1/');
+                    }
+                } catch (_) { /* ignore */ }
+                return url;
             }
+
+            function showAvatarFallback(avatar, fallback) {
+                if (avatar) {
+                    avatar.hidden = true;
+                    avatar.removeAttribute('src');
+                    avatar.onload = null;
+                    avatar.onerror = null;
+                }
+                if (fallback) fallback.hidden = false;
+            }
+
+            function renderHostAuthAvatar(user) {
+                const root = document.querySelector('[data-hp-host-auth]');
+                if (!root) return;
+                if (!user) {
+                    root.hidden = true;
+                    return;
+                }
+
+                const btn = root.querySelector('[data-hp-host-auth-btn]');
+                const avatar = root.querySelector('[data-hp-host-auth-avatar]');
+                const fallback = root.querySelector('[data-hp-host-auth-fallback]');
+                const name = String(user.name || '').trim()
+                    || String(user.email || '').split('@')[0]
+                    || 'Member';
+                const url = normalizeAvatarUrl(user.avatarUrl);
+
+                root.hidden = false;
+                if (btn) {
+                    btn.setAttribute('aria-label', `會員帳號：${name}`);
+                    btn.title = name;
+                }
+                if (!avatar || !url) {
+                    showAvatarFallback(avatar, fallback);
+                    return;
+                }
+
+                // Keep fallback visible until the photo actually loads (avoids broken-image flash).
+                if (fallback) fallback.hidden = false;
+                avatar.hidden = true;
+                avatar.alt = name;
+                avatar.onload = () => {
+                    avatar.hidden = false;
+                    if (fallback) fallback.hidden = true;
+                };
+                avatar.onerror = () => showAvatarFallback(avatar, fallback);
+                if (avatar.src !== url) avatar.src = url;
+                else if (avatar.complete && avatar.naturalWidth > 0) {
+                    avatar.hidden = false;
+                    if (fallback) fallback.hidden = true;
+                }
+            }
+
+            async function gateHostSettingsLogin() {
+                try {
+                    const params = new URLSearchParams(window.location.search || '');
+                    const auth = params.get('auth');
+                    if (auth === 'ok' || auth === 'error') {
+                        params.delete('auth');
+                        params.delete('reason');
+                        const qs = params.toString();
+                        window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`);
+                    }
+                    if (auth === 'ok') {
+                        window.hpTriggerToast?.(
+                            (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
+                            (window.currentLanguage || 'zh') === 'zh' ? '可以開始編輯住宿指南' : 'You can edit your guest guide now',
+                            'success'
+                        );
+                    }
+                    if (!window.AuthAPI?.requireLogin) return;
+                    const next = `${window.location.pathname}${window.location.search || ''}`;
+                    const result = await window.AuthAPI.requireLogin({ next });
+                    if (result?.ok && result.user) {
+                        renderHostAuthAvatar(result.user);
+                        return;
+                    }
+                    // requireLogin may redirect; still try getMe for avatar after return.
+                    const me = await window.AuthAPI.getMe?.();
+                    if (me?.ok && me.user) renderHostAuthAvatar(me.user);
+                    else renderHostAuthAvatar(null);
+                } catch (error) {
+                    console.warn('[host-settings] login gate failed', error);
+                }
+            }
+
+            void gateHostSettingsLogin();
         })();
     </script>
     <script src="/js/airbnb-listing.js"></script>

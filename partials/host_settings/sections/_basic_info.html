@@ -3,7 +3,16 @@
     <summary class="hp-collapse__trigger">
         <span class="hp-collapse__leading min-w-0">
             <span class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-house text-hp-coral"></i> 基本資訊</span>
-            <span class="hp-collapse__hint">房源名稱、Wi‑Fi、輪播照片等</span>
+            <span class="hp-collapse__summary-peek mt-1 space-y-1">
+                <span class="block min-w-0">
+                    <span class="hp-collapse__peek-label">房源名稱（繁中）</span>
+                    <span data-host-settings-target="basicInfoRoomTitle" class="hp-collapse__peek-text" aria-live="polite">尚未設定</span>
+                </span>
+                <span class="block min-w-0">
+                    <span class="hp-collapse__peek-label">房源代碼</span>
+                    <span data-host-settings-target="basicInfoListingId" class="hp-collapse__peek-text font-mono uppercase" aria-live="polite">{{listingId}}</span>
+                </span>
+            </span>
         </span>
         <span class="hp-collapse__action" aria-hidden="true">
             <span class="hp-collapse__label-expand">編輯</span>
@@ -13,14 +22,15 @@
     </summary>
 
     <div class="hp-collapse__body">
-        <div class="hp-collapse__peek grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">
             <div class="block space-y-1">
                 <span class="field-label">房源代碼 / Listing ID</span>
-                <p data-host-settings-target="basicInfoListingId" class="hp-collapse__peek-value font-mono uppercase" aria-live="polite">{{listingId}}</p>
+                <p data-host-settings-target="basicInfoListingIdDetail" class="hp-collapse__peek-value font-mono uppercase" aria-live="polite">{{listingId}}</p>
             </div>
             <label class="block space-y-1">
                 <span class="field-label">房源名稱（繁中）</span>
-                <input name="roomTitleZh" class="field-input field-input--readonly" readonly tabindex="-1" aria-readonly="true">
+                <input name="roomTitleZh" class="field-input"
+                       data-action="input->host-settings#syncBasicInfoPeek change->host-settings#syncBasicInfoPeek">
             </label>
         </div>
         {{> host_settings/basic_info_details}}

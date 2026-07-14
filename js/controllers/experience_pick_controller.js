@@ -47,6 +47,8 @@
                 .then((dataUrl) => {
                     this.imgInputTarget.value = dataUrl;
                     this.imgInputTarget.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.syncRecGalleryWithCover(dataUrl);
+                    this.syncImgPreview();
                 })
                 .catch(() => {
                     if (this.hasImgFileTarget) this.imgFileTarget.value = '';
@@ -56,7 +58,27 @@
         clearImg() {
             if (this.hasImgFileTarget) this.imgFileTarget.value = '';
             this.imgInputTarget.value = '';
+            this.syncRecGalleryWithCover('');
             this.syncImgPreview();
+        }
+
+        /** Keep recGallery{N} in sync so uploaded covers enter the detail image collection. */
+        syncRecGalleryWithCover(coverUrl) {
+            const form = this.element.closest('form') || global.document.querySelector('[data-host-settings-target="form"]');
+            if (!form) return;
+            const key = `recGallery${this.indexValue}`;
+            const url = String(coverUrl || '').trim();
+            let input = form.querySelector(`input[type="hidden"][name="${key}"]`);
+            if (!input) {
+                input = global.document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                form.appendChild(input);
+            }
+            // Store as newline-separated URLs (same shape as roomGalleryText) for readForm.
+            input.value = url;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
         fileToDataUrl(file) {

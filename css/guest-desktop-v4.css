@@ -653,15 +653,25 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         min-height: 0;
         box-sizing: border-box;
         grid-template-columns: minmax(360px, 26rem) minmax(0, 1fr);
-        grid-template-rows: auto;
+        /* Fill viewport height so the experiences column can scroll when > 4 cards */
+        grid-template-rows: minmax(0, 1fr);
         grid-template-areas: "hp-left hp-experiences";
         column-gap: clamp(1.75rem, 2.5vw, 2.5rem);
         row-gap: 0;
-        align-items: start;
-        align-content: safe center;
+        align-items: stretch;
+        align-content: stretch;
         padding-block: clamp(1.25rem, 2vw, 1.75rem);
         padding-inline: clamp(1.5rem, 3vw, 2.5rem);
-        overflow-y: auto;
+        overflow: hidden;
+    }
+
+    /* Desktop: show a thin scrollbar (override .hide-scrollbar) so overflow is discoverable */
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="scrollContainer"].hide-scrollbar {
+        -ms-overflow-style: auto;
+        scrollbar-width: none;
+    }
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="scrollContainer"].hide-scrollbar::-webkit-scrollbar {
+        display: none;
     }
 
     /* Override mobile pb-24 / boot-dashboard bottom-only padding for symmetric spacing */
@@ -677,12 +687,19 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         grid-area: hp-left;
         grid-column: 1;
         grid-row: 1;
-        align-self: start;
+        align-self: stretch;
         height: auto;
+        max-height: 100%;
         min-height: 0;
         min-width: 0;
         padding: 0;
         margin: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(140, 128, 122, 0.4) transparent;
     }
 
     /* Reset mobile spacing on grid children */
@@ -703,12 +720,33 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         grid-area: hp-experiences;
         grid-column: 2;
         grid-row: 1;
-        align-self: start;
+        align-self: stretch;
         display: flex;
         flex-direction: column;
         gap: 0;
         order: unset;
-        height: fit-content;
+        height: auto;
+        max-height: 100%;
+        min-height: 0;
+        /* >4 attractions wrap to row 3+; scroll this column instead of clipping */
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(140, 128, 122, 0.45) transparent;
+    }
+
+    html.hp-v4-desktop [data-screen="dashboard"] #localRecs::-webkit-scrollbar,
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"]::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    html.hp-v4-desktop [data-screen="dashboard"] #localRecs::-webkit-scrollbar-thumb,
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"]::-webkit-scrollbar-thumb {
+        background: rgba(140, 128, 122, 0.35);
+        border-radius: 999px;
     }
 
     html.hp-v4-desktop [data-screen="dashboard"] #stayGuides,
@@ -775,12 +813,19 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
         display: none;
     }
 
-    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .flex.gap-4.overflow-x-auto {
-        display: grid;
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .hp-rec-carousel-wrap {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Desktop: 2×2 grid (restore stable layout). Carousel arrows are mobile-only. */
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .flex.gap-4.overflow-x-auto,
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] [data-dashboard-target="recCarousel"] {
+        display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1.125rem;
         flex: 0 0 auto;
-        overflow: visible;
+        overflow: visible !important;
         padding: 0 !important;
         margin: 0 !important;
         scroll-snap-type: none;
@@ -790,6 +835,12 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
     html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .min-w-\[210px\] {
         min-width: 0 !important;
         width: 100% !important;
+        max-width: none !important;
+        flex: unset;
+    }
+
+    html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .hp-rec-carousel__nav {
+        display: none !important;
     }
 
     html.hp-v4-desktop [data-screen="dashboard"] [data-dashboard-target="localRecs"] .h-32 {

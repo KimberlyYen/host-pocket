@@ -89,6 +89,34 @@
                 color: #8C807A;
                 line-height: 1.4;
             }
+            .hp-collapse__summary-peek {
+                display: block;
+            }
+            .hp-collapse[open] .hp-collapse__summary-peek {
+                display: none;
+            }
+            .hp-collapse__peek-label {
+                display: block;
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                color: #A89B94;
+                line-height: 1.2;
+            }
+            .hp-collapse__peek-text {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #3D342F;
+                line-height: 1.35;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .hp-collapse__peek-text[data-empty="1"] {
+                color: #A89B94;
+                font-weight: 500;
+            }
             .hp-collapse__action {
                 display: inline-flex;
                 align-items: center;

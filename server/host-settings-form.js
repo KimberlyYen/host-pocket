@@ -71,6 +71,17 @@ async function loadPresetDefaults(listingId) {
     }
 }
 
+function mergeNonEmpty(base, overlay) {
+    const out = { ...(base || {}) };
+    Object.entries(overlay || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        if (typeof value === 'string' && value.trim() === '') return;
+        if (Array.isArray(value) && !value.length) return;
+        out[key] = value;
+    });
+    return out;
+}
+
 async function getMergedListingData(listingId) {
     const id = normalizeListingId(listingId);
     let merged = await loadPresetDefaults(id);
@@ -78,7 +89,7 @@ async function getMergedListingData(listingId) {
     if (isDatabaseConfigured()) {
         try {
             const record = await getListingSettings(id);
-            if (record?.data) merged = { ...merged, ...record.data };
+            if (record?.data) merged = mergeNonEmpty(merged, record.data);
         } catch (error) {
             console.warn('[host-settings-form] db read failed', error);
         }

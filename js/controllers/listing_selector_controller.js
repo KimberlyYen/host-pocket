@@ -24,6 +24,14 @@
         }
     }
 
+    function readRecentLocalListing() {
+        try {
+            return global.HostGuideSettings?.getMostRecentlySavedListingId?.() || '';
+        } catch {
+            return '';
+        }
+    }
+
     function writeStoredListing(id) {
         try {
             if (id) global.sessionStorage?.setItem(LAST_LISTING_KEY, id);
@@ -44,10 +52,11 @@
             const input = this.inputEl();
             if (!input) return;
 
-            // Always prefer URL / last-used listing on refresh so we don't fall back to TAIPEI-CITY.
+            // Prefer URL / last-used / most recently saved so refresh keeps the edited listing.
             const fromUrl = readUrlListing();
             const fromStore = readStoredListing();
-            const preferred = fromUrl || input.value || fromStore || 'TAIPEI-CITY';
+            const fromLocal = readRecentLocalListing();
+            const preferred = fromUrl || input.value || fromStore || fromLocal || 'TAIPEI-CITY';
             input.value = this.normalizeId(preferred);
             writeStoredListing(this.normalizeId(input.value));
         }

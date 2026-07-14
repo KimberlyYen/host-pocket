@@ -1,10 +1,9 @@
 const {
     getEcpayConfig,
     verifyCheckMacValue,
-    unpackBookingCustomFields,
     parseNotifyBody
 } = require('../../../server/ecpay');
-const { createBooking, isEmailConfigured } = require('../../../server/booking');
+const { fulfillPaidExperienceBooking } = require('../../../server/ecpay-fulfill');
 const { readRequestBody } = require('../../../server/read-request-body');
 
 /**
@@ -44,18 +43,22 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const payload = unpackBookingCustomFields(params);
-        if (payload?.kind === 'host_subscription') {
-            console.log('[ecpay/notify] host subscription paid', params.MerchantTradeNo, params.TradeAmt);
-        } else if (payload?.kind === 'experience' && payload.guestEmail && isEmailConfigured()) {
-            try {
-                await createBooking(payload);
-            } catch (error) {
-                // Still ACK ECPay so it does not retry forever; log for host follow-up.
-                console.error('[ecpay/notify] booking email failed', error);
+        try {
+            const fulfilled = await fulfillPaidExperienceBooking(params);
+            if (fulfilled.kind === 'host_subscription') {
+                console.log('[ecpay/notify] host subscription paid', params.MerchantTradeNo, params.TradeAmt);
+            } else if (fulfilled.emailSent) {
+                console.log(
+                    '[ecpay/notify] booking email',
+                    fulfilled.duplicate ? 'duplicate-skip' : 'sent',
+                    params.MerchantTradeNo
+                );
+            } else if (fulfilled.reason) {
+                console.warn('[ecpay/notify] fulfill skipped', fulfilled.reason, params.MerchantTradeNo);
             }
-        } else if (!payload) {
-            console.warn('[ecpay/notify] could not unpack booking custom fields', params.MerchantTradeNo);
+        } catch (error) {
+            // Still ACK ECPay so it does not retry forever; log for host follow-up.
+            console.error('[ecpay/notify] booking email failed', error);
         }
 
         res.status(200).send('1|OK');

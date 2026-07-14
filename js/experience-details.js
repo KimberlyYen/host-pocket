@@ -90,14 +90,31 @@
         delete exp._mediaImagesOnly;
         const resolvedListingId = String(listingId || listingData?.listingId || '').trim().toUpperCase();
         const expId = resolveRecExperienceId(listingData, recIndex, resolvedListingId) || exp.id;
-        const poster = exp.cover_image
-            || listingData?.[`recImg${recIndex}`]
-            || (exp.media || []).find((m) => m?.type === 'image')?.url
-            || IMAGE_FALLBACK;
-        const images = (exp.media || []).filter((m) => m?.url && m.type !== 'video');
-        const extraImages = images.filter((m) => m.url !== poster);
+
+        // Collect host / attraction photos. Previously the cover was used only as the
+        // video poster and filtered out of slides — so uploads never appeared in the
+        // swipeable image collection.
+        const imageUrls = [];
+        const seen = new Set();
+        const pushImage = (raw) => {
+            const url = String(raw || '').trim();
+            if (!url || seen.has(url)) return;
+            seen.add(url);
+            imageUrls.push(url);
+        };
+
+        const gallery = listingData?.[`recGallery${recIndex}`];
+        if (Array.isArray(gallery)) gallery.forEach(pushImage);
+        pushImage(listingData?.[`recImg${recIndex}`]);
+        (exp.media || []).forEach((item) => {
+            if (item?.url && item.type !== 'video') pushImage(item.url);
+        });
+        pushImage(exp.cover_image);
+
+        const poster = imageUrls[0] || IMAGE_FALLBACK;
         const videoUrl = getDemoVideoUrl(expId, resolvedListingId, recIndex);
-        exp.media = [{ type: 'video', url: videoUrl, poster }, ...extraImages];
+        const imageSlides = imageUrls.map((url) => ({ type: 'image', url }));
+        exp.media = [{ type: 'video', url: videoUrl, poster }, ...imageSlides];
         exp.cover_image = poster;
     }
 
@@ -2329,9 +2346,16 @@
         return img ? [{ type: 'image', url: img }] : [];
     }
 
+    const MAX_REC_SLOTS = global.HostPocketRecSlots?.MAX_REC_SLOTS || 10;
+
+    function isValidRecSlot(recIndex) {
+        const num = Number(recIndex);
+        return Number.isFinite(num) && num >= 1 && num <= MAX_REC_SLOTS;
+    }
+
     function getRecRatingFromListing(listingData, recIndex) {
         const num = Number(recIndex);
-        if (!listingData || num < 1 || num > 4) return null;
+        if (!listingData || !isValidRecSlot(num)) return null;
         const rating = parseFiniteNumber(listingData[`recRating${num}`]);
         const reviews = parseFiniteInt(listingData[`recReviews${num}`]);
         if (rating === null && reviews === null) return null;
@@ -2341,7 +2365,7 @@
     /** Build experience detail payload entirely from listing_settings rec fields. */
     function buildPayloadFromListing(listingData, recIndex, options = {}) {
         const num = Number(recIndex);
-        if (!listingData || num < 1 || num > 4) return null;
+        if (!listingData || !isValidRecSlot(num)) return null;
 
         const expId = String(listingData[`recExperienceId${num}`] || `listing-rec-${num}`).trim();
         const titleZh = listingData[`recTitle${num}Zh`] || '';
@@ -2404,24 +2428,38 @@
 
     async function fetchDetailsForRec(listingData, recIndex, options = {}) {
         const num = Number(recIndex);
-        if (!listingData || num < 1 || num > 4) return null;
+        if (!listingData || !isValidRecSlot(num)) return null;
 
-        if (global.HP_MOCK_DATA !== false && !options.forceListing) {
-            const expId = listingData[`recExperienceId${num}`];
-            if (expId) {
+        const listingPayload = () => {
+            try {
+                return buildPayloadFromListing(listingData, num, options);
+            } catch (error) {
+                console.warn('[ExperienceDetails] buildPayloadFromListing failed', error);
+                return null;
+            }
+        };
+
+        const expId = String(listingData[`recExperienceId${num}`] || '').trim();
+        // Airbnb experience IDs are numeric; TDX / custom picks should use listing fields.
+        const isAirbnbExperienceId = /^\d{5,}$/.test(expId);
+
+        if (isAirbnbExperienceId && !options.forceListing) {
+            try {
                 const payload = await fetchDetails(expId, options);
                 if (payload) return applyHostListingOverrides(payload, listingData, num, options);
+            } catch (error) {
+                console.warn('[ExperienceDetails] Airbnb detail fetch failed; using listing fields', error);
             }
         }
 
-        return buildPayloadFromListing(listingData, num, options);
+        return listingPayload();
     }
 
     /** Merge host listing_settings rec fields into experience detail payload (incl. i18n.zh). */
     function applyHostListingOverrides(payload, listingData, recIndex, options = {}) {
         if (!payload?.experience || !listingData) return payload;
         const num = Number(recIndex);
-        if (num < 1 || num > 4) return payload;
+        if (!isValidRecSlot(num)) return payload;
 
         const isZh = options.isZh !== false && (options.isZh ?? ((global.currentLanguage || 'zh') === 'zh'));
         const pick = (zh, en, zhMode) => (zhMode ? (zh || en || '') : (en || zh || ''));
