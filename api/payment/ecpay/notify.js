@@ -44,15 +44,17 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const booking = unpackBookingCustomFields(params);
-        if (booking && isEmailConfigured()) {
+        const payload = unpackBookingCustomFields(params);
+        if (payload?.kind === 'host_subscription') {
+            console.log('[ecpay/notify] host subscription paid', params.MerchantTradeNo, params.TradeAmt);
+        } else if (payload?.kind === 'experience' && payload.guestEmail && isEmailConfigured()) {
             try {
-                await createBooking(booking);
+                await createBooking(payload);
             } catch (error) {
                 // Still ACK ECPay so it does not retry forever; log for host follow-up.
                 console.error('[ecpay/notify] booking email failed', error);
             }
-        } else if (!booking) {
+        } else if (!payload) {
             console.warn('[ecpay/notify] could not unpack booking custom fields', params.MerchantTradeNo);
         }
 

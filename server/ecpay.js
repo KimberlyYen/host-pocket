@@ -129,8 +129,18 @@ function buildMerchantTradeNo() {
     return (`HP${now}${rand}`).slice(0, 20);
 }
 
+function encodeCustomFields(compact) {
+    const encoded = Buffer.from(JSON.stringify(compact), 'utf8').toString('base64url');
+    return {
+        CustomField1: encoded.slice(0, 50),
+        CustomField2: encoded.slice(50, 100),
+        CustomField3: encoded.slice(100, 150),
+        CustomField4: encoded.slice(150, 200)
+    };
+}
+
 function packBookingCustomFields(booking) {
-    const compact = {
+    return encodeCustomFields({
         e: String(booking.guestEmail || '').trim().toLowerCase().slice(0, 64),
         d: String(booking.date || '').slice(0, 10),
         t: String(booking.time || '').slice(0, 5),
@@ -142,14 +152,15 @@ function packBookingCustomFields(booking) {
         lo: String(booking.location || '').slice(0, 40),
         dl: String(booking.dateLabel || '').slice(0, 32),
         tl: String(booking.timeLabel || '').slice(0, 24)
-    };
-    const encoded = Buffer.from(JSON.stringify(compact), 'utf8').toString('base64url');
-    return {
-        CustomField1: encoded.slice(0, 50),
-        CustomField2: encoded.slice(50, 100),
-        CustomField3: encoded.slice(100, 150),
-        CustomField4: encoded.slice(150, 200)
-    };
+    });
+}
+
+function packSubscriptionCustomFields(input = {}) {
+    return encodeCustomFields({
+        k: 'sub',
+        l: input.locale === 'en' ? 'en' : 'zh',
+        e: String(input.guestEmail || input.email || '').trim().toLowerCase().slice(0, 64)
+    });
 }
 
 function unpackBookingCustomFields(params) {
@@ -162,7 +173,15 @@ function unpackBookingCustomFields(params) {
     if (!encoded) return null;
     try {
         const compact = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+        if (compact.k === 'sub') {
+            return {
+                kind: 'host_subscription',
+                locale: compact.l === 'en' ? 'en' : 'zh',
+                guestEmail: compact.e || ''
+            };
+        }
         return {
+            kind: 'experience',
             guestEmail: compact.e || '',
             date: compact.d || '',
             time: compact.t || '',
@@ -178,6 +197,18 @@ function unpackBookingCustomFields(params) {
     } catch {
         return null;
     }
+}
+
+function resolveHostSubscriptionAmount(input) {
+    const fromInput = Number(input?.amountTwd);
+    if (Number.isFinite(fromInput) && fromInput > 0) {
+        return Math.min(Math.round(fromInput), 200000);
+    }
+    const fromEnv = Number(process.env.HOST_POCKET_MONTHLY_AMOUNT);
+    if (Number.isFinite(fromEnv) && fromEnv > 0) {
+        return Math.min(Math.round(fromEnv), 200000);
+    }
+    return 40;
 }
 
 function resolveAmountTwd(bookingInput, config) {
@@ -198,6 +229,7 @@ function sanitizeItemName(title) {
 
 /**
  * Build AIO checkout form fields for browser POST redirect.
+ * Supports experience booking (default) and host monthly subscription.
  */
 function createCheckout(bookingInput, req) {
     const config = getEcpayConfig();
@@ -205,24 +237,41 @@ function createCheckout(bookingInput, req) {
         throw new Error('ECPay is not configured');
     }
 
-    const amount = resolveAmountTwd(bookingInput, config);
+    const purpose = String(bookingInput.purpose || bookingInput.type || 'experience').trim();
+    const isHostSubscription = purpose === 'host_subscription';
+
+    const amount = isHostSubscription
+        ? resolveHostSubscriptionAmount(bookingInput)
+        : resolveAmountTwd(bookingInput, config);
     if (amount <= 0) {
-        return { ok: true, skipPayment: true, amountTwd: 0 };
+        return { ok: true, skipPayment: true, amountTwd: 0, purpose };
     }
 
-    const guestEmail = String(bookingInput.guestEmail || '').trim().toLowerCase();
-    if (!guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
-        throw new Error('Invalid guest email');
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingInput.date || ''))) {
-        throw new Error('Invalid date format (expected YYYY-MM-DD)');
+    if (!isHostSubscription) {
+        const guestEmail = String(bookingInput.guestEmail || '').trim().toLowerCase();
+        if (!guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+            throw new Error('Invalid guest email');
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingInput.date || ''))) {
+            throw new Error('Invalid date format (expected YYYY-MM-DD)');
+        }
     }
 
     const base = getPublicBaseUrl(req);
     const tradeNo = buildMerchantTradeNo();
-    const custom = packBookingCustomFields(bookingInput);
-    const itemName = sanitizeItemName(bookingInput.title);
-    const tradeDesc = 'Host Pocket experience booking';
+    const custom = isHostSubscription
+        ? packSubscriptionCustomFields(bookingInput)
+        : packBookingCustomFields(bookingInput);
+    const itemName = sanitizeItemName(
+        bookingInput.title || (isHostSubscription ? 'Host Pocket monthly' : 'Host Pocket Experience')
+    );
+    const tradeDesc = isHostSubscription
+        ? 'Host Pocket host subscription'
+        : 'Host Pocket experience booking';
+    const resultNext = isHostSubscription ? 'settings' : '';
+    const clientBack = resultNext
+        ? `${base}/payment-result.html?status=cancel&next=${resultNext}`
+        : `${base}/payment-result.html?status=cancel`;
 
     const params = {
         MerchantID: config.merchantId,
@@ -234,7 +283,7 @@ function createCheckout(bookingInput, req) {
         ItemName: itemName,
         ReturnURL: `${base}/api/payment/ecpay/notify`,
         OrderResultURL: `${base}/api/payment/ecpay/result`,
-        ClientBackURL: `${base}/payment-result.html?status=cancel`,
+        ClientBackURL: clientBack,
         ChoosePayment: 'ALL',
         EncryptType: '1',
         NeedExtraPaidInfo: 'Y',
@@ -252,6 +301,7 @@ function createCheckout(bookingInput, req) {
         ok: true,
         skipPayment: false,
         amountTwd: amount,
+        purpose: isHostSubscription ? 'host_subscription' : 'experience',
         merchantTradeNo: tradeNo,
         actionUrl: config.actionUrl,
         params,

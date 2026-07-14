@@ -44,13 +44,15 @@
     <div role="tabpanel" id="hp-pairing-panel-link"
          data-pairing-target="pairingTabPanel" data-pairing-tab="link"
          aria-labelledby="hp-pairing-tab-link"
-         class="hp-pairing-tabs__panel ${linkActive ? '' : 'hidden'}" ${linkActive ? '' : 'hidden'}>
+         class="hp-pairing-tabs__panel${linkActive ? '' : ' hp-pairing-tabs__panel--inactive'}"
+         aria-hidden="${linkActive ? 'false' : 'true'}"${linkActive ? '' : ' inert'}>
         <div data-hp-pairing-link-card></div>
     </div>
     <div role="tabpanel" id="hp-pairing-panel-quick"
          data-pairing-target="pairingTabPanel" data-pairing-tab="quick"
          aria-labelledby="hp-pairing-tab-quick"
-         class="hp-pairing-tabs__panel ${quickActive ? '' : 'hidden'}" ${quickActive ? '' : 'hidden'}>
+         class="hp-pairing-tabs__panel${quickActive ? '' : ' hp-pairing-tabs__panel--inactive'}"
+         aria-hidden="${quickActive ? 'false' : 'true'}"${quickActive ? '' : ' inert'}>
         <div data-hp-pairing-quick-start></div>
     </div>
     </div>
@@ -75,11 +77,8 @@
     }
 
     function syncPanelsMinHeight(root) {
-        const wrap = root.querySelector('.hp-pairing-tabs__panels');
-        if (!wrap) return;
-        // Keep panels at natural height so「編輯住宿指南」stays ~1rem under the active content
-        // (equalizing to the taller「連接房源」card left a large empty gap on Quick Start).
-        wrap.style.minHeight = '';
+        // Height is stabilized via CSS grid stacking (.hp-pairing-tabs__panels).
+        void root;
     }
 
     function mountChildComponents(root, options = {}) {
@@ -262,7 +261,20 @@
                 color: #fff;
             }
             .hp-pairing-tabs__panels {
+                display: grid;
                 width: 100%;
+            }
+            .hp-pairing-tabs__panel {
+                grid-area: 1 / 1;
+                width: 100%;
+            }
+            .hp-pairing-tabs__panel--inactive {
+                visibility: hidden;
+                pointer-events: none;
+                z-index: 0;
+            }
+            .hp-pairing-tabs__panel:not(.hp-pairing-tabs__panel--inactive) {
+                z-index: 1;
             }
             .hp-pairing-tabs__settings {
                 margin-top: 1rem;

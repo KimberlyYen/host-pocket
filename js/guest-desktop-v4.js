@@ -354,6 +354,7 @@
     }
 
     function openPricingPanel() {
+        closeMemberPanel();
         const panel = document.getElementById('hp-v4-pricing-panel');
         if (!panel) return;
         panel.hidden = false;
@@ -363,28 +364,115 @@
         panel.querySelector('.hp-v4-pricing__close')?.focus?.();
     }
 
+    function closeMemberPanel() {
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (panel) {
+            panel.hidden = true;
+            panel.setAttribute('aria-hidden', 'true');
+        }
+        document.documentElement.classList.remove('hp-v4-member-open');
+        document.body?.classList.remove('hp-v4-member-open');
+    }
+
+    function setMemberPanelState(state) {
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (!panel) return;
+        panel.querySelectorAll('[data-hp-v4-member-state]').forEach((el) => {
+            const active = el.getAttribute('data-hp-v4-member-state') === state;
+            el.hidden = !active;
+            el.classList.toggle('hidden', !active);
+        });
+    }
+
+    function renderMemberUser(user) {
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (!panel) return;
+        const nameEl = panel.querySelector('[data-hp-v4-member-name]');
+        const emailEl = panel.querySelector('[data-hp-v4-member-email]');
+        const avatar = panel.querySelector('[data-hp-v4-member-avatar]');
+        const fallback = panel.querySelector('[data-hp-v4-member-avatar-fallback]');
+        const name = String(user?.name || '').trim() || String(user?.email || '').split('@')[0] || 'Member';
+        const email = String(user?.email || '').trim();
+        if (nameEl) nameEl.textContent = name;
+        if (emailEl) emailEl.textContent = email;
+        if (avatar) {
+            const url = String(user?.avatarUrl || '').trim();
+            if (url) {
+                avatar.hidden = false;
+                avatar.src = url;
+                avatar.alt = name;
+                if (fallback) fallback.hidden = true;
+            } else {
+                avatar.hidden = true;
+                avatar.removeAttribute('src');
+                if (fallback) fallback.hidden = false;
+            }
+        }
+    }
+
+    async function refreshMemberPanel() {
+        setMemberPanelState('loading');
+        try {
+            const result = await window.AuthAPI?.getMe?.();
+            if (result?.ok && result.user) {
+                renderMemberUser(result.user);
+                setMemberPanelState('signed-in');
+                return result.user;
+            }
+            setMemberPanelState('signed-out');
+            return null;
+        } catch (error) {
+            console.warn('[member] getMe failed', error);
+            setMemberPanelState('signed-out');
+            return null;
+        }
+    }
+
+    function openMemberPanel() {
+        closePricingPanel();
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (!panel) return;
+        panel.hidden = false;
+        panel.setAttribute('aria-hidden', 'false');
+        document.documentElement.classList.add('hp-v4-member-open');
+        syncSidebarActive(getActiveScreen(), 'member');
+        panel.querySelector('.hp-v4-member__close')?.focus?.();
+        void refreshMemberPanel();
+    }
+
     function navigatePricing() {
         openPricingPanel();
+    }
+
+    function navigateMember() {
+        openMemberPanel();
     }
 
     function navigate(nav) {
         if (nav === 'home') {
             closePricingPanel();
+            closeMemberPanel();
             navigateHome();
             return;
         }
         if (nav === 'dashboard') {
             closePricingPanel();
+            closeMemberPanel();
             navigateDashboard();
             return;
         }
         if (nav === 'contact') {
             closePricingPanel();
+            closeMemberPanel();
             navigateContact();
             return;
         }
         if (nav === 'pricing') {
             navigatePricing();
+            return;
+        }
+        if (nav === 'member') {
+            navigateMember();
         }
     }
 
@@ -420,6 +508,7 @@
 
     function repairHomeShellAfterReturn(options = {}) {
         closePricingPanel();
+        closeMemberPanel();
 
         if (!isAppHomePath()) {
             syncSidebarActive(getActiveScreen());
@@ -443,6 +532,84 @@
         syncSidebarActive(getActiveScreen());
     }
 
+    function pricingAmountTwd() {
+        const fromNav = Number(window.HostPocketV4SidebarNavItem?.PRICING?.amount);
+        if (Number.isFinite(fromNav) && fromNav > 0) return fromNav;
+        return 40;
+    }
+
+    function setPricingCheckoutBusy(btn, busy) {
+        if (!btn) return;
+        btn.disabled = Boolean(busy);
+        btn.setAttribute('aria-busy', busy ? 'true' : 'false');
+        btn.classList.toggle('opacity-70', Boolean(busy));
+        btn.classList.toggle('pointer-events-none', Boolean(busy));
+    }
+
+    async function startHostSubscriptionCheckout(triggerEl) {
+        const isZh = (window.currentLanguage || 'zh') === 'zh';
+        const api = window.BookingAPI;
+        if (!api?.createEcpayPayment || !api?.submitEcpayForm) {
+            window.hpTriggerToast?.(
+                isZh ? '無法付款' : 'Payment unavailable',
+                isZh ? '付款模組尚未載入，請重新整理後再試' : 'Payment module is not ready. Please refresh and try again.',
+                'error'
+            );
+            return;
+        }
+
+        setPricingCheckoutBusy(triggerEl, true);
+        try {
+            const configured = await api.isEcpayConfigured?.();
+            if (configured === false) {
+                throw Object.assign(new Error('ECPay not configured'), { code: 'ECPAY_NOT_CONFIGURED' });
+            }
+
+            const checkout = await api.createEcpayPayment({
+                purpose: 'host_subscription',
+                amountTwd: pricingAmountTwd(),
+                title: isZh ? 'Host Pocket 月費' : 'Host Pocket monthly',
+                locale: isZh ? 'zh' : 'en'
+            });
+
+            if (checkout.skipPayment) {
+                closePricingPanel();
+                window.location.assign('/host-settings.html');
+                return;
+            }
+
+            if (checkout.mock) {
+                closePricingPanel();
+                window.hpTriggerToast?.(
+                    isZh ? '模擬付款成功' : 'Mock payment OK',
+                    isZh
+                        ? `模擬收款 NT$${checkout.amountTwd}，前往設定`
+                        : `Mock charge NT$${checkout.amountTwd}. Opening settings.`,
+                    'success'
+                );
+                window.setTimeout(() => {
+                    window.location.assign('/host-settings.html');
+                }, 400);
+                return;
+            }
+
+            closePricingPanel();
+            api.submitEcpayForm(checkout.actionUrl, checkout.params);
+        } catch (error) {
+            const msg = error?.code === 'ECPAY_NOT_CONFIGURED'
+                ? (isZh
+                    ? '綠界尚未設定。本機請在 .env 設 ECPAY_USE_STAGE=1'
+                    : 'ECPay is not configured. Set ECPAY_USE_STAGE=1 in .env for local sandbox.')
+                : (error?.message || (isZh ? '無法建立綠界訂單' : 'Could not create ECPay order'));
+            window.hpTriggerToast?.(
+                isZh ? '無法前往付款' : 'Checkout failed',
+                msg,
+                'error'
+            );
+            setPricingCheckoutBusy(triggerEl, false);
+        }
+    }
+
     function bindPricingPanel() {
         const panel = document.getElementById('hp-v4-pricing-panel');
         if (!panel || panel.dataset.hpV4Bound === 'true') return;
@@ -456,7 +623,14 @@
                 return;
             }
 
-            // Close overlay before leaving so bfcache snapshots are clean.
+            const checkoutBtn = event.target.closest('[data-hp-v4-pricing-checkout], button.hp-v4-pricing__cta');
+            if (checkoutBtn) {
+                event.preventDefault();
+                void startHostSubscriptionCheckout(checkoutBtn);
+                return;
+            }
+
+            // Legacy continue link (if any) — close overlay before navigating.
             const continueLink = event.target.closest('[data-hp-v4-pricing-continue], a.hp-v4-pricing__cta');
             if (continueLink) {
                 event.preventDefault();
@@ -477,17 +651,104 @@
         });
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !panel.hidden) {
+            if (event.key !== 'Escape') return;
+            if (!panel.hidden) {
                 closePricingPanel();
+                syncSidebarActive(getActiveScreen());
+            }
+            const memberPanel = document.getElementById('hp-v4-member-panel');
+            if (memberPanel && !memberPanel.hidden) {
+                closeMemberPanel();
                 syncSidebarActive(getActiveScreen());
             }
         });
 
         // Safari/Chrome may restore this page with the pricing sheet still open.
-        window.addEventListener('pagehide', closePricingPanel);
+        window.addEventListener('pagehide', () => {
+            closePricingPanel();
+            closeMemberPanel();
+        });
         window.addEventListener('pageshow', (event) => {
             repairHomeShellAfterReturn({ forceRemount: Boolean(event.persisted) });
         });
+    }
+
+    function bindMemberPanel() {
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (!panel || panel.dataset.hpV4Bound === 'true') return;
+        panel.dataset.hpV4Bound = 'true';
+
+        panel.addEventListener('click', (event) => {
+            if (event.target.closest('[data-hp-v4-member-close]')) {
+                event.preventDefault();
+                closeMemberPanel();
+                syncSidebarActive(getActiveScreen());
+                return;
+            }
+
+            if (event.target.closest('[data-hp-v4-member-login]')) {
+                event.preventDefault();
+                if (!window.AuthAPI?.loginWithGoogle) {
+                    window.hpTriggerToast?.(
+                        '無法登入',
+                        '登入模組尚未載入，請重新整理後再試',
+                        'error'
+                    );
+                    return;
+                }
+                window.AuthAPI.loginWithGoogle();
+                return;
+            }
+
+            if (event.target.closest('[data-hp-v4-member-logout]')) {
+                event.preventDefault();
+                void (async () => {
+                    try {
+                        await window.AuthAPI?.logout?.();
+                        setMemberPanelState('signed-out');
+                        window.hpTriggerToast?.(
+                            (window.currentLanguage || 'zh') === 'zh' ? '已登出' : 'Signed out',
+                            (window.currentLanguage || 'zh') === 'zh' ? '會員工作階段已結束' : 'Your session has ended',
+                            'success'
+                        );
+                    } catch (error) {
+                        window.hpTriggerToast?.(
+                            (window.currentLanguage || 'zh') === 'zh' ? '登出失敗' : 'Sign-out failed',
+                            error?.message || 'Logout failed',
+                            'error'
+                        );
+                    }
+                })();
+            }
+        });
+
+        // After Google OAuth redirect (?auth=ok|error)
+        try {
+            const params = new URLSearchParams(window.location.search || '');
+            const auth = params.get('auth');
+            if (auth === 'ok' || auth === 'error') {
+                params.delete('auth');
+                params.delete('reason');
+                const qs = params.toString();
+                const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`;
+                window.history.replaceState({}, '', next);
+                if (auth === 'ok') {
+                    openMemberPanel();
+                    window.hpTriggerToast?.(
+                        (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
+                        (window.currentLanguage || 'zh') === 'zh' ? '已綁定 Google 帳號' : 'Google account linked',
+                        'success'
+                    );
+                } else {
+                    openMemberPanel();
+                    window.hpTriggerToast?.(
+                        (window.currentLanguage || 'zh') === 'zh' ? '登入失敗' : 'Sign-in failed',
+                        (window.currentLanguage || 'zh') === 'zh' ? '請再試一次 Google 登入' : 'Please try Google sign-in again',
+                        'error'
+                    );
+                }
+            }
+        } catch (_) { /* ignore */ }
     }
 
     function hookAppNavigate() {
@@ -518,6 +779,9 @@
         syncDesktopClass();
         bindSidebar();
         bindPricingPanel();
+        closePricingPanel();
+        closeMemberPanel();
+        bindMemberPanel(); // may reopen after Google OAuth (?auth=ok|error)
         initSidebarCollapse();
         hookAppNavigate();
         observeGuestBoot();
@@ -528,7 +792,6 @@
         syncDashboardColumnHeights();
         syncSidebarActive(getActiveScreen());
         syncSidebarLang();
-        closePricingPanel();
 
         window.addEventListener('hp:v4-screen', (event) => {
             syncSidebarActive(event.detail?.screen || getActiveScreen());

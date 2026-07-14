@@ -10,6 +10,7 @@
   "rewrites": [
     { "source": "/api/tourism/nearby", "destination": "/api/search/experiences?__tdxNearby=1" },
     { "source": "/api/search/listing-property", "destination": "/api/search/experience-details?__listingProperty=1" },
+    { "source": "/api/auth/:path*", "destination": "/api/health?__auth=1&authPath=:path*" },
     { "source": "/host/settings/:listingId/form", "destination": "/api/host/settings/:listingId/form" },
     { "source": "/host/settings/:listingId", "destination": "/api/host/settings/:listingId" },
     { "source": "/guide/:listing/experience/:experience", "destination": "/index.html" },

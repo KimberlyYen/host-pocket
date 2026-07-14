@@ -33,6 +33,9 @@ module.exports = async (req, res) => {
     let detailEn = 'Please return to the app and try again, or contact your host.';
     let tradeNo = params.MerchantTradeNo || '';
     let amount = params.TradeAmt || params.TotalAmount || '';
+    let next = '';
+    const earlyPayload = unpackBookingCustomFields(params);
+    if (earlyPayload?.kind === 'host_subscription') next = 'settings';
 
     if (!config) {
         titleZh = '金流尚未設定';
@@ -42,12 +45,16 @@ module.exports = async (req, res) => {
             status = 'success';
             titleZh = '付款成功';
             titleEn = 'Payment successful';
-            detailZh = '預定已建立。若有設定寄信服務，確認信會寄到你的 Email。';
-            detailEn = 'Your booking is confirmed. If email is configured, a confirmation will be sent.';
-            const booking = unpackBookingCustomFields(params);
-            if (booking?.guestEmail) {
-                detailZh += `（${booking.guestEmail}）`;
-                detailEn += ` (${booking.guestEmail})`;
+            if (earlyPayload?.kind === 'host_subscription') {
+                detailZh = 'Host Pocket 月費已付款完成，可以開始設定住宿指南。';
+                detailEn = 'Host Pocket monthly fee paid. You can start setting up your stay guide.';
+            } else {
+                detailZh = '預定已建立。若有設定寄信服務，確認信會寄到你的 Email。';
+                detailEn = 'Your booking is confirmed. If email is configured, a confirmation will be sent.';
+                if (earlyPayload?.guestEmail) {
+                    detailZh += `（${earlyPayload.guestEmail}）`;
+                    detailEn += ` (${earlyPayload.guestEmail})`;
+                }
             }
         } else {
             status = 'failed';
@@ -69,6 +76,7 @@ module.exports = async (req, res) => {
         tradeNo,
         amount: String(amount || '')
     });
+    if (next) qs.set('next', next);
     const redirectTo = `/payment-result.html?${qs.toString()}`;
 
     // Prefer a clean HTML page; also support JSON clients.

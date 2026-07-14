@@ -434,6 +434,7 @@
             </div>
             <nav class="hp-v4-sidebar__nav" aria-label="App sections" data-hp-v4-sidebar-nav></nav>
             <div class="hp-v4-sidebar__pricing" data-hp-v4-sidebar-pricing aria-label="Pricing"></div>
+            <div class="hp-v4-sidebar__member" data-hp-v4-sidebar-member aria-label="Member area"></div>
             <div class="hp-v4-sidebar__contact" data-hp-v4-sidebar-contact aria-label="Contact host"></div>
             <button type="button" id="hp-v4-sidebar-toggle" class="hp-v4-sidebar__toggle" aria-expanded="false" aria-controls="hp-v4-sidebar">
                 <i class="fa-solid fa-angles-right hp-v4-sidebar__toggle-icon" aria-hidden="true"></i>
@@ -1357,14 +1358,82 @@
             </ul>
 
             <div class="hp-v4-pricing__actions">
-                <a class="hp-v4-pricing__cta" href="/host-settings.html" data-hp-v4-pricing-continue data-turbo="false">
+                <button type="button" class="hp-v4-pricing__cta" data-hp-v4-pricing-checkout>
                     <span data-global-lang="zh">開始設定</span>
                     <span class="hidden" data-global-lang="en">Start setup</span>
-                </a>
+                </button>
                 <button type="button" class="hp-v4-pricing__secondary" data-hp-v4-pricing-close>
                     <span data-global-lang="zh">稍後再說</span>
                     <span class="hidden" data-global-lang="en">Not now</span>
                 </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Member area panel — Google login / profile -->
+    <div id="hp-v4-member-panel" class="hp-v4-member" hidden aria-hidden="true">
+        <button type="button" class="hp-v4-member__backdrop" data-hp-v4-member-close aria-label="Close member area"></button>
+        <aside class="hp-v4-member__sheet" role="dialog" aria-modal="true" aria-labelledby="hp-v4-member-title">
+            <div class="hp-v4-member__head">
+                <div>
+                    <p class="hp-v4-member__eyebrow">
+                        <span data-global-lang="zh">帳號</span>
+                        <span class="hidden" data-global-lang="en">Account</span>
+                    </p>
+                    <h2 id="hp-v4-member-title" class="hp-v4-member__title">
+                        <span data-global-lang="zh">會員專區</span>
+                        <span class="hidden" data-global-lang="en">Member area</span>
+                    </h2>
+                </div>
+                <button type="button" class="hp-v4-member__close" data-hp-v4-member-close aria-label="Close">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="hp-v4-member__body" data-hp-v4-member-body>
+                <div class="hp-v4-member__loading" data-hp-v4-member-state="loading">
+                    <span data-global-lang="zh">載入中…</span>
+                    <span class="hidden" data-global-lang="en">Loading…</span>
+                </div>
+
+                <div class="hp-v4-member__signed-out hidden" data-hp-v4-member-state="signed-out" hidden>
+                    <p class="hp-v4-member__lead">
+                        <span data-global-lang="zh">使用 Google 登入後，可綁定會員資料（訂閱綁定將於後續開放）。</span>
+                        <span class="hidden" data-global-lang="en">Sign in with Google to save your member profile. Subscription linking comes next.</span>
+                    </p>
+                    <button type="button" class="hp-v4-member__cta" data-hp-v4-member-login>
+                        <i class="fa-brands fa-google" aria-hidden="true"></i>
+                        <span data-global-lang="zh">使用 Google 登入</span>
+                        <span class="hidden" data-global-lang="en">Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="hp-v4-member__signed-in hidden" data-hp-v4-member-state="signed-in" hidden>
+                    <div class="hp-v4-member__profile">
+                        <img class="hp-v4-member__avatar" data-hp-v4-member-avatar alt="" width="56" height="56" hidden>
+                        <div class="hp-v4-member__avatar-fallback" data-hp-v4-member-avatar-fallback aria-hidden="true">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="hp-v4-member__meta">
+                            <p class="hp-v4-member__name" data-hp-v4-member-name></p>
+                            <p class="hp-v4-member__email" data-hp-v4-member-email></p>
+                        </div>
+                    </div>
+                    <div class="hp-v4-member__status">
+                        <span class="hp-v4-member__status-label">
+                            <span data-global-lang="zh">訂閱狀態</span>
+                            <span class="hidden" data-global-lang="en">Subscription</span>
+                        </span>
+                        <span class="hp-v4-member__status-value">
+                            <span data-global-lang="zh">尚未綁定</span>
+                            <span class="hidden" data-global-lang="en">Not linked yet</span>
+                        </span>
+                    </div>
+                    <button type="button" class="hp-v4-member__secondary" data-hp-v4-member-logout>
+                        <span data-global-lang="zh">登出</span>
+                        <span class="hidden" data-global-lang="en">Sign out</span>
+                    </button>
+                </div>
             </div>
         </aside>
     </div>
@@ -1387,6 +1456,7 @@
     <script src="/js/rec-card-videos.js"></script>
     <script src="/js/experience-details.js"></script>
     <script src="/js/guest-router.js"></script>
+    <script src="/js/auth-api.js"></script>
     <script src="/js/v4-sidebar-nav-item.js"></script>
     <script src="/js/guest-desktop-v4.js"></script>
     <script src="/js/pairing-link-card.js"></script>
@@ -2551,8 +2621,11 @@
                 if (this.hasPairingTabPanelTarget) {
                     this.pairingTabPanelTargets.forEach((panel) => {
                         const active = panel.dataset.pairingTab === tab;
-                        panel.classList.toggle('hidden', !active);
-                        panel.toggleAttribute('hidden', !active);
+                        // Keep both panels in layout (grid stack) so tab switches don't jump.
+                        panel.classList.toggle('hp-pairing-tabs__panel--inactive', !active);
+                        panel.setAttribute('aria-hidden', active ? 'false' : 'true');
+                        if (active) panel.removeAttribute('inert');
+                        else panel.setAttribute('inert', '');
                     });
                 }
 

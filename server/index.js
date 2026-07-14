@@ -16,6 +16,8 @@ const ecpayResult = require('../api/payment/ecpay/result');
 const tourismNearby = require('./tourism-nearby-handler').handleTourismNearby;
 const { handleAirbnbListingProperty } = require('./airbnb-listing-handler');
 const { isTdxConfigured } = require('./tdx');
+const { isGoogleAuthConfigured } = require('./auth');
+const { handleAuth } = require('./auth-handler');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -47,12 +49,19 @@ app.get('/api/health', async (_req, res) => {
         bookingConfigured: isEmailConfigured(),
         ecpayConfigured: isEcpayConfigured(),
         tdxConfigured: isTdxConfigured(),
+        googleAuthConfigured: isGoogleAuthConfigured(),
         resendConfigured,
         smtpConfigured,
         dbConfigured: dbUrlSet,
         dbConnected: dbCheck.ok,
         dbError: dbCheck.ok ? undefined : dbCheck.error
     });
+});
+
+app.all('/api/auth/:authPath', (req, res) => {
+    req.query.__auth = '1';
+    req.query.authPath = req.params.authPath;
+    return handleAuth(req, res);
 });
 
 app.get('/api/listings/:listingId/settings', (req, res) => {

@@ -5,6 +5,7 @@
     const MOUNT_SELECTOR = '[data-hp-v4-sidebar-nav]';
     const CONTACT_MOUNT_SELECTOR = '[data-hp-v4-sidebar-contact]';
     const PRICING_MOUNT_SELECTOR = '[data-hp-v4-sidebar-pricing]';
+    const MEMBER_MOUNT_SELECTOR = '[data-hp-v4-sidebar-member]';
 
     /** Host Pocket SaaS plan — keep in sync with pricing panel copy. */
     const PRICING = {
@@ -63,6 +64,15 @@
         badge: PRICING.badge
     };
 
+    const MEMBER_NAV_ITEM = {
+        nav: 'member',
+        icon: 'fa-solid fa-user',
+        labelZh: '會員專區',
+        labelEn: 'Member',
+        titleZh: '會員專區',
+        titleEn: 'Member area'
+    };
+
     /** @deprecated use MAIN_NAV_ITEMS */
     const DEFAULT_ITEMS = [...MAIN_NAV_ITEMS, CONTACT_NAV_ITEM];
 
@@ -87,6 +97,7 @@
         const classes = ['hp-v4-sidebar__item'];
         if (active) classes.push('is-active');
         if (item.nav === 'pricing') classes.push('hp-v4-sidebar__item--pricing');
+        if (item.nav === 'member') classes.push('hp-v4-sidebar__item--member');
 
         const attrs = [
             'type="button"',
@@ -154,9 +165,16 @@
         container.innerHTML = render(PRICING_NAV_ITEM, { active: PRICING_NAV_ITEM.nav === activeNav });
     }
 
+    function mountMember(container, options = {}) {
+        if (!container) return;
+        const activeNav = options.activeNav || '';
+        container.innerHTML = render(MEMBER_NAV_ITEM, { active: MEMBER_NAV_ITEM.nav === activeNav });
+    }
+
     function init() {
         global.document.querySelectorAll(MOUNT_SELECTOR).forEach((el) => mount(el));
         global.document.querySelectorAll(PRICING_MOUNT_SELECTOR).forEach((el) => mountPricing(el));
+        global.document.querySelectorAll(MEMBER_MOUNT_SELECTOR).forEach((el) => mountMember(el));
         global.document.querySelectorAll(CONTACT_MOUNT_SELECTOR).forEach((el) => mountContact(el));
     }
 
@@ -164,9 +182,11 @@
         MOUNT_SELECTOR,
         CONTACT_MOUNT_SELECTOR,
         PRICING_MOUNT_SELECTOR,
+        MEMBER_MOUNT_SELECTOR,
         MAIN_NAV_ITEMS,
         CONTACT_NAV_ITEM,
         PRICING_NAV_ITEM,
+        MEMBER_NAV_ITEM,
         PRICING,
         DEFAULT_ITEMS,
         render,
@@ -174,6 +194,7 @@
         mount,
         mountContact,
         mountPricing,
+        mountMember,
         init
     };
 
