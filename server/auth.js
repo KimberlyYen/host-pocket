@@ -3,7 +3,18 @@ const { getPublicBaseUrl } = require('./ecpay');
 
 const COOKIE_NAME = 'hp_session';
 const STATE_COOKIE = 'hp_oauth_state';
+const NEXT_COOKIE = 'hp_oauth_next';
 const SESSION_TTL_SEC = 60 * 60 * 24 * 30; // 30 days
+
+/** Allow only same-site relative paths (prevent open redirects). */
+function sanitizeNextPath(raw) {
+    const s = String(raw || '').trim();
+    if (!s.startsWith('/')) return '';
+    if (s.startsWith('//') || s.includes('://')) return '';
+    if (s.length > 512) return '';
+    if (!/^\/[\w.~:/?#[\]@!$&'()*+,;=%\-]*$/i.test(s)) return '';
+    return s;
+}
 
 function getGoogleConfig() {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
@@ -191,6 +202,7 @@ function createOAuthState() {
 module.exports = {
     COOKIE_NAME,
     STATE_COOKIE,
+    NEXT_COOKIE,
     SESSION_TTL_SEC,
     isGoogleAuthConfigured,
     getGoogleConfig,
@@ -203,5 +215,6 @@ module.exports = {
     buildGoogleAuthorizeUrl,
     exchangeGoogleCode,
     createOAuthState,
+    sanitizeNextPath,
     getPublicBaseUrl
 };

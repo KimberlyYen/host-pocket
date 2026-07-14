@@ -87,6 +87,7 @@
     <div class="hp-pairing-quick-start__footer text-center mt-4 pt-0">
         <a href="${escapeHtml(settingsHref)}"
            data-pairing-target="settingsLink"
+           data-hp-require-login="1"
            class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i>
             <span data-global-lang="zh">編輯住宿指南</span>

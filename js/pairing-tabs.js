@@ -59,6 +59,7 @@
     <div class="hp-pairing-tabs__settings text-center mt-4">
         <a href="/host-settings.html"
            data-pairing-target="settingsLink"
+           data-hp-require-login="1"
            class="inline-flex items-center gap-2 text-xs font-bold text-hp-muted hover:text-hp-coral transition">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i>
             <span data-global-lang="zh">編輯住宿指南</span>

@@ -47,22 +47,58 @@
         return s.toUpperCase() || 'TAIPEI-CITY';
     }
 
-    function readAllLocal() {
+    function readStorageObject(store) {
         try {
-            return JSON.parse(global.localStorage.getItem(STORAGE_KEY) || '{}');
+            const raw = store?.getItem(STORAGE_KEY);
+            if (!raw) return {};
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : {};
         } catch {
             return {};
         }
     }
 
-    function writeAllLocal(all) {
+    function writeStorageObject(store, all, label) {
         try {
-            global.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+            store?.setItem(STORAGE_KEY, JSON.stringify(all));
             return true;
         } catch (error) {
-            console.warn('[HostGuideSettings] localStorage write failed', error);
+            console.warn(`[HostGuideSettings] ${label} write failed`, error);
             return false;
         }
+    }
+
+    /** Merge localStorage + sessionStorage per listing; newer updatedAt wins, empty strings never wipe. */
+    function readAllLocal() {
+        const fromLocal = readStorageObject(global.localStorage);
+        const fromSession = readStorageObject(global.sessionStorage);
+        const ids = new Set([...Object.keys(fromLocal), ...Object.keys(fromSession)]);
+        const merged = {};
+        ids.forEach((id) => {
+            const a = fromLocal[id];
+            const b = fromSession[id];
+            if (!a) {
+                merged[id] = b;
+                return;
+            }
+            if (!b) {
+                merged[id] = a;
+                return;
+            }
+            const aTs = Date.parse(a.updatedAt || '') || 0;
+            const bTs = Date.parse(b.updatedAt || '') || 0;
+            merged[id] = aTs >= bTs ? merge(b, a) : merge(a, b);
+            merged[id].updatedAt = (aTs >= bTs ? a.updatedAt : b.updatedAt) || merged[id].updatedAt;
+        });
+        return merged;
+    }
+
+    function writeAllLocal(all) {
+        // Durable across refresh: localStorage is source of truth for browser mirror.
+        const okLocal = writeStorageObject(global.localStorage, all, 'localStorage');
+        // Same-tab convenience copy.
+        writeStorageObject(global.sessionStorage, all, 'sessionStorage');
+        return okLocal;
     }
 
     function loadLocal(listingId) {
@@ -181,11 +217,12 @@
             if (!overrides) {
                 overrides = local;
             } else if (local && typeof local === 'object') {
-                // Prefer local mirror when it is newer (e.g. just-saved slots the DB omitted).
+                // Prefer newer local mirror, but never let empty local strings wipe DB values.
                 const localTs = Date.parse(local.updatedAt || '') || 0;
                 const remoteTs = Date.parse(overrides.updatedAt || '') || 0;
                 if (localTs >= remoteTs) {
-                    overrides = { ...overrides, ...local };
+                    overrides = merge(overrides, local);
+                    if (local.updatedAt) overrides.updatedAt = local.updatedAt;
                 }
             }
             setCacheEntry(id, overrides);
@@ -211,14 +248,10 @@
         return listSavedIdsLocal();
     }
 
-    async function save(listingId, data) {
+    function buildSavePayload(listingId, data) {
         const id = normalizeListingId(listingId);
-        try {
-            await ensureLoaded(id);
-        } catch {
-            // continue with local/preset merge
-        }
-        const existing = load(id) || {};
+        // Merge browser mirror + cache so partial patches (e.g. Airbnb seed) never drop rec slots.
+        const existing = merge(loadLocal(id) || {}, getCacheEntry(id) || {});
         const formData = data || {};
         const experienceClearKeys = Array.from({ length: MAX_REC_SLOTS }, (_, i) => `recExperienceId${i + 1}`);
         const payload = pickEditable(
@@ -233,32 +266,54 @@
             }
         });
         payload.updatedAt = new Date().toISOString();
+        return { id, payload };
+    }
 
-        if (await isDatabaseAvailable()) {
-            const record = await ListingSettingsAPI.saveSettings(id, payload);
-            const fromDb = record?.data && typeof record.data === 'object' ? record.data : {};
-            // Payload wins so client-submitted slots (e.g. 5–10) are not lost if the
-            // server process is still running an older EDITABLE_FIELDS list.
-            const saved = {
-                ...fromDb,
-                ...payload,
-                updatedAt: record.updatedAt || payload.updatedAt
-            };
-            setCacheEntry(id, saved);
-            removeLocal(id);
-            // Keep a local mirror so preview/guest can still read the latest save
-            // even before the next DB fetch.
-            try {
-                saveLocal(id, saved);
-            } catch {
-                // ignore quota / private mode
-            }
-            return saved;
-        }
-
+    /** Synchronous browser write (localStorage + sessionStorage) before async DB save. */
+    function saveLocalMirror(listingId, data) {
+        const { id, payload } = buildSavePayload(listingId, data);
         const saved = saveLocal(id, payload);
         setCacheEntry(id, saved);
         return saved;
+    }
+
+    async function save(listingId, data) {
+        const id = normalizeListingId(listingId);
+        try {
+            await ensureLoaded(id);
+        } catch {
+            // continue with local/preset merge
+        }
+
+        // Always persist to localStorage first so refresh keeps host edits even if DB is slow.
+        const localSaved = saveLocalMirror(id, data);
+        const payload = { ...localSaved };
+
+        if (await isDatabaseAvailable()) {
+            try {
+                const record = await ListingSettingsAPI.saveSettings(id, payload);
+                const fromDb = record?.data && typeof record.data === 'object' ? record.data : {};
+                // Payload wins so client-submitted slots (e.g. 5–10) are not lost if the
+                // server process is still running an older EDITABLE_FIELDS list.
+                const saved = {
+                    ...fromDb,
+                    ...payload,
+                    updatedAt: record.updatedAt || payload.updatedAt
+                };
+                setCacheEntry(id, saved);
+                try {
+                    saveLocal(id, saved);
+                } catch {
+                    // ignore quota / private mode
+                }
+                return saved;
+            } catch (error) {
+                console.warn('[HostGuideSettings] DB save failed; kept localStorage mirror', error);
+                return localSaved;
+            }
+        }
+
+        return localSaved;
     }
 
     async function remove(listingId) {
@@ -413,6 +468,7 @@
         load,
         loadAsync,
         save,
+        saveLocalMirror,
         remove,
         listSavedIds,
         ensureLoaded,

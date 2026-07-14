@@ -51,7 +51,8 @@
         if (inFlightKey === key) return getLast();
         inFlightKey = key;
 
-        const url = new URL('/api/tourism/nearby', global.location.origin);
+        const apiBase = global.ListingSettingsAPI?.getApiBase?.() || '';
+        const url = new URL(`${apiBase}/api/tourism/nearby`, global.location.origin);
         // TDX Nearby: X = longitude, Y = latitude
         url.searchParams.set('X', String(lng));
         url.searchParams.set('Y', String(lat));

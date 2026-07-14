@@ -1429,6 +1429,17 @@
                             <span class="hidden" data-global-lang="en">Not linked yet</span>
                         </span>
                     </div>
+                    <div class="hp-v4-member__listings">
+                        <div class="hp-v4-member__listings-head">
+                            <span data-global-lang="zh">已連接房源</span>
+                            <span class="hidden" data-global-lang="en">Linked listings</span>
+                        </div>
+                        <ul class="hp-v4-member__listings-list" data-hp-v4-member-listings></ul>
+                        <p class="hp-v4-member__listings-empty" data-hp-v4-member-listings-empty>
+                            <span data-global-lang="zh">尚未儲存房源。登入後「連接房源」會出現在這裡。</span>
+                            <span class="hidden" data-global-lang="en">No listings yet. Link a listing while signed in to see it here.</span>
+                        </p>
+                    </div>
                     <button type="button" class="hp-v4-member__secondary" data-hp-v4-member-logout>
                         <span data-global-lang="zh">登出</span>
                         <span class="hidden" data-global-lang="en">Sign out</span>
@@ -2707,11 +2718,30 @@
                     if (dashCtrl && dashCtrl.currentListingId === val) {
                         dashCtrl.renderDashboard(data, val);
                     }
+                    if (window.AuthAPI?.saveListing) {
+                        const title = isZh
+                            ? (data?.roomTitleZh || data?.listingLabelZh || '')
+                            : (data?.roomTitleEn || data?.listingLabelEn || '');
+                        try {
+                            await window.AuthAPI.saveListing(val, title);
+                            window.HostPocketV4Desktop?.refreshMemberListings?.();
+                        } catch (saveError) {
+                            console.warn('[pairing] save member listing failed', saveError);
+                        }
+                    }
                 } catch (error) {
                     console.warn('[pairing] settings preload failed', error);
                     globalController?.syncControllers(val);
                     if (dashCtrl && dashCtrl.currentListingId === val) {
                         dashCtrl.renderDashboard(getGuestListingData(val), val);
+                    }
+                    if (window.AuthAPI?.saveListing) {
+                        try {
+                            await window.AuthAPI.saveListing(val, '');
+                            window.HostPocketV4Desktop?.refreshMemberListings?.();
+                        } catch (saveError) {
+                            console.warn('[pairing] save member listing failed', saveError);
+                        }
                     }
                 }
 

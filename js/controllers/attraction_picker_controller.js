@@ -49,11 +49,13 @@
     global.registerHostSettingsController('attraction-picker', class extends Controller {
         static targets = [
             'modal', 'backdrop', 'list', 'title', 'subtitle', 'empty',
-            'categories', 'status', 'pager', 'pageInfo', 'prevBtn', 'nextBtn', 'search'
+            'categories', 'status', 'pager', 'pageInfo', 'prevBtn', 'nextBtn', 'search',
+            'cancelBtn', 'confirmBtn'
         ];
 
         connect() {
             this.pickIndex = null;
+            this.pendingAttraction = null;
             this.items = [];
             this.category = 'all';
             this.query = '';
@@ -69,10 +71,11 @@
         }
 
         async open(event) {
-            const index = event.detail?.index;
-            if (!index) return;
+            const index = Number(event.detail?.index);
+            if (!Number.isFinite(index) || index < 1) return;
 
             this.pickIndex = index;
+            this.pendingAttraction = null;
             this.category = 'all';
             this.query = '';
             this.page = 1;
@@ -88,6 +91,7 @@
             this.setStatus('定位並載入 TDX 附近資料中…');
             this.renderCategories([]);
             this.renderPager(0);
+            this.syncConfirmButton();
             this.show();
 
             try {
@@ -110,7 +114,9 @@
             }
 
             this.origin = { lat: geo.lat, lng: geo.lng };
-            const url = new URL('/api/tourism/nearby', global.location.origin);
+            // Live Server (5500/etc.) has no API — route through ListingSettingsAPI base (localhost:3000).
+            const apiBase = global.ListingSettingsAPI?.getApiBase?.() || '';
+            const url = new URL(`${apiBase}/api/tourism/nearby`, global.location.origin);
             url.searchParams.set('X', String(geo.lng));
             url.searchParams.set('Y', String(geo.lat));
             url.searchParams.set('Distance', String(NEARBY_DISTANCE_M));
@@ -118,7 +124,10 @@
             const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.ok === false) {
-                this.setStatus(data.error || `載入失敗（${response.status}）`);
+                const hint = (!apiBase && /5500|5501|8080|8000|5173/.test(String(global.location.port || '')))
+                    ? '請同時啟動 npm start（:3000），Live Server 無法提供 TDX API'
+                    : (data.error || `載入失敗（${response.status}）`);
+                this.setStatus(hint);
                 return { ok: false, reason: data.error || `http-${response.status}` };
             }
 
@@ -372,18 +381,26 @@
         }
 
         renderList(attractions) {
+            const selectedId = this.pendingAttraction ? String(this.pendingAttraction.id) : '';
             this.listTarget.innerHTML = attractions.map((item) => {
                 const name = item.attractionName || item.titleZh || '';
+                const selected = selectedId && String(item.id) === selectedId;
                 return `
                 <button type="button"
-                        class="hp-attraction-item w-full text-left rounded-xl border border-hp-border bg-white px-3.5 py-3 hover:border-hp-coral hover:shadow-sm transition"
+                        class="hp-attraction-item w-full text-left rounded-xl border border-hp-border bg-white px-3.5 py-3 hover:border-hp-coral hover:shadow-sm transition${selected ? ' is-selected' : ''}"
                         data-action="click->attraction-picker#select"
-                        data-attraction-id="${this.escapeAttr(item.id)}">
+                        data-attraction-id="${this.escapeAttr(item.id)}"
+                        aria-pressed="${selected ? 'true' : 'false'}">
                     <span class="block text-sm font-black text-hp-dark leading-snug">${this.escapeHtml(name)}</span>
                     <span class="block text-[10px] text-hp-muted mt-1">${this.escapeHtml(item.badgeZh)}${item.distZh ? ` · ${this.escapeHtml(item.distZh)}` : ''}</span>
                 </button>
             `;
             }).join('');
+        }
+
+        syncConfirmButton() {
+            if (!this.hasConfirmBtnTarget) return;
+            this.confirmBtnTarget.disabled = !this.pendingAttraction;
         }
 
         renderPager(total) {
@@ -429,38 +446,149 @@
             const button = event.currentTarget;
             const id = button.dataset.attractionId;
             const attraction = this.items.find((item) => String(item.id) === String(id));
-            if (!attraction || !this.pickIndex) return;
+            if (!attraction || !Number.isFinite(this.pickIndex)) return;
 
-            this.applyToForm(this.pickIndex, attraction);
+            this.pendingAttraction = attraction;
+            this.listTarget.querySelectorAll('.hp-attraction-item').forEach((el) => {
+                const on = String(el.dataset.attractionId) === String(id);
+                el.classList.toggle('is-selected', on);
+                el.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            this.syncConfirmButton();
+        }
+
+        async confirmSelection(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+
+            const attraction = this.pendingAttraction;
+            const pickIndex = Number(this.pickIndex);
+            if (!attraction || !Number.isFinite(pickIndex)) return;
+            if (this._confirming) return;
+            this._confirming = true;
+
+            if (this.hasConfirmBtnTarget) this.confirmBtnTarget.disabled = true;
+
+            try {
+                const host = this.getHostSettingsController();
+                if (host?.saveAttractionSelection) {
+                    const { mode } = await host.saveAttractionSelection(pickIndex, attraction);
+                    const label = attraction?.titleZh ? `「${attraction.titleZh}」` : '';
+                    host.showStatus?.(
+                        mode === 'database'
+                            ? `已帶入並儲存推薦 ${pickIndex}${label}`
+                            : `已帶入並儲存推薦 ${pickIndex}${label}（本機瀏覽器）`
+                    );
+                    this.notifySelected(attraction, { saved: true, mode, index: pickIndex });
+                } else {
+                    this.applyToForm(pickIndex, attraction);
+                    await this.saveSelectionToDb(pickIndex, attraction);
+                }
+            } catch (error) {
+                console.error('[attraction-picker] confirm/save failed', error);
+                this.notifySelected(attraction, {
+                    saved: false,
+                    error: error?.message || '儲存失敗',
+                    index: pickIndex
+                });
+                const host = this.getHostSettingsController();
+                host?.showError?.(error?.message || '景點儲存失敗');
+            } finally {
+                this._confirming = false;
+                this.close();
+            }
+        }
+
+        cancel(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
             this.close();
-            this.notifySelected(attraction);
+        }
+
+        getHostSettingsController() {
+            const el = global.document.querySelector('[data-controller~="host-settings"]');
+            if (!el) return null;
+            return global.__hpHostSettingsStimulusApp
+                ?.getControllerForElementAndIdentifier?.(el, 'host-settings') || null;
         }
 
         applyToForm(index, attraction) {
             const form = global.document.querySelector('[data-host-settings-target="form"]');
-            if (!form) return;
+            if (!form) throw new Error('找不到設定表單，無法帶入景點');
 
-            const fields = global.HostSettingsAttractions.toFormFields(index, attraction);
+            const fields = global.HostSettingsAttractions?.toFormFields?.(index, attraction);
+            if (!fields) throw new Error('景點欄位對應失敗');
+
             Object.entries(fields).forEach(([name, value]) => {
                 // Cover image stays empty — hosts upload it themselves.
                 if (/^recImg\d+$/.test(name)) return;
-                const el = form.elements.namedItem(name);
-                if (!el) return;
+                const escaped = typeof CSS !== 'undefined' && CSS.escape
+                    ? CSS.escape(name)
+                    : String(name).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                let el = form.querySelector(`[name="${escaped}"]`);
+                if (!el) {
+                    const named = form.elements.namedItem(name);
+                    if (named && typeof named.dispatchEvent === 'function') el = named;
+                    else if (named && typeof named.length === 'number') el = named[0];
+                }
+                if (!el || typeof el.dispatchEvent !== 'function') return;
                 el.value = value ?? '';
                 el.dispatchEvent(new Event('input', { bubbles: true }));
                 el.dispatchEvent(new Event('change', { bubbles: true }));
             });
         }
 
-        notifySelected(attraction) {
+        async saveSelectionToDb(index, attraction) {
+            const host = this.getHostSettingsController();
+            if (host?.persistFormSettings) {
+                const { mode } = await host.persistFormSettings();
+                const label = attraction?.titleZh ? `「${attraction.titleZh}」` : '';
+                host.showStatus?.(
+                    mode === 'database'
+                        ? `已帶入並儲存推薦 ${index}${label}`
+                        : `已帶入並儲存推薦 ${index}${label}（本機瀏覽器）`
+                );
+                this.notifySelected(attraction, { saved: true, mode });
+                return;
+            }
+
+            // Fallback if Stimulus controller is not ready.
+            if (!global.HostGuideSettings?.save) {
+                throw new Error('儲存模組未載入');
+            }
+            const id = host?.getListingId?.()
+                || global.HostGuideSettings.normalizeListingId(
+                    global.document.getElementById('listingIdInput')?.value
+                );
+            if (!id) throw new Error('請輸入房源代碼');
+
+            const formData = host?.readForm?.() || {};
+            if (!Object.keys(formData).length) {
+                // Last-resort: merge only the selected attraction fields.
+                Object.assign(
+                    formData,
+                    global.HostSettingsAttractions.toFormFields(index, attraction)
+                );
+            }
+            await global.HostGuideSettings.isDatabaseAvailable?.();
+            await global.HostGuideSettings.save(id, formData);
+            this.notifySelected(attraction, {
+                saved: true,
+                mode: global.HostGuideSettings.getStorageMode?.() || 'local'
+            });
+        }
+
+        notifySelected(attraction, extra = {}) {
             const hostSettings = global.document.querySelector('[data-controller~="host-settings"]');
             if (!hostSettings) return;
+            const index = Number(extra.index ?? this.pickIndex);
 
-            hostSettings.dispatchEvent(new CustomEvent('host-settings:attraction-selected', {
+            hostSettings.dispatchEvent(new CustomEvent('attraction-selected', {
                 bubbles: true,
                 detail: {
-                    index: this.pickIndex,
-                    title: attraction.titleZh
+                    title: attraction?.titleZh || '',
+                    ...extra,
+                    index
                 }
             }));
         }
@@ -478,10 +606,13 @@
         }
 
         close() {
-            this.modalTarget.classList.remove('is-open');
-            this.modalTarget.setAttribute('aria-hidden', 'true');
+            const modal = this.hasModalTarget ? this.modalTarget : this.element;
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
             global.document.body.classList.remove('hp-attraction-picker-open');
             this.pickIndex = null;
+            this.pendingAttraction = null;
+            this.syncConfirmButton();
         }
 
         closeOnEscape(event) {

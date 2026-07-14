@@ -19,8 +19,39 @@
         };
 
         connect() {
+            this._formReloadSuspended = false;
             void global.HostGuideSettings?.isDatabaseAvailable?.();
-            this.reloadFormFrame(this.resolveInitialListing());
+            // Defer one tick so listing-selector can restore URL / session listing first.
+            requestAnimationFrame(() => {
+                const id = this.resolveInitialListing();
+                this.rememberListingId(id);
+                this.reloadFormFrame(id);
+            });
+        }
+
+        rememberListingId(listingId) {
+            const id = global.HostGuideSettings.normalizeListingId(listingId);
+            if (!id) return;
+            try {
+                global.sessionStorage?.setItem('hp:host-settings:last-listing', id);
+            } catch {
+                // ignore
+            }
+            try {
+                const url = new URL(global.location.href);
+                if (url.searchParams.get('listing') !== id) {
+                    url.searchParams.set('listing', id);
+                    global.history.replaceState({}, '', url);
+                }
+            } catch {
+                // ignore
+            }
+            if (this.hasListingSelectorOutlet) {
+                this.listingSelectorOutlet.setValue?.(id);
+            } else {
+                const input = global.document.getElementById('listingIdInput');
+                if (input) input.value = id;
+            }
         }
 
         maxRecSlots() {
@@ -110,10 +141,37 @@
         }
 
         resolveInitialListing() {
-            if (this.initialListingValue) return this.initialListingValue;
-            if (this.hasListingSelectorOutlet) return this.listingSelectorOutlet.getValue();
-            const params = new URLSearchParams(global.location.search);
-            return params.get('listing') || params.get('id') || 'TAIPEI-CITY';
+            if (this.initialListingValue) {
+                return global.HostGuideSettings.normalizeListingId(this.initialListingValue);
+            }
+
+            // URL first — refresh must reload the same listing that was just edited.
+            try {
+                const params = new URLSearchParams(global.location.search || '');
+                const fromUrl = params.get('listing') || params.get('id');
+                if (fromUrl) return global.HostGuideSettings.normalizeListingId(fromUrl);
+            } catch {
+                // ignore
+            }
+
+            const input = global.document.getElementById('listingIdInput');
+            if (input?.value?.trim()) {
+                return global.HostGuideSettings.normalizeListingId(input.value);
+            }
+
+            try {
+                const stored = global.sessionStorage?.getItem('hp:host-settings:last-listing');
+                if (stored) return global.HostGuideSettings.normalizeListingId(stored);
+            } catch {
+                // ignore
+            }
+
+            if (this.hasListingSelectorOutlet) {
+                const fromOutlet = this.listingSelectorOutlet.getValue?.();
+                if (fromOutlet) return fromOutlet;
+            }
+
+            return 'TAIPEI-CITY';
         }
 
         formFrameUrl(listingId) {
@@ -123,6 +181,10 @@
 
         reloadFormFrame(listingId) {
             if (!this.hasFormFrameTarget) return;
+            if (this._formReloadSuspended) {
+                console.warn('[host-settings] skip reloadFormFrame while attraction save is in progress');
+                return;
+            }
             this.pendingListingId = global.HostGuideSettings.normalizeListingId(listingId);
             this.formFrameTarget.src = this.formFrameUrl(this.pendingListingId);
         }
@@ -135,13 +197,14 @@
         async handleFrameLoad() {
             const listingId = this.pendingListingId || this.resolveInitialListing();
             const id = global.HostGuideSettings.normalizeListingId(listingId);
+            this.rememberListingId(id);
 
             global.HostGuideSettings.invalidateCache(id);
             try {
                 const data = await this.loadFormData(id);
                 requestAnimationFrame(() => {
-                    if (this.hasFormTarget) this.fillForm(data);
-                    this.syncFormWidgets();
+                    if (this.hasFormTarget) this.fillForm(data, { collapse: true });
+                    else this.syncFormWidgets({ collapse: true });
                     if (this.hasBasicInfoListingIdTarget) {
                         this.basicInfoListingIdTarget.textContent = id;
                     }
@@ -149,7 +212,8 @@
             } catch (error) {
                 console.warn('[host-settings] cache refresh failed', error);
                 requestAnimationFrame(() => {
-                    this.syncFormWidgets();
+                    // Keep server-hydrated field values; only refresh peeks.
+                    this.syncFormWidgets({ collapse: true });
                     if (this.hasBasicInfoListingIdTarget) {
                         this.basicInfoListingIdTarget.textContent = id;
                     }
@@ -157,8 +221,37 @@
             }
         }
 
-        syncFormWidgets() {
+        ensureDefaultRecSlotsInDom() {
             if (!this.hasFormTarget) return;
+            const mount = this.hasExtraRecSlotsTarget
+                ? this.extraRecSlotsTarget
+                : this.formTarget.querySelector('[data-host-settings-target="extraRecSlots"]');
+            const section = this.formTarget.querySelector('[data-hp-rec-section]') || this.formTarget;
+
+            for (let i = 1; i <= this.defaultRecSlots(); i += 1) {
+                if (this.formTarget.querySelector(`[data-experience-pick-index-value="${i}"]`)) continue;
+                const html = global.HostPocketRecSlots?.buildExperiencePickHtml?.(i);
+                if (!html) continue;
+                const anchor = this.formTarget.querySelector(`[data-rec-slot="${i + 1}"]`)
+                    || mount
+                    || section.lastElementChild;
+                if (anchor && anchor !== mount) {
+                    anchor.insertAdjacentHTML('beforebegin', html);
+                } else if (mount) {
+                    mount.insertAdjacentHTML('afterbegin', html);
+                } else {
+                    section.insertAdjacentHTML('beforeend', html);
+                }
+            }
+        }
+
+        syncFormWidgets(options = {}) {
+            if (!this.hasFormTarget) return;
+
+            this.ensureDefaultRecSlotsInDom();
+            if (options.collapse !== false) {
+                this.collapseAllPanels();
+            }
 
             this.formTarget.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
                 el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -258,10 +351,37 @@
             void this.loadListing(event.detail?.listingId);
         }
 
-        attractionSelected(event) {
-            const { index, title } = event.detail || {};
-            if (title) {
-                this.showStatus(`已帶入景點至推薦 ${index}：${title}`);
+        async attractionSelected(event) {
+            const detail = event.detail || {};
+            const { index, title, saved, error, mode } = detail;
+            const label = title ? `「${title}」` : '';
+
+            // Attraction picker now persists directly; this handler only surfaces status
+            // (and acts as a fallback save if an older picker still dispatches without saving).
+            if (saved === true) {
+                this.showStatus(
+                    mode === 'database'
+                        ? `已帶入並儲存推薦 ${index}${label}`
+                        : `已帶入並儲存推薦 ${index}${label}${mode ? `（${mode}）` : ''}`
+                );
+                return;
+            }
+
+            if (saved === false) {
+                this.showError(error || `景點已帶入推薦 ${index}，但儲存失敗`);
+                return;
+            }
+
+            try {
+                const result = await this.persistFormSettings();
+                this.showStatus(
+                    result.mode === 'database'
+                        ? `已帶入並儲存推薦 ${index}${label}`
+                        : `已帶入並儲存推薦 ${index}${label}（本機瀏覽器）`
+                );
+            } catch (err) {
+                console.error('[host-settings] save after attraction select failed', err);
+                this.showError(err?.message || `景點已帶入推薦 ${index}，但儲存失敗`);
             }
         }
 
@@ -292,32 +412,116 @@
 
         formField(name) {
             if (!this.hasFormTarget) return null;
-            const field = this.formTarget.elements.namedItem(name);
-            if (field) return field;
             const escaped = typeof CSS !== 'undefined' && CSS.escape
                 ? CSS.escape(name)
                 : String(name).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-            return this.formTarget.querySelector(`[name="${escaped}"]`);
+            // Prefer querySelector — form.elements.namedItem() can return a RadioNodeList
+            // when duplicate names exist, which has no dispatchEvent().
+            const byQuery = this.formTarget.querySelector(`[name="${escaped}"]`);
+            if (byQuery) return byQuery;
+
+            const field = this.formTarget.elements.namedItem(name);
+            if (!field) return null;
+            if (typeof field.dispatchEvent === 'function') return field;
+            if (typeof field.length === 'number') return field[0] || null;
+            return null;
         }
 
-        fillForm(data) {
+        setFormFieldValue(name, value, { emit = true } = {}) {
+            const el = this.formField(name);
+            if (!el || typeof el !== 'object') return false;
+            el.value = value ?? '';
+            if (emit && typeof el.dispatchEvent === 'function') {
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            return true;
+        }
+
+        fillForm(data, options = {}) {
             if (!this.hasFormTarget) return;
 
-            this.ensureExtraRecSlots(data || {});
+            const payload = data || {};
+            // Avoid wiping server-hydrated / just-applied fields when loader returns {}.
+            if (!Object.keys(payload).length) {
+                this.syncFormWidgets({ collapse: options.collapse !== false });
+                this.syncAddRecButton();
+                return;
+            }
+
+            this.ensureExtraRecSlots(payload);
 
             global.HostGuideSettings.EDITABLE_FIELDS.forEach((name) => {
                 const el = this.formField(name);
-                if (el) el.value = data[name] ?? '';
+                if (!el) return;
+                if (!Object.prototype.hasOwnProperty.call(payload, name)) return;
+                el.value = payload[name] ?? '';
             });
 
             const galleryEl = this.formField('roomGalleryText');
-            if (galleryEl) {
-                const fromGallery = global.HostGuideSettings.galleryToText(data.roomGallery);
-                galleryEl.value = fromGallery || (data.roomImg ? String(data.roomImg).trim() : '');
+            if (galleryEl && (payload.roomGallery || payload.roomImg)) {
+                const fromGallery = global.HostGuideSettings.galleryToText(payload.roomGallery);
+                galleryEl.value = fromGallery || (payload.roomImg ? String(payload.roomImg).trim() : '');
             }
 
-            this.syncFormWidgets();
+            this.syncFormWidgets({ collapse: options.collapse !== false });
             this.syncAddRecButton();
+        }
+
+        revealRecSlot(index) {
+            if (!this.hasFormTarget) return;
+            const n = Number(index);
+            if (!Number.isFinite(n)) return;
+            const panel = this.formTarget.querySelector(`[data-experience-pick-index-value="${n}"]`);
+            if (!panel) return;
+            panel.open = true;
+            panel.querySelectorAll('[data-experience-pick-target="imgInput"], [data-experience-pick-target="titleInput"]').forEach((el) => {
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            panel.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        async saveAttractionSelection(index, attraction) {
+            const n = Number(index);
+            if (!Number.isFinite(n) || !attraction) {
+                throw new Error('景點資料不完整');
+            }
+
+            this._formReloadSuspended = true;
+            try {
+                const fields = global.HostSettingsAttractions?.toFormFields?.(n, attraction) || {};
+                Object.entries(fields).forEach(([name, value]) => {
+                    if (/^recImg\d+$/.test(name)) return;
+                    this.setFormFieldValue(name, value, { emit: true });
+                });
+
+                const id = this.getListingId();
+                if (!id) throw new Error('請輸入房源代碼');
+                this.rememberListingId(id);
+
+                const formData = this.readForm();
+                // 1) localStorage first — refresh-safe even if DB is slow/offline
+                const localSaved = global.HostGuideSettings.saveLocalMirror?.(id, formData)
+                    || formData;
+                this.writePreviewLocalStorage(id, localSaved);
+                this.fillForm(localSaved, { collapse: false });
+                this.revealRecSlot(n);
+
+                // 2) then sync DB (also writes localStorage again inside save)
+                let mode = 'localStorage';
+                try {
+                    await global.HostGuideSettings.isDatabaseAvailable();
+                    await global.HostGuideSettings.save(id, formData);
+                    mode = global.HostGuideSettings.getStorageMode();
+                } catch (error) {
+                    console.warn('[host-settings] DB sync after attraction confirm failed; localStorage kept', error);
+                    mode = 'localStorage';
+                }
+
+                return { id, formData: localSaved, mode };
+            } finally {
+                this._formReloadSuspended = false;
+            }
         }
 
         readForm() {
@@ -356,7 +560,7 @@
                 return;
             }
 
-            if (this.hasListingSelectorOutlet) this.listingSelectorOutlet.setValue(id);
+            this.rememberListingId(id);
 
             if (global.AirbnbListing?.isAirbnbNumericId?.(id)) {
                 this.showStatus('正在從 Airbnb 帶入房源資料…');
@@ -383,6 +587,7 @@
                 throw new Error('請輸入房源代碼');
             }
 
+            this.rememberListingId(id);
             await global.HostGuideSettings.isDatabaseAvailable();
             const formData = this.readForm();
             await global.HostGuideSettings.save(id, formData);
@@ -431,24 +636,9 @@
         }
 
         writePreviewLocalStorage(id, formData) {
-            const payload = global.HostGuideSettings.pickEditable(formData || this.readForm());
-
-            if (Array.isArray(formData?.roomGallery) && formData.roomGallery.length) {
-                payload.roomGallery = formData.roomGallery;
-                payload.roomImg = formData.roomImg || formData.roomGallery[0];
-            }
-
-            payload.updatedAt = new Date().toISOString();
-
+            // Keep preview / guest listing refresh in sync via HostGuideSettings mirror.
             try {
-                const all = JSON.parse(global.localStorage.getItem(global.HostGuideSettings.STORAGE_KEY) || '{}');
-                all[id] = {
-                    ...(all[id] || {}),
-                    ...payload,
-                    updatedAt: payload.updatedAt
-                };
-                global.localStorage.setItem(global.HostGuideSettings.STORAGE_KEY, JSON.stringify(all));
-                global.HostGuideSettings.invalidateCache(id);
+                global.HostGuideSettings.saveLocalMirror?.(id, formData || this.readForm());
             } catch (error) {
                 console.warn('[preview] localStorage write failed', error);
             }

@@ -80,7 +80,9 @@
             const params = match[2];
             const inner = match[3];
             const processedInner = await processIncludes(inner, locals, stack);
-            const blockLocals = { ...locals, ...parseIncludeParams(params), yield: processedInner };
+            // Resolve {{yield}} before nesting so nested card shells keep parent content.
+            const resolvedInner = applyLocals(processedInner, { variant: 'panel', ...locals });
+            const blockLocals = { ...locals, ...parseIncludeParams(params), yield: resolvedInner };
             const rendered = await renderPartial(partialName, blockLocals, stack);
             out = out.replace(full, () => rendered);
             match = out.match(BLOCK_RE);

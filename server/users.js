@@ -53,9 +53,85 @@ async function ensureSchema() {
             await getSql()`
                 CREATE INDEX IF NOT EXISTS users_email_idx ON users (email)
             `;
+            await getSql()`
+                CREATE TABLE IF NOT EXISTS user_listings (
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    listing_id TEXT NOT NULL,
+                    title TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    PRIMARY KEY (user_id, listing_id)
+                )
+            `;
+            await getSql()`
+                CREATE INDEX IF NOT EXISTS user_listings_user_id_idx
+                ON user_listings (user_id, updated_at DESC)
+            `;
         })();
     }
     await schemaReady;
+}
+
+function normalizeLinkedListingId(listingId) {
+    const raw = String(listingId || '').trim();
+    if (!raw || /\[object\s+/i.test(raw)) return '';
+    if (/^\d{5,}$/.test(raw)) return raw;
+    return raw.toUpperCase();
+}
+
+function publicListing(row) {
+    if (!row) return null;
+    return {
+        listingId: String(row.listing_id || ''),
+        title: row.title || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+    };
+}
+
+async function linkUserListing(userId, listingId, title = '') {
+    await ensureSchema();
+    const uid = String(userId || '').trim();
+    const lid = normalizeLinkedListingId(listingId);
+    if (!uid || !lid) throw new Error('user_id and listing_id are required');
+    const label = String(title || '').trim().slice(0, 160) || null;
+
+    const rows = await getSql()`
+        INSERT INTO user_listings (user_id, listing_id, title)
+        VALUES (${uid}, ${lid}, ${label})
+        ON CONFLICT (user_id, listing_id) DO UPDATE SET
+            title = COALESCE(EXCLUDED.title, user_listings.title),
+            updated_at = NOW()
+        RETURNING user_id, listing_id, title, created_at, updated_at
+    `;
+    return publicListing(rows[0]);
+}
+
+async function listUserListings(userId) {
+    await ensureSchema();
+    const uid = String(userId || '').trim();
+    if (!uid) return [];
+    const rows = await getSql()`
+        SELECT user_id, listing_id, title, created_at, updated_at
+        FROM user_listings
+        WHERE user_id = ${uid}
+        ORDER BY updated_at DESC, created_at DESC
+        LIMIT 50
+    `;
+    return rows.map(publicListing).filter((row) => row?.listingId);
+}
+
+async function unlinkUserListing(userId, listingId) {
+    await ensureSchema();
+    const uid = String(userId || '').trim();
+    const lid = normalizeLinkedListingId(listingId);
+    if (!uid || !lid) return false;
+    const rows = await getSql()`
+        DELETE FROM user_listings
+        WHERE user_id = ${uid} AND listing_id = ${lid}
+        RETURNING listing_id
+    `;
+    return rows.length > 0;
 }
 
 function publicUser(row) {
@@ -127,5 +203,9 @@ module.exports = {
     ensureSchema,
     upsertGoogleUser,
     getUserById,
-    getUserByGoogleSub
+    getUserByGoogleSub,
+    normalizeLinkedListingId,
+    linkUserListing,
+    listUserListings,
+    unlinkUserListing
 };

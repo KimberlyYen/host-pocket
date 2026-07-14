@@ -5,6 +5,32 @@
     if (!global.registerHostSettingsController || typeof Stimulus === 'undefined') return;
 
     const { Controller } = Stimulus;
+    const LAST_LISTING_KEY = 'hp:host-settings:last-listing';
+
+    function readUrlListing() {
+        try {
+            const params = new URLSearchParams(global.location.search || '');
+            return params.get('listing') || params.get('id') || '';
+        } catch {
+            return '';
+        }
+    }
+
+    function readStoredListing() {
+        try {
+            return global.sessionStorage?.getItem(LAST_LISTING_KEY) || '';
+        } catch {
+            return '';
+        }
+    }
+
+    function writeStoredListing(id) {
+        try {
+            if (id) global.sessionStorage?.setItem(LAST_LISTING_KEY, id);
+        } catch {
+            // ignore quota / private mode
+        }
+    }
 
     global.registerHostSettingsController('listing-selector', class extends Controller {
         static targets = ['input'];
@@ -16,10 +42,14 @@
 
         connect() {
             const input = this.inputEl();
-            if (input && !input.value) {
-                const params = new URLSearchParams(global.location.search);
-                input.value = params.get('listing') || params.get('id') || 'TAIPEI-CITY';
-            }
+            if (!input) return;
+
+            // Always prefer URL / last-used listing on refresh so we don't fall back to TAIPEI-CITY.
+            const fromUrl = readUrlListing();
+            const fromStore = readStoredListing();
+            const preferred = fromUrl || input.value || fromStore || 'TAIPEI-CITY';
+            input.value = this.normalizeId(preferred);
+            writeStoredListing(this.normalizeId(input.value));
         }
 
         normalizeId(id) {
@@ -41,6 +71,7 @@
             const input = this.inputEl();
             if (input) {
                 input.value = this.normalizeId(id);
+                writeStoredListing(input.value);
             }
         }
 

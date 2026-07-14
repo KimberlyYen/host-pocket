@@ -53,7 +53,7 @@
           data-controller="host-settings"
           data-host-settings-listing-selector-outlet="#listing-selector-panel"
           data-host-settings-host-preview-outlet="#host-preview-drawer"
-          data-action="listing-selector:load->host-settings#loadListingFromEvent host-settings:attraction-selected->host-settings#attractionSelected">
+          data-action="listing-selector:load->host-settings#loadListingFromEvent attraction-selected->host-settings#attractionSelected">
 
         <section id="listing-selector-panel" class="hp-card hp-card--stack hp-card--panel" data-controller="listing-selector">
     <h2 class="hp-card__title"><i class="fa-solid fa-sliders text-hp-coral"></i> 選擇房源</h2>
@@ -192,6 +192,21 @@
                 <button type="button" data-attraction-picker-target="nextBtn" data-action="click->attraction-picker#nextPage"
                         class="hp-attraction-pager__btn">下一頁</button>
             </div>
+            <div class="hp-attraction-picker__footer">
+                <button type="button"
+                        data-attraction-picker-target="cancelBtn"
+                        data-action="click->attraction-picker#cancel"
+                        class="hp-attraction-picker__footer-btn hp-attraction-picker__footer-btn--ghost">
+                    取消
+                </button>
+                <button type="button"
+                        data-attraction-picker-target="confirmBtn"
+                        data-action="click->attraction-picker#confirmSelection"
+                        class="hp-attraction-picker__footer-btn hp-attraction-picker__footer-btn--primary"
+                        disabled>
+                    確認
+                </button>
+            </div>
         </div>
     </div>
 
@@ -237,6 +252,29 @@
             margin-top: 0;
             padding-top: 0;
             border-top: none;
+        }
+        /* Sticky page header (~4.5rem) was covering the first pick card while scrolling. */
+        .hp-rec-section,
+        .hp-card--pick,
+        #rec-slot-1 {
+            scroll-margin-top: 5.5rem;
+        }
+        .hp-rec-section__head {
+            scroll-margin-top: 5.5rem;
+        }
+        .hp-pick-collapse__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            padding: 0 0.3rem;
+            border-radius: 0.4rem;
+            background: rgba(255, 91, 62, 0.12);
+            color: #FF5B3E;
+            font-size: 10px;
+            font-weight: 900;
+            line-height: 1;
         }
         .hp-pick-collapse__thumb {
             position: relative;
@@ -435,7 +473,6 @@
             padding: 0.65rem 0.75rem;
             background: white;
             border-top: 1px solid #EBE5DF;
-            border-radius: 0 0 1.25rem 1.25rem;
         }
         .hp-attraction-pager.hidden { display: none; }
         .hp-attraction-pager__btn {
@@ -459,6 +496,49 @@
             font-weight: 700;
             color: #8C807A;
         }
+        .hp-attraction-item.is-selected {
+            border-color: #FF5B3E;
+            background: rgba(255, 91, 62, 0.05);
+            box-shadow: 0 0 0 1px rgba(255, 91, 62, 0.25);
+        }
+        .hp-attraction-picker__footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+            padding: 0.75rem;
+            background: white;
+            border-top: 1px solid #EBE5DF;
+            border-radius: 0 0 1.25rem 1.25rem;
+        }
+        .hp-attraction-picker__footer-btn {
+            min-height: 2.5rem;
+            border-radius: 0.85rem;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+        }
+        .hp-attraction-picker__footer-btn--ghost {
+            border: 1px solid #EBE5DF;
+            background: #FAF8F5;
+            color: #1F1A18;
+        }
+        .hp-attraction-picker__footer-btn--ghost:hover {
+            border-color: #FF5B3E;
+            color: #FF5B3E;
+        }
+        .hp-attraction-picker__footer-btn--primary {
+            border: 1px solid #FF5B3E;
+            background: #FF5B3E;
+            color: #fff;
+        }
+        .hp-attraction-picker__footer-btn--primary:hover:not(:disabled) {
+            background: #ef4f34;
+        }
+        .hp-attraction-picker__footer-btn--primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         body.hp-attraction-picker-open { overflow: hidden; }
 
         .hp-listing-id-field__input:focus-visible,
@@ -470,11 +550,38 @@
         .hp-listing-id-field__input:focus-visible { outline: none; }
     </style>
 
+    <script src="/js/listing-settings-api.js"></script>
+    <script src="/js/auth-api.js"></script>
+    <script>
+        (async function gateHostSettingsLogin() {
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const auth = params.get('auth');
+                if (auth === 'ok' || auth === 'error') {
+                    params.delete('auth');
+                    params.delete('reason');
+                    const qs = params.toString();
+                    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`);
+                }
+                if (auth === 'ok') {
+                    window.hpTriggerToast?.(
+                        (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
+                        (window.currentLanguage || 'zh') === 'zh' ? '可以開始編輯住宿指南' : 'You can edit your guest guide now',
+                        'success'
+                    );
+                }
+                if (!window.AuthAPI?.requireLogin) return;
+                const next = `${window.location.pathname}${window.location.search || ''}`;
+                await window.AuthAPI.requireLogin({ next });
+            } catch (error) {
+                console.warn('[host-settings] login gate failed', error);
+            }
+        })();
+    </script>
     <script src="/js/airbnb-listing.js"></script>
     <script src="/js/guide-defaults.js"></script>
     <script>window.HP_MOCK_DATA = false;</script>
     <script src="/js/mock-mode.js"></script>
-    <script src="/js/listing-settings-api.js"></script>
     <script src="/js/rec-slots.js"></script>
     <script src="/js/host-guide-settings.js"></script>
     <script src="/js/demo-theme-picker.js"></script>

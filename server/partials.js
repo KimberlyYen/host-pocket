@@ -62,7 +62,10 @@ function processIncludes(html, locals, stack) {
 function processBlocks(html, locals, stack) {
     return html.replace(BLOCK_RE, (_, partialName, params, inner) => {
         const processedInner = processIncludes(inner, locals, stack);
-        const blockLocals = { ...locals, ...parseIncludeParams(params), yield: processedInner };
+        // Resolve {{yield}} / other locals in the block body before nesting,
+        // so nested {{# partial }}{{yield}}{{/}} does not overwrite parent yield.
+        const resolvedInner = applyLocals(processedInner, { variant: 'panel', ...locals });
+        const blockLocals = { ...locals, ...parseIncludeParams(params), yield: resolvedInner };
         return renderPartial(partialName, blockLocals, stack);
     });
 }

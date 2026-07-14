@@ -410,22 +410,109 @@
         }
     }
 
+    function syncMemberSidebarAvatar(user) {
+        const url = String(user?.avatarUrl || '').trim();
+        window.HostPocketV4SidebarNavItem?.setMemberAvatar?.(url);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderMemberListings(listings) {
+        const panel = document.getElementById('hp-v4-member-panel');
+        if (!panel) return;
+        const listEl = panel.querySelector('[data-hp-v4-member-listings]');
+        const emptyEl = panel.querySelector('[data-hp-v4-member-listings-empty]');
+        if (!listEl) return;
+
+        const rows = Array.isArray(listings) ? listings : [];
+        if (!rows.length) {
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.hidden = false;
+            return;
+        }
+
+        if (emptyEl) emptyEl.hidden = true;
+        listEl.innerHTML = rows.map((item) => {
+            const id = String(item.listingId || '').trim();
+            if (!id) return '';
+            const title = String(item.title || '').trim() || id;
+            const href = `/host-settings.html?listing=${encodeURIComponent(id)}`;
+            const openHref = `/?listing=${encodeURIComponent(id)}`;
+            return `<li class="hp-v4-member__listing">
+                <div class="hp-v4-member__listing-copy">
+                    <span class="hp-v4-member__listing-title">${escapeHtml(title)}</span>
+                    <span class="hp-v4-member__listing-id">${escapeHtml(id)}</span>
+                </div>
+                <div class="hp-v4-member__listing-actions">
+                    <a class="hp-v4-member__listing-link" href="${escapeHtml(openHref)}" data-turbo="false">
+                        <span data-global-lang="zh">開啟</span>
+                        <span class="hidden" data-global-lang="en">Open</span>
+                    </a>
+                    <a class="hp-v4-member__listing-link" href="${escapeHtml(href)}" data-turbo="false">
+                        <span data-global-lang="zh">編輯</span>
+                        <span class="hidden" data-global-lang="en">Edit</span>
+                    </a>
+                </div>
+            </li>`;
+        }).join('');
+    }
+
+    async function refreshMemberListings() {
+        try {
+            const result = await window.AuthAPI?.listListings?.();
+            if (result?.ok) {
+                renderMemberListings(result.listings);
+                return result.listings;
+            }
+        } catch (error) {
+            console.warn('[member] list listings failed', error);
+        }
+        renderMemberListings([]);
+        return [];
+    }
+
     async function refreshMemberPanel() {
         setMemberPanelState('loading');
         try {
             const result = await window.AuthAPI?.getMe?.();
             if (result?.ok && result.user) {
                 renderMemberUser(result.user);
+                syncMemberSidebarAvatar(result.user);
                 setMemberPanelState('signed-in');
+                void refreshMemberListings();
                 return result.user;
             }
+            syncMemberSidebarAvatar(null);
+            renderMemberListings([]);
             setMemberPanelState('signed-out');
             return null;
         } catch (error) {
             console.warn('[member] getMe failed', error);
+            syncMemberSidebarAvatar(null);
+            renderMemberListings([]);
             setMemberPanelState('signed-out');
             return null;
         }
+    }
+
+    async function syncMemberSession() {
+        try {
+            const result = await window.AuthAPI?.getMe?.();
+            if (result?.ok && result.user) {
+                syncMemberSidebarAvatar(result.user);
+                return result.user;
+            }
+        } catch (error) {
+            console.warn('[member] session sync failed', error);
+        }
+        syncMemberSidebarAvatar(null);
+        return null;
     }
 
     function openMemberPanel() {
@@ -574,7 +661,7 @@
 
             if (checkout.skipPayment) {
                 closePricingPanel();
-                window.location.assign('/host-settings.html');
+                void goToHostSettings('/host-settings.html');
                 return;
             }
 
@@ -588,7 +675,7 @@
                     'success'
                 );
                 window.setTimeout(() => {
-                    window.location.assign('/host-settings.html');
+                    void goToHostSettings('/host-settings.html');
                 }, 400);
                 return;
             }
@@ -638,7 +725,7 @@
                 closePricingPanel();
                 syncSidebarActive(getActiveScreen());
                 window.setTimeout(() => {
-                    window.location.assign(href);
+                    void goToHostSettings(href);
                 }, 0);
             }
         });
@@ -705,6 +792,7 @@
                 void (async () => {
                     try {
                         await window.AuthAPI?.logout?.();
+                        syncMemberSidebarAvatar(null);
                         setMemberPanelState('signed-out');
                         window.hpTriggerToast?.(
                             (window.currentLanguage || 'zh') === 'zh' ? '已登出' : 'Signed out',
@@ -733,6 +821,16 @@
                 const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`;
                 window.history.replaceState({}, '', next);
                 if (auth === 'ok') {
+                    const pending = window.AuthAPI?.consumeNext?.() || '';
+                    if (pending && window.AuthAPI?.isHostSettingsHref?.(pending)) {
+                        window.hpTriggerToast?.(
+                            (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
+                            (window.currentLanguage || 'zh') === 'zh' ? '正在前往住宿指南設定' : 'Opening guest guide settings',
+                            'success'
+                        );
+                        window.location.assign(pending);
+                        return;
+                    }
                     openMemberPanel();
                     window.hpTriggerToast?.(
                         (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
@@ -749,6 +847,45 @@
                 }
             }
         } catch (_) { /* ignore */ }
+    }
+
+    function resolveHostSettingsHref(href) {
+        try {
+            const url = new URL(href || '/host-settings.html', window.location.origin);
+            return `${url.pathname}${url.search || ''}`;
+        } catch {
+            return '/host-settings.html';
+        }
+    }
+
+    async function goToHostSettings(href) {
+        const next = resolveHostSettingsHref(href);
+        if (!window.AuthAPI?.requireLogin) {
+            window.location.assign(next);
+            return;
+        }
+        const result = await window.AuthAPI.requireLogin({ next });
+        if (result?.ok) {
+            window.location.assign(next);
+        }
+    }
+
+    function bindHostSettingsLoginGate() {
+        if (document.documentElement.dataset.hpHostSettingsLoginGate === 'true') return;
+        document.documentElement.dataset.hpHostSettingsLoginGate = 'true';
+
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest?.('a[href*="host-settings"]');
+            if (!link || event.defaultPrevented) return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            if (link.target && link.target !== '_self') return;
+            const href = link.getAttribute('href') || '';
+            if (!window.AuthAPI?.isHostSettingsHref?.(href) && !/host-settings\.html/i.test(href)) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            void goToHostSettings(href);
+        }, true);
     }
 
     function hookAppNavigate() {
@@ -782,6 +919,8 @@
         closePricingPanel();
         closeMemberPanel();
         bindMemberPanel(); // may reopen after Google OAuth (?auth=ok|error)
+        bindHostSettingsLoginGate();
+        void syncMemberSession();
         initSidebarCollapse();
         hookAppNavigate();
         observeGuestBoot();
@@ -847,6 +986,10 @@
         isListingQueryRoute,
         syncListingQueryNav,
         openPricingPanel,
-        closePricingPanel
+        closePricingPanel,
+        openMemberPanel,
+        closeMemberPanel,
+        refreshMemberListings,
+        refreshMemberPanel
     };
 })();

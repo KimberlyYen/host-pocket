@@ -120,8 +120,13 @@
             : `<span class="hp-v4-sidebar__label" data-global-lang="zh">${escapeHtml(item.labelZh)}</span>
                <span class="hp-v4-sidebar__label hidden" data-global-lang="en">${escapeHtml(item.labelEn)}</span>`;
 
+        const avatarUrl = String(options.avatarUrl || item.avatarUrl || '').trim();
+        const iconHtml = (item.nav === 'member' && avatarUrl)
+            ? `<img class="hp-v4-sidebar__avatar" src="${escapeHtml(avatarUrl)}" alt="" width="24" height="24" decoding="async" referrerpolicy="no-referrer">`
+            : `<i class="${escapeHtml(item.icon)}" aria-hidden="true"></i>`;
+
         return `<button ${attrs}>
-            <span class="hp-v4-sidebar__icon"><i class="${escapeHtml(item.icon)}" aria-hidden="true"></i></span>
+            <span class="hp-v4-sidebar__icon${avatarUrl && item.nav === 'member' ? ' hp-v4-sidebar__icon--avatar' : ''}">${iconHtml}</span>
             ${priceMeta}
         </button>`;
     }
@@ -168,7 +173,22 @@
     function mountMember(container, options = {}) {
         if (!container) return;
         const activeNav = options.activeNav || '';
-        container.innerHTML = render(MEMBER_NAV_ITEM, { active: MEMBER_NAV_ITEM.nav === activeNav });
+        container.innerHTML = render(MEMBER_NAV_ITEM, {
+            active: MEMBER_NAV_ITEM.nav === activeNav,
+            avatarUrl: options.avatarUrl || ''
+        });
+    }
+
+    /** Update sidebar member button icon to Google avatar (or restore default). */
+    function setMemberAvatar(avatarUrl) {
+        global.document.querySelectorAll(MEMBER_MOUNT_SELECTOR).forEach((el) => {
+            const btn = el.querySelector('[data-hp-v4-nav="member"]');
+            const active = btn?.classList.contains('is-active') || btn?.getAttribute('aria-current') === 'page';
+            mountMember(el, {
+                activeNav: active ? 'member' : '',
+                avatarUrl: avatarUrl || ''
+            });
+        });
     }
 
     function init() {
@@ -195,6 +215,7 @@
         mountContact,
         mountPricing,
         mountMember,
+        setMemberAvatar,
         init
     };
 

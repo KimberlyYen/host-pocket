@@ -1,6 +1,7 @@
 const {
     COOKIE_NAME,
     STATE_COOKIE,
+    NEXT_COOKIE,
     SESSION_TTL_SEC,
     isGoogleAuthConfigured,
     createSessionToken,
@@ -11,9 +12,18 @@ const {
     buildGoogleAuthorizeUrl,
     exchangeGoogleCode,
     createOAuthState,
+    sanitizeNextPath,
     getPublicBaseUrl
 } = require('./auth');
-const { upsertGoogleUser, getUserById, isDatabaseConfigured } = require('./users');
+const {
+    upsertGoogleUser,
+    getUserById,
+    isDatabaseConfigured,
+    linkUserListing,
+    listUserListings,
+    unlinkUserListing
+} = require('./users');
+const { readRequestBody } = require('./read-request-body');
 
 function resolveAuthPath(req) {
     const fromQuery = String(req.query?.authPath || req.query?.path || '').trim();
@@ -63,6 +73,14 @@ async function handleGoogleStart(req, res) {
 
     const state = createOAuthState();
     setCookie(res, STATE_COOKIE, state, { maxAgeSec: 600 });
+
+    const next = sanitizeNextPath(req.query?.next);
+    if (next) {
+        setCookie(res, NEXT_COOKIE, next, { maxAgeSec: 600 });
+    } else {
+        clearCookie(res, NEXT_COOKIE);
+    }
+
     redirect(res, buildGoogleAuthorizeUrl(req, state));
 }
 
@@ -90,7 +108,9 @@ async function handleGoogleCallback(req, res) {
         const state = String(query.state || '').trim();
         const cookies = parseCookies(req);
         const expectedState = cookies[STATE_COOKIE] || '';
+        const nextPath = sanitizeNextPath(cookies[NEXT_COOKIE] || '');
         clearCookie(res, STATE_COOKIE);
+        clearCookie(res, NEXT_COOKIE);
 
         if (!code || !state || !expectedState || state !== expectedState) {
             fail('invalid_state');
@@ -101,6 +121,11 @@ async function handleGoogleCallback(req, res) {
         const user = await upsertGoogleUser(profile);
         const token = createSessionToken(user.id);
         setCookie(res, COOKIE_NAME, token, { maxAgeSec: SESSION_TTL_SEC });
+        if (nextPath) {
+            const sep = nextPath.includes('?') ? '&' : '?';
+            redirect(res, `${base}${nextPath}${sep}auth=ok`);
+            return;
+        }
         redirect(res, `${base}/?auth=ok`);
     } catch (error) {
         console.error('[auth/callback]', error);
@@ -108,28 +133,72 @@ async function handleGoogleCallback(req, res) {
     }
 }
 
-async function handleMe(req, res) {
+async function requireUser(req, res) {
     const cookies = parseCookies(req);
     const payload = verifySessionToken(cookies[COOKIE_NAME]);
     if (!payload?.sub) {
         sendJson(res, 401, { ok: false, error: 'Not signed in' });
-        return;
+        return null;
     }
     if (!isDatabaseConfigured()) {
         sendJson(res, 503, { ok: false, error: 'Database is not configured' });
-        return;
+        return null;
     }
     try {
         const user = await getUserById(payload.sub);
         if (!user) {
             clearCookie(res, COOKIE_NAME);
             sendJson(res, 401, { ok: false, error: 'User not found' });
+            return null;
+        }
+        return user;
+    } catch (error) {
+        console.error('[auth] requireUser', error);
+        sendJson(res, 500, { ok: false, error: error?.message || 'Failed to load user' });
+        return null;
+    }
+}
+
+async function handleMe(req, res) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    sendJson(res, 200, { ok: true, user });
+}
+
+async function handleListings(req, res) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    try {
+        if (req.method === 'GET') {
+            const listings = await listUserListings(user.id);
+            sendJson(res, 200, { ok: true, listings });
             return;
         }
-        sendJson(res, 200, { ok: true, user });
+
+        if (req.method === 'POST') {
+            const body = await readRequestBody(req);
+            const listingId = body.listingId || body.listing_id || body.id;
+            const title = body.title || body.label || '';
+            const listing = await linkUserListing(user.id, listingId, title);
+            sendJson(res, 200, { ok: true, listing });
+            return;
+        }
+
+        if (req.method === 'DELETE') {
+            const body = await readRequestBody(req);
+            const listingId = body.listingId || body.listing_id || req.query?.listingId || req.query?.id;
+            const removed = await unlinkUserListing(user.id, listingId);
+            sendJson(res, 200, { ok: true, removed });
+            return;
+        }
+
+        sendJson(res, 405, { ok: false, error: 'Method not allowed' });
     } catch (error) {
-        console.error('[auth/me]', error);
-        sendJson(res, 500, { ok: false, error: error?.message || 'Failed to load user' });
+        console.error('[auth/listings]', error);
+        const message = error?.message || 'Failed to manage listings';
+        const status = /required|invalid/i.test(message) ? 400 : 500;
+        sendJson(res, status, { ok: false, error: message });
     }
 }
 
@@ -147,7 +216,7 @@ async function handleAuth(req, res) {
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Vary', 'Origin');
     }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -182,6 +251,11 @@ async function handleAuth(req, res) {
             return;
         }
         await handleMe(req, res);
+        return;
+    }
+
+    if (path === 'listings') {
+        await handleListings(req, res);
         return;
     }
 

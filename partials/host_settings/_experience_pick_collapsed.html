@@ -1,4 +1,4 @@
-{{# components/hp_card_section}}
+<section class="hp-card hp-card--stack hp-card--pick" data-rec-slot="{{n}}" id="rec-slot-{{n}}">
 <details class="hp-collapse hp-pick-collapse" data-controller="experience-pick" data-experience-pick-index-value="{{n}}">
     <summary class="hp-collapse__trigger hp-pick-collapse__summary">
         <span class="hp-pick-collapse__peek flex items-center gap-3 min-w-0 flex-1">
@@ -7,7 +7,11 @@
                 <i data-experience-pick-target="peekPlaceholder" class="fa-regular fa-image text-hp-muted/35 text-sm" aria-hidden="true"></i>
             </span>
             <span class="min-w-0 flex-1">
-                <span class="text-xs font-black flex items-center gap-2"><i class="fa-solid fa-star text-hp-coral"></i> 推薦地點 {{n}}</span>
+                <span class="text-xs font-black flex items-center gap-2">
+                    <span class="hp-pick-collapse__num" aria-hidden="true">{{n}}</span>
+                    <i class="fa-solid fa-star text-hp-coral"></i>
+                    推薦地點 {{n}}
+                </span>
                 <span data-experience-pick-target="titlePeek" class="text-sm font-medium text-hp-dark line-clamp-1 mt-0.5">尚未設定</span>
             </span>
         </span>
@@ -70,4 +74,4 @@
         </div>
     </div>
 </details>
-{{/ components/hp_card_section}}
+</section>
