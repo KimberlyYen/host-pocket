@@ -664,10 +664,16 @@
                             <span data-global-lang="zh">訂閱狀態</span>
                             <span class="hidden" data-global-lang="en">Subscription</span>
                         </span>
-                        <span class="hp-v4-member__status-value">
-                            <span data-global-lang="zh">尚未綁定</span>
-                            <span class="hidden" data-global-lang="en">Not linked yet</span>
-                        </span>
+                        <div class="hp-v4-member__status-right">
+                            <span class="hp-v4-member__status-value">
+                                <span data-global-lang="zh">尚未綁定</span>
+                                <span class="hidden" data-global-lang="en">Not linked yet</span>
+                            </span>
+                            <button type="button" class="hp-v4-member__bind" data-hp-v4-member-subscribe>
+                                <span data-global-lang="zh">立即綁定</span>
+                                <span class="hidden" data-global-lang="en">Bind now</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="hp-v4-member__listings">
                         <div class="hp-v4-member__listings-head">
@@ -776,6 +782,12 @@
                         if (window.AuthAPI?.requireLogin) {
                             await window.AuthAPI.requireLogin({ next: currentNext() });
                         }
+                    },
+                    onSubscribe() {
+                        try {
+                            window.sessionStorage?.setItem('hp_pending_host_checkout', '1');
+                        } catch (_) { /* ignore */ }
+                        window.location.assign('/?hostCheckout=1');
                     }
                 });
 

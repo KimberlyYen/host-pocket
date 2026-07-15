@@ -486,6 +486,9 @@
         syncSidebarActive(getActiveScreen());
     }
 
+    const PENDING_HOST_CHECKOUT_KEY = 'hp_pending_host_checkout';
+    const HOST_CHECKOUT_NEXT = '/?hostCheckout=1';
+
     function pricingAmountTwd() {
         const fromNav = Number(window.HostPocketV4SidebarNavItem?.PRICING?.amount);
         if (Number.isFinite(fromNav) && fromNav > 0) return fromNav;
@@ -498,6 +501,50 @@
         btn.setAttribute('aria-busy', busy ? 'true' : 'false');
         btn.classList.toggle('opacity-70', Boolean(busy));
         btn.classList.toggle('pointer-events-none', Boolean(busy));
+    }
+
+    function markPendingHostCheckout() {
+        try {
+            window.sessionStorage?.setItem(PENDING_HOST_CHECKOUT_KEY, '1');
+        } catch (_) { /* ignore */ }
+    }
+
+    function clearPendingHostCheckout() {
+        try {
+            window.sessionStorage?.removeItem(PENDING_HOST_CHECKOUT_KEY);
+        } catch (_) { /* ignore */ }
+    }
+
+    function hasPendingHostCheckout() {
+        try {
+            if (window.sessionStorage?.getItem(PENDING_HOST_CHECKOUT_KEY) === '1') return true;
+        } catch (_) { /* ignore */ }
+        try {
+            return new URLSearchParams(window.location.search || '').get('hostCheckout') === '1';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function stripHostCheckoutQuery() {
+        try {
+            const params = new URLSearchParams(window.location.search || '');
+            if (!params.has('hostCheckout')) return;
+            params.delete('hostCheckout');
+            const qs = params.toString();
+            const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`;
+            window.history.replaceState({}, '', next);
+        } catch (_) { /* ignore */ }
+    }
+
+    async function getSignedInUser() {
+        try {
+            const me = await window.AuthAPI?.getMe?.();
+            if (me?.ok && me.user) return me.user;
+        } catch (error) {
+            console.warn('[pricing] getMe failed', error);
+        }
+        return null;
     }
 
     async function startHostSubscriptionCheckout(triggerEl) {
@@ -514,17 +561,40 @@
 
         setPricingCheckoutBusy(triggerEl, true);
         try {
+            // 1) 先登入（Google），登入後以 ?hostCheckout=1 回來繼續付款
+            const user = await getSignedInUser();
+            if (!user) {
+                if (!window.AuthAPI?.loginWithGoogle) {
+                    throw new Error(isZh ? '登入模組尚未載入' : 'Login module is not ready');
+                }
+                markPendingHostCheckout();
+                window.hpTriggerToast?.(
+                    isZh ? '請先登入' : 'Sign in required',
+                    isZh ? '登入後會繼續前往綠界付款' : 'After sign-in you will continue to ECPay checkout',
+                    'info'
+                );
+                window.AuthAPI.loginWithGoogle({ next: HOST_CHECKOUT_NEXT });
+                return;
+            }
+
             const configured = await api.isEcpayConfigured?.();
             if (configured === false) {
                 throw Object.assign(new Error('ECPay not configured'), { code: 'ECPAY_NOT_CONFIGURED' });
             }
 
+            // 2) 已登入 → 建立綠界訂單並導向付款介面
+            const email = String(user.email || '').trim().toLowerCase();
             const checkout = await api.createEcpayPayment({
                 purpose: 'host_subscription',
                 amountTwd: pricingAmountTwd(),
                 title: isZh ? 'Host Pocket 月費' : 'Host Pocket monthly',
-                locale: isZh ? 'zh' : 'en'
+                locale: isZh ? 'zh' : 'en',
+                guestEmail: email,
+                email
             });
+
+            clearPendingHostCheckout();
+            stripHostCheckoutQuery();
 
             if (checkout.skipPayment) {
                 closePricingPanel();
@@ -548,8 +618,9 @@
             }
 
             closePricingPanel();
-            api.submitEcpayForm(checkout.actionUrl, checkout.params);
+            api.submitEcpayForm(checkout.actionUrl, checkout.params, { newWindow: false });
         } catch (error) {
+            console.error('[pricing] host subscription checkout failed', error);
             const msg = error?.code === 'ECPAY_NOT_CONFIGURED'
                 ? (isZh
                     ? '綠界尚未設定。本機請在 .env 設 ECPAY_USE_STAGE=1'
@@ -562,6 +633,33 @@
             );
             setPricingCheckoutBusy(triggerEl, false);
         }
+    }
+
+    async function resumeHostCheckoutIfNeeded(options = {}) {
+        if (document.documentElement.dataset.hpHostCheckoutResumed === 'true') return false;
+        if (!hasPendingHostCheckout()) return false;
+        // Claim immediately so auth-ok + init resume do not double-fire.
+        document.documentElement.dataset.hpHostCheckoutResumed = 'true';
+
+        const user = await getSignedInUser();
+        if (!user) {
+            document.documentElement.dataset.hpHostCheckoutResumed = '';
+            return false;
+        }
+
+        clearPendingHostCheckout();
+        stripHostCheckoutQuery();
+        openPricingPanel();
+        if (options.showSignedInToast !== false) {
+            window.hpTriggerToast?.(
+                (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
+                (window.currentLanguage || 'zh') === 'zh' ? '正在前往綠界付款…' : 'Opening ECPay checkout…',
+                'success'
+            );
+        }
+        const cta = document.querySelector('[data-hp-v4-pricing-checkout]');
+        await startHostSubscriptionCheckout(cta);
+        return true;
     }
 
     function bindPricingPanel() {
@@ -640,6 +738,11 @@
             },
             onLogout() {
                 syncMemberSidebarAvatar(null);
+            },
+            async onSubscribe(btn) {
+                closeMemberPanel();
+                openPricingPanel();
+                await startHostSubscriptionCheckout(btn);
             }
         });
 
@@ -647,9 +750,11 @@
         try {
             const params = new URLSearchParams(window.location.search || '');
             const auth = params.get('auth');
+            const wantsHostCheckout = params.get('hostCheckout') === '1' || hasPendingHostCheckout();
             if (auth === 'ok' || auth === 'error') {
                 params.delete('auth');
                 params.delete('reason');
+                // Keep hostCheckout for resumeHostCheckoutIfNeeded; it strips later.
                 const qs = params.toString();
                 const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`;
                 window.history.replaceState({}, '', next);
@@ -664,6 +769,10 @@
                         window.location.assign(pending);
                         return;
                     }
+                    if (wantsHostCheckout) {
+                        void resumeHostCheckoutIfNeeded({ showSignedInToast: true });
+                        return;
+                    }
                     openMemberPanel();
                     window.hpTriggerToast?.(
                         (window.currentLanguage || 'zh') === 'zh' ? '登入成功' : 'Signed in',
@@ -671,6 +780,8 @@
                         'success'
                     );
                 } else {
+                    clearPendingHostCheckout();
+                    stripHostCheckoutQuery();
                     openMemberPanel();
                     window.hpTriggerToast?.(
                         (window.currentLanguage || 'zh') === 'zh' ? '登入失敗' : 'Sign-in failed',
@@ -753,7 +864,11 @@
         closeMemberPanel();
         bindMemberPanel(); // may reopen after Google OAuth (?auth=ok|error)
         bindHostSettingsLoginGate();
-        void syncMemberSession();
+        void (async () => {
+            await syncMemberSession();
+            // Already signed-in + ?hostCheckout=1 / pending flag (e.g. refresh after login)
+            await resumeHostCheckoutIfNeeded({ showSignedInToast: false });
+        })();
         initSidebarCollapse();
         hookAppNavigate();
         observeGuestBoot();
@@ -830,6 +945,7 @@
         openMemberPanel,
         closeMemberPanel,
         refreshMemberListings,
-        refreshMemberPanel
+        refreshMemberPanel,
+        startHostSubscriptionCheckout
     };
 })();

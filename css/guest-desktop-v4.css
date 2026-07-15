@@ -14,6 +14,11 @@ body {
     min-height: 100dvh;
 }
 
+/* Desktop-only chrome; shown inside @media (min-width: 768px). */
+.hp-v4-sidebar {
+    display: none;
+}
+
 #app-root,
 .hp-v4-layout #app-root {
     max-width: none !important;
@@ -1442,8 +1447,9 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
 }
 
 html.hp-v4-pricing-open,
-html.hp-v4-pricing-open body,
-/* Member area panel styles: /css/member-panel.css */
+html.hp-v4-pricing-open body {
+    overflow: hidden;
+}
 
 /* Mobile: sidebar never shown; pricing opens as bottom sheet */
 @media (max-width: 767px) {

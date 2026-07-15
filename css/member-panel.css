@@ -202,10 +202,47 @@ html.hp-v4-member-open body {
 
 .hp-v4-member__status-label {
     color: #8a7e78;
+    flex-shrink: 0;
+}
+
+.hp-v4-member__status-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
 }
 
 .hp-v4-member__status-value {
     color: #2e2421;
+    white-space: nowrap;
+}
+
+.hp-v4-member__bind {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.85rem;
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: 0.65rem;
+    background: #ff5b3e;
+    color: #fff;
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.hp-v4-member__bind:hover {
+    background: #e84e35;
+}
+
+.hp-v4-member__bind:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .hp-v4-member__listings {
@@ -327,6 +364,17 @@ html.hp-v4-member-open body {
         margin-top: auto;
         border-radius: 1.25rem 1.25rem 0 0;
         animation-name: hp-v4-member-up;
+    }
+
+    .hp-v4-member__status {
+        flex-wrap: wrap;
+        row-gap: 0.55rem;
+    }
+
+    .hp-v4-member__status-right {
+        margin-left: auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     @keyframes hp-v4-member-up {

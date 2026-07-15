@@ -127,20 +127,20 @@
     }
 
     /**
-     * POST to ECPay checkout. Opens in a new window/tab by default so the
-     * guest guide stays open while payment completes.
+     * POST to ECPay checkout in the same tab (no popup).
+     * Pass { newWindow: true } only if a caller explicitly wants a new window.
      */
     function submitEcpayForm(actionUrl, params, options = {}) {
         if (!actionUrl || !params) {
             throw new Error('Missing ECPay checkout form');
         }
 
-        const openInNewWindow = options.newWindow !== false;
+        const openInNewWindow = options.newWindow === true;
         const windowName = options.windowName || 'hp_ecpay_checkout';
         let target = '_self';
 
         if (openInNewWindow) {
-            // Open during the user-gesture turn so popup blockers allow it.
+            // Must run in the same user-gesture turn or the browser will block it.
             const payWin = global.open('about:blank', windowName);
             target = payWin ? windowName : '_blank';
             try {

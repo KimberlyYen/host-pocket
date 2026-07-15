@@ -200,6 +200,7 @@
             onClose: options.onClose || null,
             onUser: options.onUser || null,
             onLogout: options.onLogout || null,
+            onSubscribe: options.onSubscribe || null,
             loginNext: options.loginNext || null
         };
 
@@ -227,6 +228,32 @@
                 const next = resolveLoginNext();
                 if (next) global.AuthAPI.loginWithGoogle({ next });
                 else global.AuthAPI.loginWithGoogle();
+                return;
+            }
+
+            if (event.target.closest('[data-hp-v4-member-subscribe]')) {
+                event.preventDefault();
+                const btn = event.target.closest('[data-hp-v4-member-subscribe]');
+                void (async () => {
+                    try {
+                        if (typeof hooks.onSubscribe === 'function') {
+                            await hooks.onSubscribe(btn);
+                            return;
+                        }
+                        // Fallback: home page checkout resume
+                        try {
+                            global.sessionStorage?.setItem('hp_pending_host_checkout', '1');
+                        } catch (_) { /* ignore */ }
+                        global.location.assign('/?hostCheckout=1');
+                    } catch (error) {
+                        console.warn('[member] subscribe failed', error);
+                        global.hpTriggerToast?.(
+                            (global.currentLanguage || 'zh') === 'zh' ? '無法綁定' : 'Could not bind',
+                            error?.message || 'Subscribe failed',
+                            'error'
+                        );
+                    }
+                })();
                 return;
             }
 
