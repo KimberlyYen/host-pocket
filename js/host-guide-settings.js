@@ -208,6 +208,14 @@
         delete _pending[id];
     }
 
+    function isQuickStartPresetId(listingId) {
+        const id = normalizeListingId(listingId);
+        const ids = global.GuideDefaults?.DEMO_LISTING_IDS
+            || global.HostSettingsPresets?.PRESET_IDS
+            || [];
+        return ids.includes(id);
+    }
+
     async function ensureLoaded(listingId) {
         const id = normalizeListingId(listingId);
         if (getCacheEntry(id) !== undefined) {
@@ -217,7 +225,19 @@
 
         _pending[id] = (async () => {
             let overrides = null;
-            if (global.HP_MOCK_DATA === false && global.ListingSettingsAPI) {
+            // 「快速開始」優先走 presets API（JSON 檔 + DB mirror）
+            if (global.HP_MOCK_DATA === false && isQuickStartPresetId(id) && global.ListingSettingsAPI?.fetchPreset) {
+                try {
+                    const preset = await ListingSettingsAPI.fetchPreset(id);
+                    if (preset?.data && Object.keys(preset.data).length) {
+                        overrides = { ...preset.data, updatedAt: preset.updatedAt || undefined };
+                        _dbAvailable = true;
+                    }
+                } catch (error) {
+                    console.warn('[HostGuideSettings] preset API load failed', error);
+                }
+            }
+            if (global.HP_MOCK_DATA === false && global.ListingSettingsAPI && !overrides) {
                 try {
                     const record = await ListingSettingsAPI.fetchSettings(id);
                     _dbAvailable = true;
@@ -304,6 +324,29 @@
         // Always persist to localStorage first so refresh keeps host edits even if DB is slow.
         const localSaved = saveLocalMirror(id, data);
         const payload = { ...localSaved };
+
+        // 「快速開始」：寫回死的 presets JSON（本機檔案）+ DB mirror。
+        if (isQuickStartPresetId(id) && global.ListingSettingsAPI?.savePreset) {
+            try {
+                const record = await ListingSettingsAPI.savePreset(id, payload);
+                const fromPreset = record?.data && typeof record.data === 'object' ? record.data : {};
+                const saved = {
+                    ...fromPreset,
+                    ...payload,
+                    updatedAt: record.updatedAt || payload.updatedAt
+                };
+                setCacheEntry(id, saved);
+                try {
+                    saveLocal(id, saved);
+                } catch {
+                    // ignore quota / private mode
+                }
+                global.HostSettingsPresets?.invalidateCache?.(id);
+                return saved;
+            } catch (error) {
+                console.warn('[HostGuideSettings] preset save failed; falling back', error);
+            }
+        }
 
         if (await isDatabaseAvailable()) {
             try {

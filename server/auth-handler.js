@@ -180,7 +180,8 @@ async function handleListings(req, res) {
             const body = await readRequestBody(req);
             const listingId = body.listingId || body.listing_id || body.id;
             const title = body.title || body.label || '';
-            const listing = await linkUserListing(user.id, listingId, title);
+            const source = body.source || body.mode || '';
+            const listing = await linkUserListing(user.id, listingId, title, source);
             sendJson(res, 200, { ok: true, listing });
             return;
         }

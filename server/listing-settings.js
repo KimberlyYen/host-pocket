@@ -53,13 +53,23 @@ async function ensureSchema() {
         throw new Error('Database not configured');
     }
     if (!schemaReady) {
-        schemaReady = getSql()`
-            CREATE TABLE IF NOT EXISTS listing_settings (
-                listing_id TEXT PRIMARY KEY,
-                data JSONB NOT NULL DEFAULT '{}'::jsonb,
-                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            )
-        `;
+        schemaReady = (async () => {
+            await getSql()`
+                CREATE TABLE IF NOT EXISTS listing_settings (
+                    listing_id TEXT PRIMARY KEY,
+                    data JSONB NOT NULL DEFAULT '{}'::jsonb,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            `;
+            // Lock down PostgREST anon access; Node DATABASE_URL still bypasses RLS.
+            await getSql()`ALTER TABLE listing_settings ENABLE ROW LEVEL SECURITY`;
+            try {
+                await getSql()`REVOKE ALL ON TABLE listing_settings FROM anon, authenticated`;
+                await getSql()`GRANT ALL ON TABLE listing_settings TO service_role`;
+            } catch (error) {
+                console.warn('[listing-settings] RLS grant/revoke skipped', error?.message || error);
+            }
+        })();
     }
     await schemaReady;
 }
@@ -131,6 +141,32 @@ async function saveListingSettings(listingId, source) {
     return { listingId: id, data, updatedAt };
 }
 
+/**
+ * 「連接房源」：若尚無列，自動新增空白 listing_settings（不灌 demo 內容）。
+ * 之後可由 Airbnb seed / 房東編輯再填入。
+ */
+async function ensureBlankListingSettings(listingId) {
+    await ensureSchema();
+    const id = normalizeListingId(listingId);
+    const existing = await getListingSettings(id);
+    if (existing) {
+        return { created: false, listingId: id, data: existing.data, updatedAt: existing.updatedAt };
+    }
+    const updatedAt = new Date().toISOString();
+    await getSql()`
+        INSERT INTO listing_settings (listing_id, data, updated_at)
+        VALUES (${id}, ${getSql().json({})}, ${updatedAt})
+        ON CONFLICT (listing_id) DO NOTHING
+    `;
+    const record = await getListingSettings(id);
+    return {
+        created: true,
+        listingId: id,
+        data: record?.data || {},
+        updatedAt: record?.updatedAt || updatedAt
+    };
+}
+
 async function deleteListingSettings(listingId) {
     await ensureSchema();
     const id = normalizeListingId(listingId);
@@ -173,6 +209,7 @@ module.exports = {
     pickEditable,
     getListingSettings,
     saveListingSettings,
+    ensureBlankListingSettings,
     deleteListingSettings,
     listListingSettingsIds
 };

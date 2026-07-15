@@ -141,8 +141,9 @@
         return { ok: true, listings: Array.isArray(data.listings) ? data.listings : [] };
     }
 
-    async function saveListing(listingId, title = '') {
+    async function saveListing(listingId, title = '', options = {}) {
         const base = getApiBase();
+        const source = String(options.source || options.mode || '').trim().toLowerCase();
         const res = await fetch(`${base}/api/auth/listings`, {
             method: 'POST',
             credentials: 'include',
@@ -152,7 +153,8 @@
             },
             body: JSON.stringify({
                 listingId,
-                title: title || ''
+                title: title || '',
+                source: source === 'quick' || source === 'link' ? source : undefined
             })
         });
         const data = await res.json().catch(() => ({}));

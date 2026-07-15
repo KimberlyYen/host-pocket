@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS listing_settings (
 -- 可選：加速 JSONB 查詢
 CREATE INDEX IF NOT EXISTS listing_settings_data_gin
   ON listing_settings USING GIN (data);
+
+-- 關閉 PostgREST 公開存取（後端用 DATABASE_URL，不受影響）
+ALTER TABLE listing_settings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE listing_settings FROM anon, authenticated;
+GRANT ALL ON TABLE listing_settings TO service_role;

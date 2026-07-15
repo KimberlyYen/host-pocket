@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/member-panel.css">
     <script>
         tailwind.config = {
             theme: {
@@ -37,16 +38,17 @@
     <header class="bg-white border-b border-hp-border px-5 py-4 sticky top-0 z-20">
         <div class="max-w-3xl mx-auto flex items-center gap-3">
             <div class="hp-host-auth shrink-0" data-hp-host-auth hidden>
-                <a href="/#member"
-                   data-turbo="false"
-                   class="hp-host-auth__btn"
-                   data-hp-host-auth-btn
-                   aria-label="會員帳號">
+                <button type="button"
+                        class="hp-host-auth__btn"
+                        data-hp-host-auth-btn
+                        aria-label="會員帳號"
+                        aria-haspopup="dialog"
+                        aria-controls="hp-v4-member-panel">
                     <img class="hp-host-auth__avatar" data-hp-host-auth-avatar alt="" width="40" height="40" hidden decoding="async" referrerpolicy="no-referrer">
                     <span class="hp-host-auth__fallback" data-hp-host-auth-fallback aria-hidden="true">
                         <i class="fa-solid fa-user text-[12px]"></i>
                     </span>
-                </a>
+                </button>
             </div>
             <div class="min-w-0 flex-1">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-hp-muted">host-pocket · 房東</p>
@@ -524,6 +526,10 @@
             background: #FAF8F5;
             overflow: hidden;
             flex-shrink: 0;
+            cursor: pointer;
+            padding: 0;
+            appearance: none;
+            -webkit-appearance: none;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .hp-host-auth__btn:hover {
@@ -556,8 +562,87 @@
         .hp-host-auth__fallback[hidden] { display: none !important; }
     </style>
 
+    <div id="hp-v4-member-panel" class="hp-v4-member" hidden aria-hidden="true">
+        <button type="button" class="hp-v4-member__backdrop" data-hp-v4-member-close aria-label="關閉會員專區"></button>
+        <aside class="hp-v4-member__sheet" role="dialog" aria-modal="true" aria-labelledby="hp-v4-member-title">
+            <div class="hp-v4-member__head">
+                <div>
+                    <p class="hp-v4-member__eyebrow">
+                        <span data-global-lang="zh">帳號</span>
+                        <span class="hidden" data-global-lang="en">Account</span>
+                    </p>
+                    <h2 id="hp-v4-member-title" class="hp-v4-member__title">
+                        <span data-global-lang="zh">會員專區</span>
+                        <span class="hidden" data-global-lang="en">Member area</span>
+                    </h2>
+                </div>
+                <button type="button" class="hp-v4-member__close" data-hp-v4-member-close aria-label="關閉">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="hp-v4-member__body" data-hp-v4-member-body>
+                <div class="hp-v4-member__loading" data-hp-v4-member-state="loading">
+                    <span data-global-lang="zh">載入中…</span>
+                    <span class="hidden" data-global-lang="en">Loading…</span>
+                </div>
+
+                <div class="hp-v4-member__signed-out hidden" data-hp-v4-member-state="signed-out" hidden>
+                    <p class="hp-v4-member__lead">
+                        <span data-global-lang="zh">使用 Google 登入後，可綁定會員資料與房源。</span>
+                        <span class="hidden" data-global-lang="en">Sign in with Google to save your member profile and listings.</span>
+                    </p>
+                    <button type="button" class="hp-v4-member__cta" data-hp-v4-member-login>
+                        <i class="fa-brands fa-google" aria-hidden="true"></i>
+                        <span data-global-lang="zh">使用 Google 登入</span>
+                        <span class="hidden" data-global-lang="en">Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="hp-v4-member__signed-in hidden" data-hp-v4-member-state="signed-in" hidden>
+                    <div class="hp-v4-member__profile">
+                        <img class="hp-v4-member__avatar" data-hp-v4-member-avatar alt="" width="56" height="56" hidden>
+                        <div class="hp-v4-member__avatar-fallback" data-hp-v4-member-avatar-fallback aria-hidden="true">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="hp-v4-member__meta">
+                            <p class="hp-v4-member__name" data-hp-v4-member-name></p>
+                            <p class="hp-v4-member__email" data-hp-v4-member-email></p>
+                        </div>
+                    </div>
+                    <div class="hp-v4-member__status">
+                        <span class="hp-v4-member__status-label">
+                            <span data-global-lang="zh">訂閱狀態</span>
+                            <span class="hidden" data-global-lang="en">Subscription</span>
+                        </span>
+                        <span class="hp-v4-member__status-value">
+                            <span data-global-lang="zh">尚未綁定</span>
+                            <span class="hidden" data-global-lang="en">Not linked yet</span>
+                        </span>
+                    </div>
+                    <div class="hp-v4-member__listings">
+                        <div class="hp-v4-member__listings-head">
+                            <span data-global-lang="zh">已連接房源</span>
+                            <span class="hidden" data-global-lang="en">Linked listings</span>
+                        </div>
+                        <ul class="hp-v4-member__listings-list" data-hp-v4-member-listings></ul>
+                        <p class="hp-v4-member__listings-empty" data-hp-v4-member-listings-empty>
+                            <span data-global-lang="zh">尚未儲存房源。登入後「連接房源」會出現在這裡。</span>
+                            <span class="hidden" data-global-lang="en">No listings yet. Link a listing while signed in to see it here.</span>
+                        </p>
+                    </div>
+                    <button type="button" class="hp-v4-member__secondary" data-hp-v4-member-logout>
+                        <span data-global-lang="zh">登出</span>
+                        <span class="hidden" data-global-lang="en">Sign out</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
     <script src="/js/listing-settings-api.js"></script>
     <script src="/js/auth-api.js"></script>
+    <script src="/js/member-panel.js"></script>
     <script>
         (function () {
             function normalizeAvatarUrl(raw) {
@@ -626,6 +711,31 @@
                 }
             }
 
+            function currentNext() {
+                return `${window.location.pathname}${window.location.search || ''}`;
+            }
+
+            function bindHostMemberPanel() {
+                window.HostPocketMemberPanel?.bind?.({
+                    loginNext: currentNext,
+                    onUser(user) {
+                        renderHostAuthAvatar(user);
+                    },
+                    async onLogout() {
+                        renderHostAuthAvatar(null);
+                        window.HostPocketMemberPanel?.close?.();
+                        if (window.AuthAPI?.requireLogin) {
+                            await window.AuthAPI.requireLogin({ next: currentNext() });
+                        }
+                    }
+                });
+
+                document.querySelector('[data-hp-host-auth-btn]')?.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.HostPocketMemberPanel?.open?.();
+                });
+            }
+
             async function gateHostSettingsLogin() {
                 try {
                     const params = new URLSearchParams(window.location.search || '');
@@ -644,8 +754,7 @@
                         );
                     }
                     if (!window.AuthAPI?.requireLogin) return;
-                    const next = `${window.location.pathname}${window.location.search || ''}`;
-                    const result = await window.AuthAPI.requireLogin({ next });
+                    const result = await window.AuthAPI.requireLogin({ next: currentNext() });
                     if (result?.ok && result.user) {
                         renderHostAuthAvatar(result.user);
                         return;
@@ -659,6 +768,7 @@
                 }
             }
 
+            bindHostMemberPanel();
             void gateHostSettingsLogin();
         })();
     </script>

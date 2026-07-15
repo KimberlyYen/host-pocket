@@ -108,6 +108,59 @@
         return true;
     }
 
+    /** 「連接房源」：自動新增空白 listing_settings（若尚不存在） */
+    async function ensureBlankSettings(listingId) {
+        if (global.HP_MOCK_DATA !== false) {
+            return { ok: true, created: false, mock: true, listingId: String(listingId || '') };
+        }
+        const base = getApiBase();
+        const id = encodeListingId(listingId);
+        const res = await fetch(`${base}/api/listings/${id}/ensure-blank`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: '{}'
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            throw new Error(data.error || `Failed to ensure blank listing (${res.status})`);
+        }
+        return data;
+    }
+
+    async function fetchPreset(listingId) {
+        if (global.HP_MOCK_DATA !== false) return null;
+        const base = getApiBase();
+        const id = encodeListingId(listingId);
+        const res = await fetchWithTimeout(`${base}/api/presets/${id}`, {
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+        }, 8000);
+        if (res.status === 404) return null;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            throw new Error(data.error || `Failed to load preset (${res.status})`);
+        }
+        return data;
+    }
+
+    async function savePreset(listingId, payload) {
+        if (global.HP_MOCK_DATA !== false) {
+            throw new Error('Mock mode: preset API disabled');
+        }
+        const base = getApiBase();
+        const id = encodeListingId(listingId);
+        const res = await fetch(`${base}/api/presets/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ data: payload })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            throw new Error(data.error || `Failed to save preset (${res.status})`);
+        }
+        return data;
+    }
+
     global.ListingSettingsAPI = {
         getApiBase,
         fetchWithTimeout,
@@ -115,6 +168,9 @@
         isDatabaseConfigured,
         fetchSettings,
         saveSettings,
-        deleteSettings
+        deleteSettings,
+        ensureBlankSettings,
+        fetchPreset,
+        savePreset
     };
 })(window);

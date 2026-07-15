@@ -58,18 +58,43 @@ async function ensureSchema() {
                     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     listing_id TEXT NOT NULL,
                     title TEXT,
+                    source TEXT,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     PRIMARY KEY (user_id, listing_id)
                 )
             `;
+            // Existing DBs created before source existed.
+            await getSql()`
+                ALTER TABLE user_listings
+                ADD COLUMN IF NOT EXISTS source TEXT
+            `;
             await getSql()`
                 CREATE INDEX IF NOT EXISTS user_listings_user_id_idx
                 ON user_listings (user_id, updated_at DESC)
             `;
+            // Lock down PostgREST anon access; Node DATABASE_URL still bypasses RLS.
+            await getSql()`ALTER TABLE users ENABLE ROW LEVEL SECURITY`;
+            await getSql()`ALTER TABLE user_listings ENABLE ROW LEVEL SECURITY`;
+            try {
+                await getSql()`REVOKE ALL ON TABLE users FROM anon, authenticated`;
+                await getSql()`REVOKE ALL ON TABLE user_listings FROM anon, authenticated`;
+                await getSql()`GRANT ALL ON TABLE users TO service_role`;
+                await getSql()`GRANT ALL ON TABLE user_listings TO service_role`;
+            } catch (error) {
+                console.warn('[users] RLS grant/revoke skipped', error?.message || error);
+            }
         })();
     }
     await schemaReady;
+}
+
+/** Pairing tab source: link = 連接房源, quick = 快速開始 */
+function normalizeListingSource(source) {
+    const s = String(source || '').trim().toLowerCase();
+    if (s === 'quick' || s === 'demo' || s === 'preset') return 'quick';
+    if (s === 'link' || s === 'connect' || s === 'airbnb') return 'link';
+    return '';
 }
 
 function normalizeLinkedListingId(listingId) {
@@ -84,25 +109,28 @@ function publicListing(row) {
     return {
         listingId: String(row.listing_id || ''),
         title: row.title || '',
+        source: normalizeListingSource(row.source) || null,
         createdAt: row.created_at,
         updatedAt: row.updated_at
     };
 }
 
-async function linkUserListing(userId, listingId, title = '') {
+async function linkUserListing(userId, listingId, title = '', source = '') {
     await ensureSchema();
     const uid = String(userId || '').trim();
     const lid = normalizeLinkedListingId(listingId);
     if (!uid || !lid) throw new Error('user_id and listing_id are required');
     const label = String(title || '').trim().slice(0, 160) || null;
+    const src = normalizeListingSource(source) || null;
 
     const rows = await getSql()`
-        INSERT INTO user_listings (user_id, listing_id, title)
-        VALUES (${uid}, ${lid}, ${label})
+        INSERT INTO user_listings (user_id, listing_id, title, source)
+        VALUES (${uid}, ${lid}, ${label}, ${src})
         ON CONFLICT (user_id, listing_id) DO UPDATE SET
             title = COALESCE(EXCLUDED.title, user_listings.title),
+            source = COALESCE(EXCLUDED.source, user_listings.source),
             updated_at = NOW()
-        RETURNING user_id, listing_id, title, created_at, updated_at
+        RETURNING user_id, listing_id, title, source, created_at, updated_at
     `;
     return publicListing(rows[0]);
 }
@@ -112,7 +140,7 @@ async function listUserListings(userId) {
     const uid = String(userId || '').trim();
     if (!uid) return [];
     const rows = await getSql()`
-        SELECT user_id, listing_id, title, created_at, updated_at
+        SELECT user_id, listing_id, title, source, created_at, updated_at
         FROM user_listings
         WHERE user_id = ${uid}
         ORDER BY updated_at DESC, created_at DESC
@@ -205,6 +233,7 @@ module.exports = {
     getUserById,
     getUserByGoogleSub,
     normalizeLinkedListingId,
+    normalizeListingSource,
     linkUserListing,
     listUserListings,
     unlinkUserListing

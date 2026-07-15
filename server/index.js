@@ -76,6 +76,21 @@ app.delete('/api/listings/:listingId/settings', (req, res) => {
     handleListingSettings(req, res, req.params.listingId);
 });
 
+app.post('/api/listings/:listingId/ensure-blank', (req, res) => {
+    req.query = { ...(req.query || {}), __ensureBlank: '1' };
+    return handleListingSettings(req, res, req.params.listingId);
+});
+
+app.get('/api/presets/:listingId', (req, res) => {
+    req.query = { ...(req.query || {}), __presets: '1', listingId: req.params.listingId };
+    return require('./presets-handler').handlePresets(req, res);
+});
+
+app.put('/api/presets/:listingId', (req, res) => {
+    req.query = { ...(req.query || {}), __presets: '1', listingId: req.params.listingId };
+    return require('./presets-handler').handlePresets(req, res);
+});
+
 app.get('/api/search/experiences', (req, res) => searchExperiences(req, res));
 app.get('/api/search/experience-details', (req, res) => searchExperienceDetails(req, res));
 app.get('/api/search/listing-property', (req, res) => handleAirbnbListingProperty(req, res));

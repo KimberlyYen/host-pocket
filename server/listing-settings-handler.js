@@ -1,14 +1,21 @@
 const {
     getListingSettings,
     saveListingSettings,
+    ensureBlankListingSettings,
     deleteListingSettings,
     isDatabaseConfigured
 } = require('../server/listing-settings');
 
 function setCors(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+function wantsEnsureBlank(req) {
+    return req.query?.__ensureBlank === '1'
+        || req.query?.ensureBlank === '1'
+        || /\/ensure-blank(?:\?|$)/i.test(String(req.url || ''));
 }
 
 async function handleListingSettings(req, res, listingId) {
@@ -31,6 +38,12 @@ async function handleListingSettings(req, res, listingId) {
     }
 
     try {
+        if (req.method === 'POST' && wantsEnsureBlank(req)) {
+            const result = await ensureBlankListingSettings(id);
+            res.status(200).json({ ok: true, ...result });
+            return;
+        }
+
         if (req.method === 'GET') {
             const record = await getListingSettings(id);
             if (!record) {

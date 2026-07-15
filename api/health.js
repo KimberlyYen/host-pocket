@@ -5,10 +5,14 @@ const { isEcpayConfigured } = require('../server/ecpay');
 const { isTdxConfigured } = require('../server/tdx');
 const { isGoogleAuthConfigured } = require('../server/auth');
 const { handleAuth, isAuthRequest } = require('../server/auth-handler');
+const { handlePresets, isPresetsRequest } = require('../server/presets-handler');
 
 module.exports = async (req, res) => {
     if (isAuthRequest(req)) {
         return handleAuth(req, res);
+    }
+    if (isPresetsRequest(req)) {
+        return handlePresets(req, res);
     }
 
     res.setHeader('Access-Control-Allow-Origin', '*');

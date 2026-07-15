@@ -380,6 +380,7 @@
         }
     </style>
     <link rel="stylesheet" href="/css/guest-desktop-v4.css">
+    <link rel="stylesheet" href="/css/member-panel.css">
     <script>
         (function () {
             var desktopMq = window.matchMedia('(min-width: 768px)');
@@ -1519,6 +1520,7 @@
     <script src="/js/experience-details.js"></script>
     <script src="/js/guest-router.js"></script>
     <script src="/js/auth-api.js"></script>
+    <script src="/js/member-panel.js"></script>
     <script src="/js/v4-sidebar-nav-item.js"></script>
     <script src="/js/guest-desktop-v4.js"></script>
     <script src="/js/pairing-link-card.js"></script>
@@ -2718,7 +2720,8 @@
                 return this.element.querySelector('[data-pairing-target="input"]');
             }
 
-            async performPairing(presetOrEvent) {
+            async performPairing(presetOrEvent, options = {}) {
+                const pairingSource = options.source === 'quick' ? 'quick' : 'link';
                 const input = this.pairingInputEl();
                 // Stimulus click actions pass the Event as arg 1 — only accept string presets.
                 const presetId = (typeof presetOrEvent === 'string' || typeof presetOrEvent === 'number')
@@ -2755,6 +2758,30 @@
                 if (dashCtrl) dashCtrl.currentListingId = val;
 
                 try {
+                    // 「連接房源」：自動新增空白 listing_settings（不灌 demo JSON）
+                    if (pairingSource === 'link' && window.ListingSettingsAPI?.ensureBlankSettings) {
+                        try {
+                            await window.ListingSettingsAPI.ensureBlankSettings(val);
+                            window.HostGuideSettings?.invalidateCache?.(val);
+                        } catch (blankError) {
+                            console.warn('[pairing] ensure blank listing failed', blankError);
+                        }
+                    }
+
+                    // 「快速開始」：先從 preset JSON API 暖取（寫入後也走同一來源）
+                    if (pairingSource === 'quick') {
+                        try {
+                            window.HostSettingsPresets?.invalidateCache?.(val);
+                            if (window.ListingSettingsAPI?.fetchPreset) {
+                                await window.ListingSettingsAPI.fetchPreset(val);
+                            } else if (window.HostSettingsPresets?.fetchPreset) {
+                                await window.HostSettingsPresets.fetchPreset(val);
+                            }
+                        } catch (presetError) {
+                            console.warn('[pairing] preset preload failed', presetError);
+                        }
+                    }
+
                     if (window.AirbnbListing?.isAirbnbNumericId?.(val) && window.HP_MOCK_DATA === false) {
                         try {
                             await window.AirbnbListing.seedMissingSettings(val);
@@ -2774,8 +2801,9 @@
                             ? (data?.roomTitleZh || data?.listingLabelZh || '')
                             : (data?.roomTitleEn || data?.listingLabelEn || '');
                         try {
-                            await window.AuthAPI.saveListing(val, title);
+                            await window.AuthAPI.saveListing(val, title, { source: pairingSource });
                             window.HostPocketV4Desktop?.refreshMemberListings?.();
+                            window.HostPocketMemberPanel?.refreshListings?.();
                         } catch (saveError) {
                             console.warn('[pairing] save member listing failed', saveError);
                         }
@@ -2788,8 +2816,9 @@
                     }
                     if (window.AuthAPI?.saveListing) {
                         try {
-                            await window.AuthAPI.saveListing(val, '');
+                            await window.AuthAPI.saveListing(val, '', { source: pairingSource });
                             window.HostPocketV4Desktop?.refreshMemberListings?.();
+                            window.HostPocketMemberPanel?.refreshListings?.();
                         } catch (saveError) {
                             console.warn('[pairing] save member listing failed', saveError);
                         }
@@ -2798,7 +2827,9 @@
 
                 this.triggerToast(
                     isZh ? '連結成功' : 'Listing Linked',
-                    isZh ? `已連結 ${val}，指南建立完成` : `Linked ${val}. Your stay guide is ready.`,
+                    pairingSource === 'quick'
+                        ? (isZh ? `已載入示範房源 ${val}` : `Loaded demo listing ${val}`)
+                        : (isZh ? `已連結 ${val}，空白指南已建立` : `Linked ${val}. Blank guide created.`),
                     'success'
                 );
 
@@ -2824,7 +2855,7 @@
                 const globalController = this.application.getControllerForElementAndIdentifier(document.body, 'global');
                 globalController?.setLanguage?.(lang, { silent: true, force: true });
 
-                void this.performPairing(id);
+                void this.performPairing(id, { source: 'quick' });
             }
 
             triggerToast(title, msg, type, options) {

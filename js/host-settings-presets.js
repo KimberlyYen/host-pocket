@@ -57,6 +57,14 @@
         return _cache[id]?.data || null;
     }
 
+    function invalidateCache(listingId) {
+        if (listingId == null || listingId === '') {
+            Object.keys(_cache).forEach((key) => { delete _cache[key]; });
+            return;
+        }
+        delete _cache[normalizeListingId(listingId)];
+    }
+
     global.HostSettingsPresets = {
         PRESET_BASE,
         PRESET_IDS,
@@ -65,6 +73,7 @@
         presetUrl,
         fetchPreset,
         getPresetLabel,
-        getCachedPresetData
+        getCachedPresetData,
+        invalidateCache
     };
 })(window);
