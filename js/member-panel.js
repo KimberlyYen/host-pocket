@@ -41,6 +41,33 @@
         });
     }
 
+    function renderAccess(user) {
+        const panel = getPanel();
+        if (!panel) return;
+        const valueEl = panel.querySelector('.hp-v4-member__status-value');
+        const bindBtn = panel.querySelector('[data-hp-v4-member-subscribe]');
+        const access = user?.access || {};
+        const isZh = (global.currentLanguage || 'zh') === 'zh';
+        let label;
+        if (!user) {
+            label = isZh ? '尚未綁定' : 'Not linked yet';
+        } else if (access.fullAccess) {
+            label = isZh ? (access.labelZh || '全權') : (access.labelEn || 'Full access');
+        } else {
+            label = isZh ? (access.labelZh || '尚未訂閱') : (access.labelEn || 'Not subscribed');
+        }
+        if (valueEl) {
+            valueEl.textContent = label;
+        }
+        if (bindBtn) {
+            // Show bind CTA when signed in without full access; keep visible when signed out too.
+            const showBind = !user || !access.fullAccess;
+            bindBtn.hidden = !showBind;
+            bindBtn.classList.toggle('hidden', !showBind);
+            bindBtn.disabled = Boolean(user && access.fullAccess);
+        }
+    }
+
     function renderUser(user) {
         const panel = getPanel();
         if (!panel) return;
@@ -67,6 +94,7 @@
                 if (fallback) fallback.hidden = false;
             }
         }
+        renderAccess(user);
         try {
             hooks.onUser?.(user || null);
         } catch (_) { /* ignore */ }

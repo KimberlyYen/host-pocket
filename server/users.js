@@ -73,20 +73,116 @@ async function ensureSchema() {
                 CREATE INDEX IF NOT EXISTS user_listings_user_id_idx
                 ON user_listings (user_id, updated_at DESC)
             `;
+            await getSql()`
+                CREATE TABLE IF NOT EXISTS vip_emails (
+                    email TEXT PRIMARY KEY,
+                    note TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            `;
+            await getSql()`
+                CREATE INDEX IF NOT EXISTS vip_emails_created_at_idx
+                ON vip_emails (created_at DESC)
+            `;
             // Lock down PostgREST anon access; Node DATABASE_URL still bypasses RLS.
             await getSql()`ALTER TABLE users ENABLE ROW LEVEL SECURITY`;
             await getSql()`ALTER TABLE user_listings ENABLE ROW LEVEL SECURITY`;
+            await getSql()`ALTER TABLE vip_emails ENABLE ROW LEVEL SECURITY`;
             try {
                 await getSql()`REVOKE ALL ON TABLE users FROM anon, authenticated`;
                 await getSql()`REVOKE ALL ON TABLE user_listings FROM anon, authenticated`;
+                await getSql()`REVOKE ALL ON TABLE vip_emails FROM anon, authenticated`;
                 await getSql()`GRANT ALL ON TABLE users TO service_role`;
                 await getSql()`GRANT ALL ON TABLE user_listings TO service_role`;
+                await getSql()`GRANT ALL ON TABLE vip_emails TO service_role`;
             } catch (error) {
                 console.warn('[users] RLS grant/revoke skipped', error?.message || error);
             }
         })();
     }
     await schemaReady;
+}
+
+function normalizeVipEmail(email) {
+    return String(email || '').trim().toLowerCase();
+}
+
+async function isVipEmailInDb(email) {
+    await ensureSchema();
+    const mail = normalizeVipEmail(email);
+    if (!mail) return false;
+    const rows = await getSql()`
+        SELECT 1 FROM vip_emails WHERE email = ${mail} LIMIT 1
+    `;
+    return rows.length > 0;
+}
+
+async function listVipEmails() {
+    await ensureSchema();
+    const rows = await getSql()`
+        SELECT email, note, created_at, updated_at
+        FROM vip_emails
+        ORDER BY created_at ASC
+    `;
+    return rows.map((row) => ({
+        email: String(row.email || ''),
+        note: row.note || '',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+    }));
+}
+
+async function upsertVipEmail(email, note = '') {
+    await ensureSchema();
+    const mail = normalizeVipEmail(email);
+    if (!mail || !mail.includes('@')) {
+        throw new Error('Valid email is required');
+    }
+    const noteText = String(note || '').trim().slice(0, 200);
+    const rows = await getSql()`
+        INSERT INTO vip_emails (email, note)
+        VALUES (${mail}, ${noteText || null})
+        ON CONFLICT (email) DO UPDATE SET
+            note = COALESCE(EXCLUDED.note, vip_emails.note),
+            updated_at = NOW()
+        RETURNING email, note, created_at, updated_at
+    `;
+    return {
+        email: String(rows[0].email || ''),
+        note: rows[0].note || '',
+        createdAt: rows[0].created_at,
+        updatedAt: rows[0].updated_at
+    };
+}
+
+async function removeVipEmail(email) {
+    await ensureSchema();
+    const mail = normalizeVipEmail(email);
+    if (!mail) return false;
+    const rows = await getSql()`
+        DELETE FROM vip_emails WHERE email = ${mail} RETURNING email
+    `;
+    return rows.length > 0;
+}
+
+/** Insert env allowlist emails if missing (does not delete DB-only rows). */
+async function seedVipEmailsFromEnv(emails) {
+    await ensureSchema();
+    const list = Array.isArray(emails) ? emails : [];
+    let inserted = 0;
+    for (const raw of list) {
+        const mail = normalizeVipEmail(raw);
+        if (!mail || !mail.includes('@')) continue;
+        const rows = await getSql()`
+            INSERT INTO vip_emails (email, note)
+            VALUES (${mail}, 'seeded from env')
+            ON CONFLICT (email) DO NOTHING
+            RETURNING email
+        `;
+        if (rows.length) inserted += 1;
+    }
+    return { inserted, total: list.length };
 }
 
 /** Pairing tab source: link = 連接房源, quick = 快速開始 */
@@ -236,5 +332,10 @@ module.exports = {
     normalizeListingSource,
     linkUserListing,
     listUserListings,
-    unlinkUserListing
+    unlinkUserListing,
+    isVipEmailInDb,
+    listVipEmails,
+    upsertVipEmail,
+    removeVipEmail,
+    seedVipEmailsFromEnv
 };

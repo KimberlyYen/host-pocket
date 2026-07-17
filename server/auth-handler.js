@@ -23,6 +23,7 @@ const {
     listUserListings,
     unlinkUserListing
 } = require('./users');
+const { resolveAccess } = require('./entitlements');
 const { readRequestBody } = require('./read-request-body');
 
 function resolveAuthPath(req) {
@@ -162,7 +163,12 @@ async function requireUser(req, res) {
 async function handleMe(req, res) {
     const user = await requireUser(req, res);
     if (!user) return;
-    sendJson(res, 200, { ok: true, user });
+    const access = await resolveAccess(user);
+    sendJson(res, 200, {
+        ok: true,
+        user: { ...user, access },
+        access
+    });
 }
 
 async function handleListings(req, res) {
@@ -275,5 +281,10 @@ async function handleAuth(req, res) {
 module.exports = {
     handleAuth,
     isAuthRequest,
-    resolveAuthPath
+    resolveAuthPath,
+    resolveAccess,
+    hasFullAccess: require('./entitlements').hasFullAccess,
+    listVipEmails: require('./entitlements').listVipEmails,
+    upsertVipEmail: require('./entitlements').upsertVipEmail,
+    removeVipEmail: require('./entitlements').removeVipEmail
 };

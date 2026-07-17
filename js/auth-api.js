@@ -84,7 +84,11 @@
             err.status = res.status;
             throw err;
         }
-        return { ok: true, user: data.user || null };
+        return {
+            ok: true,
+            user: data.user || null,
+            access: data.access || data.user?.access || null
+        };
     }
 
     async function requireLogin(options = {}) {
