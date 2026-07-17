@@ -82,8 +82,8 @@ async function resolveAccess(user) {
             fullAccess: true,
             plan: 'vip',
             source: 'allowlist',
-            labelZh: '全權（白名單）',
-            labelEn: 'Full access (VIP)'
+            labelZh: 'VIP',
+            labelEn: 'VIP'
         };
     }
 

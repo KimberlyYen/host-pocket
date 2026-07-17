@@ -51,13 +51,16 @@
         let label;
         if (!user) {
             label = isZh ? '尚未綁定' : 'Not linked yet';
+        } else if (access.plan === 'vip' || access.source === 'allowlist') {
+            label = 'VIP';
         } else if (access.fullAccess) {
-            label = isZh ? (access.labelZh || '全權') : (access.labelEn || 'Full access');
+            label = isZh ? (access.labelZh || '已訂閱') : (access.labelEn || 'Subscribed');
         } else {
             label = isZh ? (access.labelZh || '尚未訂閱') : (access.labelEn || 'Not subscribed');
         }
         if (valueEl) {
             valueEl.textContent = label;
+            valueEl.classList.toggle('hp-v4-member__status-value--vip', access.plan === 'vip' || access.source === 'allowlist');
         }
         if (bindBtn) {
             // Show bind CTA when signed in without full access; keep visible when signed out too.

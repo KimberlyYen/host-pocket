@@ -217,6 +217,12 @@ html.hp-v4-member-open body {
     white-space: nowrap;
 }
 
+.hp-v4-member__status-value--vip {
+    color: #ff5b3e;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
 .hp-v4-member__bind {
     display: inline-flex;
     align-items: center;
