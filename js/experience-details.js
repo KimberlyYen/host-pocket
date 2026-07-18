@@ -1864,12 +1864,53 @@
         return bookingDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
     }
 
+    function nowBookingMinutes() {
+        const now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function parseSlotStartMinutes(slotValue) {
+        const raw = String(slotValue || '').trim();
+        if (!raw || raw === '彈性' || /any\s*time|flexible/i.test(raw)) return null;
+        const m = raw.match(/^(\d{1,2}):(\d{2})$/);
+        if (!m) return null;
+        const h = parseInt(m[1], 10);
+        const min = parseInt(m[2], 10);
+        if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+        return h * 60 + min;
+    }
+
+    /** True when date/time is before "now" (local clock). */
+    function isBookingSlotInPast(dateKey, slotValue) {
+        const key = String(dateKey || '').trim();
+        if (!key) return true;
+        const todayKey = todayBookingDateKey();
+        if (key < todayKey) return true;
+        if (key > todayKey) return false;
+        const start = parseSlotStartMinutes(slotValue);
+        // Flexible / unparsed: still allow today, but half-hour slots must be after now.
+        if (start == null) return false;
+        return start <= nowBookingMinutes();
+    }
+
     function filterPastBookingDateKeys(keys) {
         const todayKey = todayBookingDateKey();
         keys.forEach((key) => {
             if (key < todayKey) keys.delete(key);
         });
         return keys;
+    }
+
+    function filterPastTimeSlots(slots, selectedDate) {
+        const list = Array.isArray(slots) ? slots : [];
+        const todayKey = todayBookingDateKey();
+        if (String(selectedDate || '') !== todayKey) return list;
+        const nowMin = nowBookingMinutes();
+        return list.filter((slot) => {
+            const start = parseSlotStartMinutes(slot?.value || slot?.label24);
+            if (start == null) return true;
+            return start > nowMin;
+        });
     }
 
     function getBookableDateKeys(availability, year, monthIndex) {
@@ -1934,7 +1975,16 @@
             }
         }
 
-        return filterPastBookingDateKeys(keys);
+        filterPastBookingDateKeys(keys);
+
+        // If today has no remaining half-hour slots after "now", disable today too.
+        const todayKey = todayBookingDateKey();
+        if (keys.has(todayKey)) {
+            const remaining = filterPastTimeSlots(generateHalfHourSlots(availability), todayKey);
+            if (!remaining.length) keys.delete(todayKey);
+        }
+
+        return keys;
     }
 
     function format12hTime(h, min, isZh) {
@@ -2088,7 +2138,7 @@
 
     function renderBookingTimeColumn(availability, selectedDate, isZh, timeFormat) {
         const use24 = timeFormat !== '12';
-        const slots = generateHalfHourSlots(availability);
+        const slots = filterPastTimeSlots(generateHalfHourSlots(availability), selectedDate);
         const fmtBtn = (fmt, label) => {
             const active = timeFormat === fmt;
             return `<button type="button" data-action="click->dashboard#toggleBookingTimeFormat" data-format="${fmt}"
@@ -2110,6 +2160,10 @@
         const flexHint = isFlexibleDay
             ? `<p class="text-[10px] font-semibold text-hp-coral mb-2">${escapeHtml(isZh ? FLEXIBLE_DURATION_ZH : FLEXIBLE_DURATION_EN)}</p>`
             : '';
+        const emptySlots = `
+            <div class="flex-1 flex items-center justify-center text-center py-6">
+                <p class="text-xs text-hp-muted leading-relaxed">${isZh ? '此時段已過，請改選其他日期' : 'No upcoming times left today. Pick another date.'}</p>
+            </div>`;
         const slotButtons = slots.map(slot => {
             const label = use24 ? slot.label24 : (isZh ? format12hTime(parseInt(slot.label24.split(':')[0], 10), parseInt(slot.label24.split(':')[1], 10), true) : slot.label12);
             return `<button type="button" data-action="click->dashboard#confirmExpBooking" data-slot="${escapeHtml(slot.value)}"
@@ -2126,7 +2180,7 @@
                     </div>
                 </div>
                 ${flexHint}
-                <div class="space-y-2 overflow-y-auto hide-scrollbar max-h-[240px] flex-1">${slotButtons}</div>
+                <div class="space-y-2 overflow-y-auto hide-scrollbar max-h-[240px] flex-1">${slots.length ? slotButtons : emptySlots}</div>
             </div>`;
     }
 
@@ -2589,6 +2643,7 @@
         getBookingMeta,
         bookingMonthStart,
         todayBookingDateKey,
+        isBookingSlotInPast,
         buildShareContext,
         buildGuideShareUrl,
         buildGuideBrowserUrl,

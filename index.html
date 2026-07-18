@@ -4342,13 +4342,22 @@
 
             confirmExpBooking(event) {
                 const slot = event.currentTarget.dataset.slot || '';
+                const isZh = (window.currentLanguage || 'zh') === 'zh';
                 if (!this.selectedBookingDate) {
-                    const isZh = (window.currentLanguage || 'zh') === 'zh';
                     this.triggerToast(
                         isZh ? '請先選擇日期' : 'Select a date first',
                         isZh ? '請在日曆上點選可預訂的日期' : 'Tap an available date on the calendar.',
                         'info'
                     );
+                    return;
+                }
+                if (ExperienceDetailsAPI.isBookingSlotInPast?.(this.selectedBookingDate, slot)) {
+                    this.triggerToast(
+                        isZh ? '此時段已過' : 'Time already passed',
+                        isZh ? '請選擇現在之後的時段' : 'Please choose a time after now.',
+                        'info'
+                    );
+                    this.renderBookingCalendarView();
                     return;
                 }
                 this.showExpBookingConfirm(slot);
