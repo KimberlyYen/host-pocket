@@ -887,6 +887,18 @@
             }
         } catch (_) { /* ignore */ }
 
+        // Sales page CTA: /?openPricing=1
+        try {
+            const params = new URLSearchParams(window.location.search || '');
+            if (params.get('openPricing') === '1') {
+                params.delete('openPricing');
+                const qs = params.toString();
+                const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash || ''}`;
+                window.history.replaceState({}, '', next);
+                openPricingPanel();
+            }
+        } catch (_) { /* ignore */ }
+
         window.addEventListener('hp:v4-screen', (event) => {
             syncSidebarActive(event.detail?.screen || getActiveScreen());
         });

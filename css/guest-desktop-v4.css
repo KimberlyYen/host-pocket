@@ -1403,6 +1403,40 @@ html.hp-listing-query-route [data-hp-v4-nav="dashboard"] {
     flex-shrink: 0;
 }
 
+.hp-v4-pricing__contact {
+    margin-top: 0.25rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 0.95rem;
+    background: #fff8f5;
+    border: 1px solid rgba(255, 91, 62, 0.16);
+}
+
+.hp-v4-pricing__contact-title {
+    margin: 0 0 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #2e2421;
+}
+
+.hp-v4-pricing__contact-line,
+.hp-v4-pricing__contact-note {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #8a7e78;
+    line-height: 1.45;
+}
+
+.hp-v4-pricing__contact a {
+    color: #ff5b3e;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.hp-v4-pricing__contact a:hover {
+    text-decoration: underline;
+}
+
 .hp-v4-pricing__actions {
     margin-top: auto;
     display: flex;

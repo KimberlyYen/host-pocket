@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Pocket 房東月費｜販售說明</title>
+    <meta name="description" content="Host Pocket 房東月費訂閱 NT$40／月。住宿指南、體驗預定與收款入口。">
+    <link rel="icon" href="/pocket-icon.svg" type="image/svg+xml">
+    <style>
+        :root {
+            --hp-bg: #faf8f5;
+            --hp-dark: #2e2421;
+            --hp-muted: #8a7e78;
+            --hp-coral: #ff5b3e;
+            --hp-border: #ebe5df;
+            --hp-card: #ffffff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: "PingFang TC", "Noto Sans TC", "Helvetica Neue", sans-serif;
+            background: linear-gradient(180deg, #fff7f2 0%, var(--hp-bg) 40%, #f3eee8 100%);
+            color: var(--hp-dark);
+            line-height: 1.55;
+        }
+        .wrap {
+            width: min(40rem, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 2.5rem 0 3.5rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .brand img { width: 2.5rem; height: 2.5rem; }
+        .brand strong { font-size: 1.05rem; letter-spacing: 0.02em; }
+        .brand span { display: block; font-size: 0.75rem; color: var(--hp-muted); }
+        .card {
+            background: var(--hp-card);
+            border: 1px solid var(--hp-border);
+            border-radius: 1.35rem;
+            padding: 1.5rem 1.4rem 1.65rem;
+            box-shadow: 0 16px 40px rgba(46, 36, 33, 0.06);
+        }
+        .eyebrow {
+            margin: 0 0 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--hp-coral);
+            letter-spacing: 0.04em;
+        }
+        h1 {
+            margin: 0 0 0.75rem;
+            font-size: 1.65rem;
+            line-height: 1.25;
+        }
+        .price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.2rem;
+            margin: 1rem 0 0.85rem;
+            font-weight: 900;
+        }
+        .price .currency { font-size: 1.1rem; color: var(--hp-coral); }
+        .price .number { font-size: 2.75rem; letter-spacing: -0.03em; }
+        .price .interval { font-size: 1rem; color: var(--hp-muted); font-weight: 700; }
+        .lead { margin: 0 0 1rem; color: var(--hp-muted); font-size: 0.95rem; }
+        .box {
+            margin: 1rem 0;
+            padding: 0.95rem 1rem;
+            border-radius: 1rem;
+            background: #fff8f5;
+            border: 1px solid rgba(255, 91, 62, 0.18);
+        }
+        .box h2 {
+            margin: 0 0 0.45rem;
+            font-size: 0.9rem;
+        }
+        .box p, .box li { margin: 0; font-size: 0.875rem; color: var(--hp-dark); }
+        .box ul {
+            margin: 0.4rem 0 0;
+            padding-left: 1.15rem;
+        }
+        .box li + li { margin-top: 0.3rem; }
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 3rem;
+            margin-top: 1.15rem;
+            border-radius: 0.95rem;
+            background: var(--hp-coral);
+            color: #fff;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 8px 20px rgba(255, 91, 62, 0.28);
+        }
+        .cta:hover { background: #e84e35; }
+        .contact {
+            margin-top: 1.25rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid var(--hp-border);
+        }
+        .contact h2 {
+            margin: 0 0 0.45rem;
+            font-size: 0.9rem;
+        }
+        .contact p {
+            margin: 0.2rem 0;
+            font-size: 0.875rem;
+            color: var(--hp-muted);
+        }
+        .contact a {
+            color: var(--hp-coral);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .note {
+            margin: 1.25rem 0 0;
+            font-size: 0.75rem;
+            color: var(--hp-muted);
+        }
+        footer {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--hp-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <div class="brand">
+            <img src="/pocket-icon.svg" alt="Host Pocket">
+            <div>
+                <strong>Host Pocket｜房東私藏</strong>
+                <span>Airbnb 房東住宿指南訂閱服務</span>
+            </div>
+        </div>
+
+        <article class="card">
+            <p class="eyebrow">販售說明／訂閱方案</p>
+            <h1>Host Pocket 房東月費</h1>
+            <div class="price">
+                <span class="currency">NT$</span>
+                <span class="number">40</span>
+                <span class="interval">／月</span>
+            </div>
+            <p class="lead">
+                本頁販售項目<strong>僅為房東端軟體訂閱月費</strong>（新台幣計價）。
+                用於開啟與維護住宿指南、體驗資訊與房東後台功能。
+            </p>
+
+            <div class="box">
+                <h2>收費項目（清楚說明）</h2>
+                <ul>
+                    <li><strong>收取：</strong>Host Pocket 房東月費 <strong>NT$40／月</strong></li>
+                    <li><strong>不收取：</strong>房客體驗活動費、Airbnb 房源租金、押金（本方案不含）</li>
+                    <li><strong>計價幣別：</strong>新台幣（TWD）</li>
+                    <li><strong>付款方式：</strong>經綠界科技金流（信用卡等）</li>
+                </ul>
+            </div>
+
+            <div class="box">
+                <h2>方案內容</h2>
+                <ul>
+                    <li>建立／編輯住宿指南（Wi‑Fi、門鎖、推薦地點）</li>
+                    <li>產生可分享給房客的指南連結</li>
+                    <li>在地體驗資訊與預定流程（房東工具）</li>
+                    <li>繁中／英文雙語介面</li>
+                </ul>
+            </div>
+
+            <a class="cta" href="/?openPricing=1">前往訂閱（開始設定）</a>
+
+            <section class="contact" aria-label="客服聯絡資訊">
+                <h2>客服／聯絡資訊</h2>
+                <!-- 以下 Email 必須與綠界賣家資料驗證的 Email 完全一致 -->
+                <p>Email：<a href="mailto:work223305@gmail.com">work223305@gmail.com</a></p>
+                <!-- 若綠界驗證的是手機，請把下一行改成你的門號並取消註解
+                <p>電話：<a href="tel:09xxxxxxxx">09xxxxxxxx</a></p>
+                -->
+                <p>服務名稱：Host Pocket（房東私藏）</p>
+                <p>販售網址：https://host-pocket.vercel.app/pricing.html</p>
+            </section>
+
+            <p class="note">
+                若需發票、退訂或帳務問題，請以上列 Email 聯絡。重新送件綠界審核時，請將本頁設為「販售網址」。
+            </p>
+        </article>
+
+        <footer>© Host Pocket · 以新台幣計價之房東訂閱服務</footer>
+    </main>
+</body>
+</html>
