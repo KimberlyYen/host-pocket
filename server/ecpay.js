@@ -14,6 +14,10 @@ function truthyEnv(value) {
     return value === '1' || String(value || '').toLowerCase() === 'true';
 }
 
+function falsyEnv(value) {
+    return value === '0' || String(value || '').toLowerCase() === 'false';
+}
+
 function getEcpayConfig() {
     const mode = String(process.env.ECPAY_MODE || 'stage').toLowerCase();
     const useStage = mode !== 'production';
@@ -22,23 +26,25 @@ function getEcpayConfig() {
         && process.env.ECPAY_HASH_KEY
         && process.env.ECPAY_HASH_IV
     );
-    const allowStageDefaults = truthyEnv(process.env.ECPAY_USE_STAGE) || (useStage && hasCustom);
+    const stageFlag = process.env.ECPAY_USE_STAGE;
+    const stageExplicitlyOff = falsyEnv(stageFlag);
+    // Stage (default): use official sandbox unless ECPAY_USE_STAGE=0.
+    // Production: require your own MerchantID / HashKey / HashIV.
+    const allowStageDefaults = useStage && !stageExplicitlyOff;
 
-    // Production requires your own merchant credentials.
-    // Stage: set ECPAY_USE_STAGE=1 (public sandbox keys) or provide stage merchant keys.
-    if (!hasCustom && !truthyEnv(process.env.ECPAY_USE_STAGE)) {
+    if (!useStage && !hasCustom) {
         return null;
     }
-    if (!useStage && !hasCustom) {
+    if (useStage && !hasCustom && !allowStageDefaults) {
         return null;
     }
 
     const merchantId = process.env.ECPAY_MERCHANT_ID
-        || (truthyEnv(process.env.ECPAY_USE_STAGE) ? STAGE_DEFAULTS.merchantId : '');
+        || (allowStageDefaults ? STAGE_DEFAULTS.merchantId : '');
     const hashKey = process.env.ECPAY_HASH_KEY
-        || (truthyEnv(process.env.ECPAY_USE_STAGE) ? STAGE_DEFAULTS.hashKey : '');
+        || (allowStageDefaults ? STAGE_DEFAULTS.hashKey : '');
     const hashIV = process.env.ECPAY_HASH_IV
-        || (truthyEnv(process.env.ECPAY_USE_STAGE) ? STAGE_DEFAULTS.hashIV : '');
+        || (allowStageDefaults ? STAGE_DEFAULTS.hashIV : '');
     if (!merchantId || !hashKey || !hashIV) return null;
 
     return {

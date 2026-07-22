@@ -628,8 +628,8 @@
             console.error('[pricing] host subscription checkout failed', error);
             const msg = error?.code === 'ECPAY_NOT_CONFIGURED'
                 ? (isZh
-                    ? '綠界尚未設定。本機請在 .env 設 ECPAY_USE_STAGE=1'
-                    : 'ECPay is not configured. Set ECPAY_USE_STAGE=1 in .env for local sandbox.')
+                    ? '綠界尚未設定。請在 Vercel 設 ECPAY_MODE=stage（或填入正式特店憑證）'
+                    : 'ECPay is not configured. Set ECPAY_MODE=stage on Vercel, or provide merchant credentials.')
                 : (error?.message || (isZh ? '無法建立綠界訂單' : 'Could not create ECPay order'));
             window.hpTriggerToast?.(
                 isZh ? '無法前往付款' : 'Checkout failed',
