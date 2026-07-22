@@ -60,9 +60,26 @@
         }
     }
 
+    function isHostCheckoutNext(next) {
+        try {
+            const url = new URL(String(next || ''), global.location.origin);
+            return url.searchParams.get('hostCheckout') === '1';
+        } catch {
+            return /(?:\?|&)hostCheckout=1(?:&|$)/.test(String(next || ''));
+        }
+    }
+
     function loginWithGoogle(options = {}) {
         const base = getApiBase();
         const next = rememberNext(options.next || '');
+        // Plain member login must not resume a leftover subscribe/checkout intent.
+        if (!isHostCheckoutNext(next)) {
+            try {
+                global.sessionStorage?.removeItem('hp_pending_host_checkout');
+            } catch {
+                // ignore
+            }
+        }
         const url = new URL(`${base}/api/auth/google`, global.location.origin);
         if (next) url.searchParams.set('next', next);
         global.location.assign(url.toString());

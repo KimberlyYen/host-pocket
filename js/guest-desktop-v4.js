@@ -755,7 +755,10 @@
         try {
             const params = new URLSearchParams(window.location.search || '');
             const auth = params.get('auth');
-            const wantsHostCheckout = params.get('hostCheckout') === '1' || hasPendingHostCheckout();
+            // Only resume checkout when OAuth returned with ?hostCheckout=1 (or explicit pending
+            // set for that return). Do not treat a stale sessionStorage flag alone as intent
+            // after a normal member-area login.
+            const wantsHostCheckout = params.get('hostCheckout') === '1';
             if (auth === 'ok' || auth === 'error') {
                 params.delete('auth');
                 params.delete('reason');
@@ -774,7 +777,7 @@
                         window.location.assign(pending);
                         return;
                     }
-                    if (wantsHostCheckout) {
+                    if (wantsHostCheckout || hasPendingHostCheckout()) {
                         void resumeHostCheckoutIfNeeded({ showSignedInToast: true });
                         return;
                     }

@@ -139,14 +139,30 @@ function omitEmptyParams(params) {
     return out;
 }
 
+function firstHeaderValue(value) {
+    return String(value || '').split(',')[0].trim();
+}
+
+/**
+ * Public site origin for redirects (OAuth callback, ECPay ReturnURL, etc.).
+ * Prefer the request Host (production alias / custom domain) over VERCEL_URL,
+ * which is an ephemeral per-deployment hostname and breaks post-login redirects.
+ */
 function getPublicBaseUrl(req) {
     const fromEnv = String(process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
     if (fromEnv) return fromEnv;
-    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-    if (req?.headers?.host) {
-        const proto = req.headers['x-forwarded-proto'] || 'http';
-        return `${proto}://${req.headers.host}`;
+
+    const host = firstHeaderValue(req?.headers?.['x-forwarded-host'] || req?.headers?.host);
+    if (host) {
+        const proto = firstHeaderValue(req?.headers?.['x-forwarded-proto'])
+            || (String(process.env.VERCEL || '').trim() ? 'https' : 'http');
+        return `${proto}://${host}`;
     }
+
+    const productionHost = String(process.env.VERCEL_PROJECT_PRODUCTION_URL || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (productionHost) return `https://${productionHost}`;
+
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
     return `http://localhost:${process.env.PORT || 3000}`;
 }
 
