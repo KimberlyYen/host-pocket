@@ -57,18 +57,15 @@ function redirect(res, location) {
 }
 
 async function handleGoogleStart(req, res) {
+    const base = getPublicBaseUrl(req);
+    // Browser navigates here via location.assign — redirect home with reason
+    // instead of dumping a JSON 503 page (looks like a broken "strange" URL).
     if (!isGoogleAuthConfigured()) {
-        sendJson(res, 503, {
-            ok: false,
-            error: 'Google login is not configured. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and SESSION_SECRET.'
-        });
+        redirect(res, `${base}/?auth=error&reason=${encodeURIComponent('not_configured')}`);
         return;
     }
     if (!isDatabaseConfigured()) {
-        sendJson(res, 503, {
-            ok: false,
-            error: 'Database is not configured. Set DATABASE_URL or POSTGRES_URL.'
-        });
+        redirect(res, `${base}/?auth=error&reason=${encodeURIComponent('db_not_configured')}`);
         return;
     }
 

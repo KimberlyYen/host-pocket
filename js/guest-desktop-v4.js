@@ -561,9 +561,19 @@
 
         setPricingCheckoutBusy(triggerEl, true);
         try {
-            // 1) 先登入（Google），登入後以 ?hostCheckout=1 回來繼續付款
+            const health = await api.checkHealth?.().catch(() => null);
+            const googleReady = Boolean(health?.googleAuthConfigured);
+            const ecpayReady = health == null
+                ? await api.isEcpayConfigured?.()
+                : Boolean(health.ecpayConfigured);
+            if (ecpayReady === false) {
+                throw Object.assign(new Error('ECPay not configured'), { code: 'ECPAY_NOT_CONFIGURED' });
+            }
+
+            // 1) 有 Google 登入時先登入，登入後以 ?hostCheckout=1 回來繼續付款。
+            //    未設定 Google 時不要導向 /api/auth/google（會變成 JSON／錯誤頁），直接進綠界。
             const user = await getSignedInUser();
-            if (!user) {
+            if (!user && googleReady) {
                 if (!window.AuthAPI?.loginWithGoogle) {
                     throw new Error(isZh ? '登入模組尚未載入' : 'Login module is not ready');
                 }
@@ -577,13 +587,8 @@
                 return;
             }
 
-            const configured = await api.isEcpayConfigured?.();
-            if (configured === false) {
-                throw Object.assign(new Error('ECPay not configured'), { code: 'ECPAY_NOT_CONFIGURED' });
-            }
-
-            // 2) 已登入 → 建立綠界訂單並導向付款介面
-            const email = String(user.email || '').trim().toLowerCase();
+            // 2) 建立綠界訂單並導向付款介面
+            const email = String(user?.email || '').trim().toLowerCase();
             const checkout = await api.createEcpayPayment({
                 purpose: 'host_subscription',
                 amountTwd: pricingAmountTwd(),
